@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hủy bao bì TXTT — Bệnh viện Nhi Trung ương</title>
+<style>
+/* ===== GLOBAL ===== */
+:root{
+  --accent:#1a5fa3; --accent-dark:#134a80; --green:#1e7d52; --red:#c0392b;
+  --orange:#d97706; --line:#000; --hint:#bbb; --bg:#f0f2f5;
+  --card:#fff; --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Times New Roman",Times,serif;font-size:13px;background:var(--bg);color:#111;}
+
+/* ===== SCREEN SWITCHING ===== */
+#screen-admin{display:block;}
+#screen-form{display:none;}
+body.mode-form #screen-admin{display:none;}
+body.mode-form #screen-form{display:block;}
+
+/* ===== ADMIN SCREEN ===== */
+.admin-header{
+  background:linear-gradient(135deg,var(--accent-dark) 0%,var(--accent) 100%);
+  color:#fff;padding:28px 40px 22px;font-family:Arial,sans-serif;
+}
+.admin-header .hosp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin-bottom:4px;}
+.admin-header h1{font-size:22px;font-weight:700;margin-bottom:2px;}
+.admin-header .sub{font-size:13px;opacity:.8;}
+.admin-body{max-width:780px;margin:32px auto;padding:0 20px 60px;font-family:Arial,sans-serif;}
+.acard{background:var(--card);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.10);padding:24px 28px;margin-bottom:22px;}
+.acard h2{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.acard .desc{font-size:12px;color:#666;margin-bottom:16px;line-height:1.5;}
+.row-group{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.row-group input[type=text]{flex:1;min-width:240px;padding:9px 12px;border:1.5px solid #d0d5dd;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;transition:border .15s;}
+.row-group input[type=text]:focus{outline:none;border-color:var(--accent);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:none;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;cursor:pointer;font-weight:600;transition:filter .15s;white-space:nowrap;}
+.btn:hover{filter:brightness(1.08);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-ghost{background:#e8eef6;color:var(--accent-dark);}
+.btn-open{display:flex;align-items:center;justify-content:space-between;width:100%;padding:18px 24px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-family:Arial,sans-serif;font-weight:700;cursor:pointer;transition:filter .15s;box-shadow:0 2px 8px rgba(26,95,163,.30);}
+.btn-open:hover{filter:brightness(1.1);}
+.btn-open .arrow{font-size:22px;}
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;font-family:Arial,sans-serif;margin-top:10px;background:#f0f4f8;color:#555;}
+.status-badge.ok{background:#e6f9f0;color:var(--green);}
+.status-badge.err{background:#fdecea;color:var(--red);}
+.status-badge.loading{background:#fef9e7;color:#8a6500;}
+
+/* script how-to */
+.howto{display:none;margin-top:14px;background:#f8fafc;border:1px solid #d0d5dd;border-radius:8px;padding:16px 18px;font-size:12px;line-height:1.7;color:#333;}
+.howto.open{display:block;}
+.howto ol{margin-left:18px;}
+.howto li{margin-bottom:4px;}
+.howto code,.howto pre{background:#1e2130;color:#a8d8a8;padding:2px 6px;border-radius:4px;font-size:11.5px;font-family:monospace;}
+.howto pre{display:block;padding:10px 14px;margin:8px 0;white-space:pre-wrap;line-height:1.5;}
+.toggle-link{background:none;border:none;color:var(--accent);font-size:12px;font-family:Arial,sans-serif;cursor:pointer;text-decoration:underline;padding:0;margin-top:8px;}
+
+/* ===== FORM SCREEN ===== */
+.form-bar{
+  position:sticky;top:0;z-index:50;
+  background:#1a1a2e;color:#fff;
+  padding:8px 20px;
+  display:flex;align-items:center;gap:10px;
+  font-family:Arial,sans-serif;
+}
+.form-bar .form-bar-title{font-size:12.5px;font-weight:600;margin-right:auto;color:#c8d8f0;}
+.fbar-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 15px;border:none;border-radius:6px;font-size:12.5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;transition:filter .15s,opacity .15s;}
+.fbar-btn:hover:not(:disabled){filter:brightness(1.1);}
+.fbar-btn.add{background:#2e8b57;color:#fff;}
+.fbar-btn.save{background:var(--orange);color:#fff;font-size:13px;padding:8px 18px;}
+.fbar-btn.print{background:var(--accent);color:#fff;}
+.fbar-btn:disabled{opacity:.35;cursor:not-allowed;}
+.saved-badge{
+  display:none;align-items:center;gap:6px;
+  background:#1e7d52;color:#fff;
+  padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;font-family:Arial,sans-serif;
+}
+.saved-badge.show{display:inline-flex;}
+.new-form-btn{background:#4b5563;color:#fff;border:none;border-radius:6px;padding:7px 13px;font-size:12px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;display:none;}
+.new-form-btn.show{display:inline-flex;align-items:center;gap:5px;}
+.new-form-btn:hover{filter:brightness(1.15);}
+
+/* locked form */
+.form-locked input,.form-locked select,.form-locked textarea{
+  pointer-events:none;background:transparent;color:#111;
+  -webkit-appearance:none;appearance:none;
+}
+.form-locked .row-actions{display:none;}
+.form-locked .add-row-bar{display:none;}
+
+/* ===== FORM PAGES ===== */
+.form-wrap{background:#6b7280;min-height:calc(100vh - 44px);padding:16px 0 40px;}
+.page{width:1100px;margin:16px auto;background:#fff;padding:34px 40px 14px;box-shadow:0 2px 12px rgba(0,0,0,.30);display:flex;flex-direction:column;}
+.static-date{font-style:italic;}
+.head-row{display:flex;justify-content:space-between;margin-bottom:4px;}
+.head-col{width:48%;text-align:center;}
+.head-col p{margin:0;line-height:1.5;}
+.bold{font-weight:bold;}.upper{text-transform:uppercase;}.underline{text-decoration:underline;}
+.head-right .line2{font-weight:bold;}
+.head-right .line3{font-style:italic;margin-top:18px;}
+.title{text-align:center;font-weight:bold;text-transform:uppercase;font-size:13px;margin:14px 0 10px;white-space:nowrap;}
+.khoa-line{display:flex;gap:0;align-items:baseline;margin-bottom:10px;flex-wrap:nowrap;}
+.khoa-line label{margin-right:4px;flex-shrink:0;}
+.khoa-line .khoa-input{border:none;border-bottom:1px dotted var(--hint);width:220px;flex-shrink:0;font-family:inherit;font-size:inherit;}
+.khoa-line .khoa-input.has-value{border-bottom:none;}
+.khoa-line .khoa-suffix{flex-shrink:0;margin-left:4px;}
+table.main{width:100%;border-collapse:collapse;margin-top:6px;}
+table.main th,table.main td{border:1px solid var(--line);padding:4px;vertical-align:middle;text-align:center;}
+table.main th{font-weight:bold;background:#fafafa;font-size:11.5px;}
+table.main td{font-size:11.5px;}
+table.main thead{display:table-header-group;}
+td input[type=text],td input[type=number],td select{width:100%;border:none;background:transparent;text-align:center;font-family:inherit;font-size:11.5px;padding:2px;}
+td input,td select{border-bottom:1px dotted var(--hint);}
+td input.has-value,td select.has-value{border-bottom:none;}
+td input:focus,td select:focus{outline:1px solid var(--accent);background:#eef5fc;}
+.stt-col{width:26px;}.row-actions{width:26px;}
+.row-actions button{border:none;background:#d9534f;color:#fff;border-radius:3px;width:20px;height:20px;cursor:pointer;font-size:12px;line-height:1;}
+.print-select-replacement{display:none;width:100%;text-align:center;font-family:inherit;font-size:11.5px;padding:2px;}
+.nongdo-cell{display:flex;align-items:center;gap:2px;}
+.nongdo-cell input{width:55%;text-align:right;padding-right:2px;}
+.nongdo-cell select{width:45%;font-size:10.5px;}
+.input-warning{display:none;position:absolute;background:#d9534f;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;white-space:nowrap;z-index:80;margin-top:22px;font-family:Arial,sans-serif;}
+.add-row-bar{margin:8px 0 14px;font-family:Arial,sans-serif;}
+.add-row-bar button{background:#2e8b57;color:#fff;border:none;padding:6px 12px;border-radius:5px;cursor:pointer;font-size:12px;}
+.footnote{font-size:10.5px;margin-top:0;line-height:1.55;width:38%;}
+.footnote-title{font-style:italic;font-weight:bold;}
+.sign-date-text{margin:0 0 4px;font-style:italic;font-size:11.5px;text-align:center;}
+.sign-footnote-row{display:flex;align-items:flex-start;gap:8px;margin-top:18px;}
+.sign-footnote-row .sign-block{width:29%;text-align:center;}
+.sign-footnote-row .sign-block .role{font-weight:bold;margin:0;}
+.sign-footnote-row .sign-block .hint{font-style:italic;font-size:11px;margin:0 0 6px;}
+.sign-row{display:flex;justify-content:space-between;margin-top:30px;}
+.sign-block{width:46%;text-align:center;}
+.sign-block .role{font-weight:bold;margin-bottom:0;}
+.sign-block .hint{font-style:italic;font-size:11px;margin-top:0;}
+.sign-block input{text-align:center;border:none;border-bottom:1px dotted var(--hint);width:80%;font-weight:bold;font-size:inherit;font-family:inherit;}
+.sign-block input.has-value{border-bottom:none;}
+.section-title{font-weight:bold;margin-top:24px;margin-bottom:8px;}
+.page-footer{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;padding-top:18px;}
+.method-row{display:flex;justify-content:space-between;margin-bottom:10px;gap:24px;}
+.method-left{width:60%;}.method-right{width:38%;}
+.method-right .num-line{display:flex;gap:6px;margin-bottom:6px;align-items:baseline;}
+.method-right .num-line span.idx{width:18px;}
+.method-right .num-line input{flex:1;border:none;border-bottom:1px dotted var(--hint);font-family:inherit;font-style:italic;font-size:12px;}
+.method-right .num-line input.has-value{border-bottom:none;}
+.method-right .num-line .preset{font-style:italic;}
+.para{margin:14px 0;line-height:1.6;}
+.time-line{display:flex;gap:6px;align-items:baseline;margin:14px 0;}
+.time-line input{border:none;border-bottom:1px dotted var(--hint);width:50px;text-align:center;font-family:inherit;}
+.time-line input.has-value{border-bottom:none;}
+
+/* ===== PRINT ===== */
+@media print{
+  #screen-admin{display:none!important;}
+  #screen-form{display:block!important;}
+  .form-bar,.add-row-bar,.row-actions{display:none!important;}
+  .form-wrap{background:#fff;padding:0;min-height:unset;}
+  .page{box-shadow:none;margin:0;padding:8mm 12mm 6mm;width:auto;min-height:194mm;page-break-after:always;}
+  .page:last-child{page-break-after:auto;}
+  @page{size:A4 landscape;margin:8mm;}
+  input,select,td input,td select,.khoa-input,.sign-block input,.method-right input,.time-line input{border-bottom:none!important;}
+  select{display:none!important;}
+  .print-select-replacement{display:inline-block!important;}
+  .input-warning{display:none!important;}
+  .nongdo-cell .print-select-replacement{width:45%!important;font-size:10px!important;}
+  .nongdo-cell input{width:55%!important;}
+  .para{margin:6px 0!important;}
+  .section-title{margin-top:10px!important;margin-bottom:5px!important;}
+  .method-row{margin-bottom:5px!important;}
+  .method-right .num-line{margin-bottom:3px!important;}
+  .time-line{margin:6px 0!important;}
+  .sign-row{margin-top:14px!important;}
+  .sign-block div[style*="height"]{height:32px!important;}
+  .sign-footnote-row div[style*="height"]{height:32px!important;}
+  .sign-footnote-row{margin-top:16px!important;}
+  .page-footer{padding-top:8px!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║          SCREEN 1 — ADMIN           ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div id="screen-admin">
+  <div class="admin-header">
+    <div class="hosp">Bệnh viện Nhi Trung ương — Hội đồng hủy thuốc</div>
+    <h1>Hệ thống biên bản hủy bao bì TXTT</h1>
+    <div class="sub">Quản lý cấu hình — BM7/QTQL.D.22.1</div>
+  </div>
+
+  <div class="admin-body">
+
+    <!-- Card 1: drug sheet -->
+    <div class="acard">
+      <h2>🔗 Dữ liệu danh mục thuốc (Google Sheet đầu vào)</h2>
+      <div class="desc">Sheet chứa danh sách thuốc hiện có trong kho. Cần có 5 cột: <b>Tên thuốc</b>, <b>Tên hoạt chất</b>, <b>Nồng độ/hàm lượng</b>, <b>Số lô</b>, <b>ĐVT</b>.<br>
+        Chia sẻ: <i>File → Share → Publish to web → chọn sheet → CSV → Publish</i>, copy link.</div>
+      <div class="row-group">
+        <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/…">
+        <button class="btn btn-primary" onclick="connectSheet()">🔗 Kết nối</button>
+        <button class="btn btn-ghost" id="refreshBtn" onclick="refreshSheet()" style="display:none;">🔄 Làm mới</button>
+      </div>
+      <div id="dbStatus" class="status-badge">⚪ Chưa kết nối</div>
+    </div>
+
+    <!-- Card 2: save script -->
+    <div class="acard">
+      <h2>💾 Lưu biên bản vào Google Sheet (Apps Script)</h2>
+      <div class="desc">Mỗi lần nhân viên bấm <b>"Lưu biên bản"</b>, dữ liệu sẽ được ghi tự động vào một Google Sheet tổng hợp. Cần thiết lập một lần qua Google Apps Script (miễn phí).</div>
+      <div class="row-group">
+        <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/…/exec">
+        <button class="btn btn-primary" onclick="saveScriptUrl()">💾 Lưu URL</button>
+        <button class="btn btn-ghost" onclick="testScript()">🧪 Test kết nối</button>
+      </div>
+      <div id="scriptStatus" class="status-badge">⚪ Chưa cấu hình</div>
+      <button class="toggle-link" onclick="toggleHowto()">▶ Hướng dẫn thiết lập Apps Script (5 bước)</button>
+      <div class="howto" id="howtoBox">
+        <ol>
+          <li>Tạo một <b>Google Sheet mới</b> để chứa dữ liệu biên bản (đặt tên tuỳ ý, ví dụ: <i>Tổng hợp biên bản hủy 2026</i>).</li>
+          <li>Mở sheet đó → bấm <b>Extensions → Apps Script</b>.</li>
+          <li>Xoá code mặc định, dán đoạn code sau vào rồi bấm <b>Save (Ctrl+S)</b>:</li>
+        </ol>
+        <pre>function doPost(e) {
+  try {
+    var rows = JSON.parse(e.postData.contents);
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    rows.forEach(function(row){ sheet.appendRow(row); });
+    return ContentService
+      .createTextOutput(JSON.stringify({status:'ok',saved:rows.length}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({status:'error',msg:err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</pre>
+        <ol start="4">
+          <li>Bấm <b>Deploy → New deployment → Web app</b>.<br>
+              Chọn: <i>Execute as: Me</i> | <i>Who has access: Anyone</i> → <b>Deploy</b>.<br>
+              Lần đầu Google sẽ yêu cầu cấp quyền → chọn tài khoản → <i>Advanced → Go to … → Allow</i>.</li>
+          <li>Copy <b>Web app URL</b> (dạng <code>https://script.google.com/macros/s/…/exec</code>) và dán vào ô trên.</li>
+        </ol>
+        <p style="color:#666;margin-top:8px;">⚠️ Mỗi khi sửa code, cần deploy lại (New deployment hoặc New version) để thay đổi có hiệu lực.</p>
+      </div>
+    </div>
+
+    <!-- Open form button -->
+    <button class="btn-open" onclick="openForm()">
+      <span>🗂️ Mở giao diện nhập biên bản hủy bao bì</span>
+      <span class="arrow">→</span>
+    </button>
+    <p style="font-size:11px;color:#888;font-family:Arial,sans-serif;margin-top:10px;text-align:center;">
+      Link dành cho khoa/phòng (chỉ nhập liệu, không có cài đặt): <code id="formLinkDisplay"></code>
+    </p>
+
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║          SCREEN 2 — FORM            ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div id="screen-form">
+  <div class="form-bar">
+    <span class="form-bar-title">Biên bản hủy bao bì TXTT &amp; dư phẩm thuốc — BM7/QTQL.D.22.1</span>
+    <button class="fbar-btn add" id="btnAddRow" onclick="addRow()">+ Thêm dòng</button>
+    <button class="fbar-btn save" id="btnSave" onclick="saveForm()">💾 Lưu biên bản</button>
+    <span class="saved-badge" id="savedBadge">✅ Đã lưu lúc <span id="savedTime"></span></span>
+    <button class="fbar-btn print" id="btnPrint" onclick="window.print()" disabled title="Lưu biên bản trước khi in">🖨️ In / PDF</button>
+    <button class="new-form-btn" id="btnNew" onclick="resetForm()">📋 Biên bản mới</button>
+  </div>
+  <div class="form-wrap" id="formWrap">
+
+    <!-- PAGE 1 -->
+    <div class="page">
+      <div class="head-row">
+        <div class="head-col">
+          <p class="bold upper">Bệnh viện Nhi Trung ương</p>
+          <p class="bold upper underline">Hội đồng hủy thuốc</p>
+        </div>
+        <div class="head-col head-right">
+          <p class="bold upper">Cộng hoà xã hội chủ nghĩa Việt Nam</p>
+          <p class="bold line2 underline">Độc lập - Tự do - Hạnh phúc</p>
+          <p class="line3">Hà Nội, ngày <span class="static-date" id="curDay"></span> tháng <span class="static-date" id="curMonth"></span> năm <span class="static-date" id="curYear"></span></p>
+        </div>
+      </div>
+      <div class="title">Biên bản hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất</div>
+      <div class="khoa-line">
+        <label class="bold" style="white-space:nowrap;">1. Khoa/Trung tâm</label>
+        <input type="text" class="khoa-input auto-hv" id="khoaInput" placeholder="..........................................">
+        <span class="khoa-suffix">thực hiện thu hồi và đề xuất hủy các thuốc sau:</span>
+      </div>
+
+      <table class="main" id="mainTable">
+        <thead>
+          <tr>
+            <th rowspan="2" class="stt-col">STT</th>
+            <th rowspan="2" style="width:120px;">Tên thuốc</th>
+            <th rowspan="2" style="width:110px;">Tên hoạt chất</th>
+            <th rowspan="2" style="width:90px;">Nồng độ/hàm lượng</th>
+            <th rowspan="2" style="width:80px;">Số lô</th>
+            <th rowspan="2" style="width:55px;">Đơn vị tính (ĐVT)</th>
+            <th rowspan="2" style="width:70px;">Số lượng bao bì TXTT cần hủy</th>
+            <th colspan="7">Tình trạng dư phẩm thuốc cần hủy</th>
+            <th rowspan="2" style="width:60px;">Dược sĩ xác nhận (***)</th>
+            <th rowspan="2" class="row-actions"></th>
+          </tr>
+          <tr>
+            <th style="width:80px;">Bao bì chứa dư phẩm</th>
+            <th style="width:90px;">Dịch truyền pha 1 ĐVT thuốc (*)</th>
+            <th style="width:90px;">Nồng độ thuốc trong dư phẩm</th>
+            <th style="width:70px;">Thể tích dư phẩm cần hủy (ml)</th>
+            <th style="width:75px;">Tỷ lệ dư phẩm trên đơn vị tính (**)</th>
+            <th style="width:75px;">Điều dưỡng thực hiện y lệnh</th>
+            <th style="width:75px;">Bác sĩ điều trị</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+
+      <div class="add-row-bar"><button onclick="addRow()">+ Thêm dòng thuốc</button></div>
+
+      <div class="sign-footnote-row">
+        <div class="footnote">
+          <span class="footnote-title">Chú thích:</span><br>
+          (*) DW (Nước cất pha tiêm), NS (NaCl 0,9%), G5 (Glucose 5%)<br>
+          (**) Lượng thuốc trong dư phẩm/hàm lượng thuốc của 1 ĐVT<br>
+          (***) Nhân viên khoa dược kiểm tra và nhận bàn giao danh mục, số lượng bao bì TXTT và đúng tình trạng thực tế của dư phẩm thuốc, ký &amp; ghi rõ họ tên
+        </div>
+        <div class="sign-block">
+          <p class="sign-date-text" style="visibility:hidden;" aria-hidden="true">Hà Nội, ngày .... tháng .... năm ....</p>
+          <p class="role">Điều dưỡng hành chính</p>
+          <p class="hint">(Ký, ghi rõ họ tên)</p>
+          <div style="height:50px;"></div>
+          <input type="text" class="auto-hv" placeholder="Họ và tên">
+        </div>
+        <div class="sign-block">
+          <p class="sign-date-text">Hà Nội, ngày .... tháng .... năm ....</p>
+          <p class="role">Lãnh đạo khoa/Trung tâm</p>
+          <p class="hint">(Ký, ghi rõ họ tên)</p>
+          <div style="height:50px;"></div>
+          <input type="text" class="auto-hv" placeholder="Họ và tên">
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <span>BM7/QTQL.D.22.1</span>
+        <span>Trang <span class="pnum"></span> / <span class="ptotal"></span></span>
+        <span>22/06/2026</span>
+      </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="page">
+      <div class="section-title">2. Tiến hành tiêu hủy</div>
+      <p class="para">
+        Căn cứ theo đề xuất hủy của khoa<input type="text" class="auto-hv" id="khoaPage2" style="border:none;border-bottom:1px dotted var(--hint);width:140px;">, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất với các nội dung như sau:
+      </p>
+      <div class="khoa-line">
+        <label class="bold" style="white-space:nowrap;">Địa điểm:</label>
+        <input type="text" class="khoa-input auto-hv has-value" id="diaDiem" value="Khoa Dược" style="font-style:italic;width:140px;">
+      </div>
+      <div class="khoa-line">
+        <label class="bold" style="white-space:nowrap;">Thời gian:</label>
+        <input type="text" class="khoa-input auto-hv" id="thoiGian" placeholder="....giờ.... ngày..../..../....">
+      </div>
+
+      <div class="method-row" style="margin-top:18px;">
+        <div class="method-left">
+          <p class="bold" style="margin-bottom:10px;">Phương pháp hủy:</p>
+          <p style="margin:4px 0;">- Với bao bì TXTT: Phá hủy bằng cách cắt/ đập vỡ/nghiền biến dạng rồi xử lý rác thải theo qui định của Bệnh viện</p>
+          <p style="margin:4px 0;">- Với dư phẩm thuốc: Đổ dư phẩm thuốc vào xô nước để hòa loãng rồi đổ vào đường nước thải chung</p>
+        </div>
+        <div class="method-right">
+          <p class="bold" style="margin-bottom:6px;">Thành phần tham gia:</p>
+          <div class="num-line"><span class="idx">1.</span><input type="text" class="auto-hv tv1"><span class="preset">Khoa Dược, Thành viên Hội đồng hủy</span></div>
+          <div class="num-line" style="align-items:flex-start;"><span class="idx" style="padding-top:1px;">2.</span><input type="text" class="auto-hv tv2" style="margin-top:1px;"><span class="preset">Phòng TCKT, Thành viên Hội đồng hủy<br>Khoa DP&amp;KSNK, Thành viên hủy</span></div>
+          <div class="num-line"><span class="idx">3.</span><input type="text" class="auto-hv tv3"><span class="preset">Khoa Dược</span></div>
+          <div class="num-line"><span class="idx">4.</span><input type="text" class="auto-hv tv4"><span class="preset">Khoa DP&amp;KSNK</span></div>
+        </div>
+      </div>
+
+      <p class="para">Chúng tôi cùng chứng kiến và thực hiện hủy hết lượng bao bì TXTT và dư phẩm thuốc gây nghiện, hướng thần và tiền chất đúng như trên Mục 1.</p>
+
+      <div class="time-line">
+        <span>Việc tiêu hủy kết thúc vào lúc</span>
+        <input type="text" class="auto-hv" id="gioKetThuc"> <span>giờ</span>
+        <input type="text" class="auto-hv" id="phutKetThuc"> <span>phút cùng ngày.</span>
+      </div>
+
+      <p class="para">Biên bản hủy thuốc được báo cáo lên <input type="text" class="auto-hv" id="baoCaoLen" style="border:none;border-bottom:1px dotted var(--hint);width:260px;"></p>
+      <p class="para">Biên bản này được lập thành 01 bản, Hội đồng hủy thuốc lưu bản chính.</p>
+
+      <div class="sign-row" style="margin-top:40px;">
+        <div class="sign-block">
+          <p class="role">THÀNH VIÊN THAM GIA HỦY</p>
+          <p class="hint">(Ký và ghi rõ họ tên)</p>
+          <div style="height:70px;"></div>
+        </div>
+        <div class="sign-block">
+          <p class="role">CHỦ TỊCH HỘI ĐỒNG</p>
+          <p class="hint">(Ký tên và đóng dấu)</p>
+          <div style="height:70px;"></div>
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <span>BM7/QTQL.D.22.1</span>
+        <span>Trang <span class="pnum"></span> / <span class="ptotal"></span></span>
+        <span>22/06/2026</span>
+      </div>
+    </div>
+  </div><!-- /form-wrap -->
+</div><!-- /screen-form -->
+
+<script>
+/* =====================================================
+   ROUTING
+   ===================================================== */
+function openForm(){ window.location.hash='form'; document.body.classList.add('mode-form'); }
+function checkRoute(){ if(location.hash==='#form') document.body.classList.add('mode-form'); }
+checkRoute();
+window.addEventListener('hashchange',checkRoute);
+(function(){ const el=document.getElementById('formLinkDisplay'); if(el) el.textContent=location.origin+location.pathname+'#form'; })();
+
+/* =====================================================
+   DATE
+   ===================================================== */
+(function(){
+  const n=new Date();
+  document.getElementById('curDay').textContent=n.getDate();
+  document.getElementById('curMonth').textContent=n.getMonth()+1;
+  document.getElementById('curYear').textContent=n.getFullYear();
+})();
+
+/* =====================================================
+   GOOGLE SHEET — drug list (read)
+   ===================================================== */
+let DRUG_DB=[];
+const savedSheetUrl=localStorage.getItem('sheetUrl')||'';
+if(savedSheetUrl){ document.getElementById('sheetUrl').value=savedSheetUrl; connectSheet(true); }
+const savedScriptUrl=localStorage.getItem('scriptUrl')||'';
+if(savedScriptUrl){ document.getElementById('scriptUrl').value=savedScriptUrl; document.getElementById('scriptStatus').className='status-badge ok'; document.getElementById('scriptStatus').textContent='✅ Đã cấu hình'; }
+
+function buildCsvUrl(rawUrl){
+  const u = rawUrl.trim();
+  // ── Case 1: Published-to-web URL  (/d/e/PUBLISH_KEY/pub…)
+  //    e.g. https://docs.google.com/spreadsheets/d/e/2PACX-…/pub?output=csv
+  const pubM = u.match(/\/spreadsheets\/d\/e\/([A-Za-z0-9_-]+)/);
+  if(pubM){
+    const gidM = u.match(/[?&]gid=(\d+)/);
+    return `https://docs.google.com/spreadsheets/d/e/${pubM[1]}/pub?output=csv${gidM?'&gid='+gidM[1]:''}`;
+  }
+  // ── Case 2: Regular spreadsheet URL  (/d/SHEET_ID/edit…)
+  //    e.g. https://docs.google.com/spreadsheets/d/1aBcD…/edit?gid=0
+  const idM = u.match(/\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/);
+  if(idM){
+    const gidM = u.match(/[?&#]gid=(\d+)/);
+    return `https://docs.google.com/spreadsheets/d/${idM[1]}/export?format=csv${gidM?'&gid='+gidM[1]:''}`;
+  }
+  return null;
+}
+
+async function connectSheet(silent){
+  const raw=(document.getElementById('sheetUrl').value||'').trim();
+  if(!raw){if(!silent)alert('Vui lòng nhập URL Google Sheet.');return;}
+  const csvUrl = buildCsvUrl(raw);
+  if(!csvUrl){
+    if(!silent)alert('Không nhận ra URL Google Sheet.\nCần dán URL dạng:\n• https://docs.google.com/spreadsheets/d/ID/edit…\nhoặc link "Publish to web" dạng:\n• https://docs.google.com/spreadsheets/d/e/2PACX-…/pub?output=csv');
+    return;
+  }
+  setStatus('dbStatus','loading','⏳ Đang tải…');
+  try{
+    const res = await fetch(csvUrl);
+    if(!res.ok) throw new Error(`HTTP ${res.status} — Sheet chưa được chia sẻ công khai hoặc chưa Publish to web`);
+    const db = parseCsvToDrugDb(await res.text());
+    if(!db.length) throw new Error('Không đọc được dữ liệu. Kiểm tra lại tiêu đề cột trong Sheet.');
+    DRUG_DB=db; localStorage.setItem('sheetUrl',raw);
+    setStatus('dbStatus','ok',`✅ ${db.length} thuốc — ${new Date().toLocaleTimeString('vi-VN')}`);
+    document.getElementById('refreshBtn').style.display='';
+    rebuildPrimaryOptions();
+    if(!silent) alert(`Đã tải ${db.length} dòng từ Google Sheet.`);
+  }catch(e){
+    setStatus('dbStatus','err','🔴 '+e.message);
+    if(!silent){
+      alert(
+        'Không kết nối được:\n'+e.message+
+        '\n\n✅ Giải pháp:\n'+
+        '1. Vào Google Sheet → File → Share → Publish to web\n'+
+        '2. Chọn tab sheet cần dùng → định dạng CSV → bấm Publish\n'+
+        '3. Copy link và dán vào đây\n\n'+
+        'Hoặc: Share → Anyone with the link → Viewer\n'+
+        'rồi dán link chỉnh sửa thông thường vào đây.\n\n'+
+        '⚠️ Nếu file đang mở từ ổ cứng (file://…) thay vì web server, cần upload lên GitHub Pages trước.'
+      );
+    }
+  }
+}
+function refreshSheet(){ connectSheet(false); }
+function setStatus(id,cls,msg){ const el=document.getElementById(id); el.className='status-badge '+(cls||''); el.textContent=msg; }
+
+/* =====================================================
+   APPS SCRIPT — save records (write)
+   ===================================================== */
+function saveScriptUrl(){
+  const url=(document.getElementById('scriptUrl').value||'').trim();
+  if(!url||!url.includes('script.google.com')){alert('URL không hợp lệ. Cần URL dạng https://script.google.com/macros/s/…/exec');return;}
+  localStorage.setItem('scriptUrl',url);
+  setStatus('scriptStatus','ok','✅ Đã lưu URL');
+}
+async function testScript(){
+  const url=localStorage.getItem('scriptUrl');
+  if(!url){alert('Chưa có URL. Hãy nhập và bấm "Lưu URL" trước.');return;}
+  setStatus('scriptStatus','loading','⏳ Đang test…');
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify([['__TEST__']])});
+    setStatus('scriptStatus','ok','✅ Kết nối thành công (kiểm tra Sheet xem có dòng __TEST__ không)');
+  }catch(e){
+    setStatus('scriptStatus','err','🔴 Lỗi: '+e.message);
+  }
+}
+function toggleHowto(){
+  const box=document.getElementById('howtoBox');
+  const btn=document.querySelector('.toggle-link');
+  box.classList.toggle('open');
+  btn.textContent=(box.classList.contains('open')?'▼':'▶')+' Hướng dẫn thiết lập Apps Script (5 bước)';
+}
+
+/* =====================================================
+   CSV PARSER
+   ===================================================== */
+function parseCsv(text){
+  const rows=[];const re=/("(?:[^"]|"")*"|[^,\r\n]*)(,|\r?\n|$)/g;
+  let row=[],m;
+  while((m=re.exec(text))!==null){
+    let v=m[1];if(v.startsWith('"'))v=v.slice(1,-1).replace(/""/g,'"');
+    row.push(v.trim());
+    if(m[2]!==','){if(row.some(c=>c!==''))rows.push(row);row=[];}
+    if(m[2]==='')break;
+  }
+  return rows;
+}
+const HA={tenThuoc:["ten thuoc","tên thuốc"],hoatChat:["ten hoat chat","hoat chat","tên hoạt chất","hoạt chất"],nongDo:["nong do","nong do/ham luong","nồng độ","nồng độ/hàm lượng","ham luong"],soLo:["so lo","số lô"],dvt:["dvt","don vi tinh","đvt","đơn vị tính"]};
+function norm(s){return(s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9/ ]/g,"").trim();}
+function mh(h){const n=norm(h);for(const k in HA)if(HA[k].some(a=>norm(a)===n||n.includes(norm(a))))return k;return null;}
+function parseCsvToDrugDb(text){
+  const rows=parseCsv(text);if(rows.length<2)return[];
+  const cm={};rows[0].forEach((h,i)=>{const k=mh(h);if(k)cm[k]=i;});
+  const miss=['tenThuoc','hoatChat','nongDo','soLo','dvt'].filter(k=>!(k in cm));
+  if(miss.length)throw new Error(`Thiếu cột: ${miss.join(', ')}`);
+  const data=[];
+  for(let i=1;i<rows.length;i++){const r=rows[i];if(!r||r.every(c=>c===''))continue;data.push({tenThuoc:r[cm.tenThuoc]||'',hoatChat:r[cm.hoatChat]||'',nongDo:r[cm.nongDo]||'',soLo:r[cm.soLo]||'',dvt:r[cm.dvt]||''});}
+  return data;
+}
+
+/* =====================================================
+   DROPDOWNS + ROWS
+   ===================================================== */
+function makeOpts(arr,ph){let h=`<option value="">${ph||''}</option>`;arr.forEach(v=>h+=`<option value="${v}">${v}</option>`);return h;}
+function rebuildPrimaryOptions(){const list=[...new Set(DRUG_DB.map(d=>d.tenThuoc))];document.querySelectorAll('select.tenthuoc').forEach(s=>{const c=s.value;s.innerHTML=makeOpts(list,'');if(list.includes(c))s.value=c;});}
+
+let rowCount=0;
+function addRow(){
+  rowCount++;
+  const list=[...new Set(DRUG_DB.map(d=>d.tenThuoc))];
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td class="stt-col"></td>
+    <td><select class="tenthuoc">${makeOpts(list,'')}</select></td>
+    <td><select class="hoatchat" disabled><option value=""></option></select></td>
+    <td><select class="nongdo" disabled><option value=""></option></select></td>
+    <td><select class="solo" disabled><option value=""></option></select></td>
+    <td><select class="dvt" disabled><option value=""></option></select></td>
+    <td><input type="text" class="auto-hv"></td>
+    <td><select class="baobidupham">${makeOpts(['Ống','Lọ','Bơm tiêm','Chai','Túi'],'')}</select></td>
+    <td><select class="dichtruyenpha">${makeOpts(['DW','NS','G5'],'')}</select></td>
+    <td><div class="nongdo-cell" style="position:relative;"><input type="text" class="auto-hv nongdo-value" inputmode="decimal" placeholder="0,0"><select class="nongdo-unit">${makeOpts(['mg/ml','mcg/ml'],'')}</select><span class="input-warning"></span></div></td>
+    <td><input type="text" class="auto-hv"></td>
+    <td><input type="text" class="auto-hv"></td>
+    <td><input type="text" class="auto-hv"></td>
+    <td><input type="text" class="auto-hv"></td>
+    <td><input type="text" class="auto-hv"></td>
+    <td class="row-actions"><button onclick="this.closest('tr').remove();renumber();">✕</button></td>
+  `;
+  document.getElementById('tbody').appendChild(tr);
+  const tt=tr.querySelector('.tenthuoc'),hc=tr.querySelector('.hoatchat'),nd=tr.querySelector('.nongdo'),sl=tr.querySelector('.solo'),dv=tr.querySelector('.dvt');
+  tt.addEventListener('change',()=>{const m=DRUG_DB.filter(d=>d.tenThuoc===tt.value),l=[...new Set(m.map(d=>d.hoatChat))];hc.innerHTML=makeOpts(l,'');hc.disabled=!l.length;nd.innerHTML='<option value=""></option>';nd.disabled=true;sl.innerHTML='<option value=""></option>';sl.disabled=true;dv.innerHTML='<option value=""></option>';dv.disabled=true;uv(tt);if(l.length===1){hc.value=l[0];hc.dispatchEvent(new Event('change'));}});
+  hc.addEventListener('change',()=>{const m=DRUG_DB.filter(d=>d.tenThuoc===tt.value&&d.hoatChat===hc.value),l=[...new Set(m.map(d=>d.nongDo))];nd.innerHTML=makeOpts(l,'');nd.disabled=!l.length;sl.innerHTML='<option value=""></option>';sl.disabled=true;dv.innerHTML='<option value=""></option>';dv.disabled=true;uv(hc);if(l.length===1){nd.value=l[0];nd.dispatchEvent(new Event('change'));}});
+  nd.addEventListener('change',()=>{const m=DRUG_DB.filter(d=>d.tenThuoc===tt.value&&d.hoatChat===hc.value&&d.nongDo===nd.value),l=[...new Set(m.map(d=>d.soLo))];sl.innerHTML=makeOpts(l,'');sl.disabled=!l.length;dv.innerHTML='<option value=""></option>';dv.disabled=true;uv(nd);if(l.length===1){sl.value=l[0];sl.dispatchEvent(new Event('change'));}});
+  sl.addEventListener('change',()=>{const m=DRUG_DB.filter(d=>d.tenThuoc===tt.value&&d.hoatChat===hc.value&&d.nongDo===nd.value&&d.soLo===sl.value);const v=m[0]?.dvt;dv.innerHTML=v?`<option value="${v}">${v}</option>`:'<option value=""></option>';dv.disabled=true;uv(sl);uv(dv);});
+  attachDotGuard(tr.querySelector('.nongdo-value'));
+  renumber();
+}
+function renumber(){document.querySelectorAll('#tbody tr').forEach((r,i)=>r.querySelector('.stt-col').textContent=i+1);}
+function uv(el){el.classList.toggle('has-value',!!(el.value&&el.value.trim()));}
+document.addEventListener('input',e=>{if(e.target.classList?.contains('auto-hv'))uv(e.target);});
+document.addEventListener('change',e=>{if(e.target.tagName==='SELECT')uv(e.target);});
+function attachDotGuard(inp){
+  const w=inp.parentElement.querySelector('.input-warning');let t;
+  function warn(m){if(!w)return;w.textContent=m;w.style.display='block';clearTimeout(t);t=setTimeout(()=>w.style.display='none',2200);}
+  inp.addEventListener('beforeinput',e=>{if(e.data==null)return;if(e.data.includes('.')){e.preventDefault();warn('Dùng dấu phẩy ( , ) cho số thập phân');return;}if(e.data.includes(',')&&inp.value.includes(',')){e.preventDefault();warn('Chỉ được 1 dấu phẩy');return;}if(!/^[0-9,]+$/.test(e.data))e.preventDefault();});
+  inp.addEventListener('paste',e=>{if((e.clipboardData||window.clipboardData).getData('text').includes('.')){e.preventDefault();warn('Dùng dấu phẩy ( , ) cho số thập phân');}});
+}
+
+/* =====================================================
+   SAVE FORM → GOOGLE APPS SCRIPT
+   ===================================================== */
+async function saveForm(){
+  const rows=document.querySelectorAll('#tbody tr');
+  if(!rows.length){alert('Chưa có dòng thuốc nào trong bảng.');return;}
+
+  const scriptUrl=localStorage.getItem('scriptUrl');
+  if(!scriptUrl){alert('Chưa cấu hình URL Apps Script để lưu dữ liệu.\nVui lòng liên hệ quản trị viên.');return;}
+
+  // Collect header fields
+  const ngay=`${document.getElementById('curDay').textContent}/${document.getElementById('curMonth').textContent}/${document.getElementById('curYear').textContent}`;
+  const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
+  const khoaP2=document.getElementById('khoaPage2')?.value?.trim()||'';
+  const diaDiem=document.getElementById('diaDiem')?.value?.trim()||'';
+  const thoiGian=document.getElementById('thoiGian')?.value?.trim()||'';
+  const tv1=document.querySelector('.tv1')?.value?.trim()||'';
+  const tv2=document.querySelector('.tv2')?.value?.trim()||'';
+  const tv3=document.querySelector('.tv3')?.value?.trim()||'';
+  const tv4=document.querySelector('.tv4')?.value?.trim()||'';
+  const gioKT=document.getElementById('gioKetThuc')?.value?.trim()||'';
+  const phutKT=document.getElementById('phutKetThuc')?.value?.trim()||'';
+  const baoCao=document.getElementById('baoCaoLen')?.value?.trim()||'';
+
+  // COLS header row — only sent once (first time sheet is empty it helps format)
+  const HEADER=['Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ thuốc trong dư phẩm (số)','Đơn vị nồng độ','Thể tích dư phẩm cần hủy (ml)','Tỷ lệ dư phẩm trên ĐVT','Điều dưỡng thực hiện y lệnh','Bác sĩ điều trị','Dược sĩ xác nhận','Khoa đề xuất (trang 2)','Địa điểm','Thời gian','Thành viên 1','Thành viên 2','Thành viên 3','Thành viên 4','Giờ kết thúc','Phút kết thúc','Báo cáo lên'];
+
+  const now=new Date().toLocaleString('vi-VN');
+  const dataRows=[];
+  rows.forEach((tr,i)=>{
+    const tds=[...tr.querySelectorAll('td')];
+    const txt=td=>td?.querySelector('input:not(.nongdo-value),select')?.value?.trim()||td?.textContent?.trim()||'';
+    dataRows.push([
+      now, ngay, khoa, i+1,
+      tr.querySelector('.tenthuoc')?.value||'', tr.querySelector('.hoatchat')?.value||'',
+      tr.querySelector('.nongdo')?.value||'', tr.querySelector('.solo')?.value||'', tr.querySelector('.dvt')?.value||'',
+      txt(tds[6]),
+      tr.querySelector('.baobidupham')?.value||'', tr.querySelector('.dichtruyenpha')?.value||'',
+      tr.querySelector('.nongdo-value')?.value?.trim()||'', tr.querySelector('.nongdo-unit')?.value?.trim()||'',
+      txt(tds[10]),txt(tds[11]),txt(tds[12]),txt(tds[13]),txt(tds[14]),
+      khoaP2,diaDiem,thoiGian,tv1,tv2,tv3,tv4,gioKT,phutKT,baoCao
+    ]);
+  });
+
+  // Send header + data rows
+  const payload=[HEADER,...dataRows];
+
+  const btnSave=document.getElementById('btnSave');
+  btnSave.textContent='⏳ Đang lưu…'; btnSave.disabled=true;
+
+  try{
+    // Use no-cors because Apps Script redirects and browsers block CORS preflight on redirect
+    await fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    // no-cors = opaque response; we can't read it but data was sent
+    onSaveSuccess(now);
+  }catch(e){
+    btnSave.textContent='💾 Lưu biên bản'; btnSave.disabled=false;
+    alert('Lỗi gửi dữ liệu: '+e.message+'\nKiểm tra kết nối mạng và URL Apps Script.');
+  }
+}
+
+function onSaveSuccess(timeStr){
+  // Show saved badge + time
+  document.getElementById('savedTime').textContent=new Date().toLocaleTimeString('vi-VN');
+  document.getElementById('savedBadge').classList.add('show');
+  // Enable print, hide save+add buttons
+  document.getElementById('btnPrint').disabled=false;
+  document.getElementById('btnSave').style.display='none';
+  document.getElementById('btnAddRow').style.display='none';
+  document.getElementById('btnNew').classList.add('show');
+  // Lock all form inputs
+  document.getElementById('formWrap').classList.add('form-locked');
+  // Also disable the add-row-bar button inside pages
+  document.querySelectorAll('.add-row-bar button').forEach(b=>b.disabled=true);
+}
+
+function resetForm(){
+  if(!confirm('Tạo biên bản mới sẽ xoá toàn bộ nội dung hiện tại. Tiếp tục?')) return;
+  // Clear table
+  document.getElementById('tbody').innerHTML='';
+  rowCount=0;
+  // Clear all inputs in form pages
+  document.querySelectorAll('.form-wrap input[type=text]').forEach(el=>{el.value='';el.classList.remove('has-value');});
+  // Restore defaults
+  document.getElementById('diaDiem').value='Khoa Dược'; document.getElementById('diaDiem').classList.add('has-value');
+  // Reset UI state
+  document.getElementById('formWrap').classList.remove('form-locked');
+  document.getElementById('savedBadge').classList.remove('show');
+  document.getElementById('btnPrint').disabled=true;
+  document.getElementById('btnSave').style.display=''; document.getElementById('btnSave').disabled=false; document.getElementById('btnSave').textContent='💾 Lưu biên bản';
+  document.getElementById('btnAddRow').style.display='';
+  document.getElementById('btnNew').classList.remove('show');
+  document.querySelectorAll('.add-row-bar button').forEach(b=>b.disabled=false);
+  // Refresh date
+  const n=new Date();document.getElementById('curDay').textContent=n.getDate();document.getElementById('curMonth').textContent=n.getMonth()+1;document.getElementById('curYear').textContent=n.getFullYear();
+  // Add default 3 rows
+  addRow();addRow();addRow();
+}
+
+/* =====================================================
+   PRINT
+   ===================================================== */
+function prepForPrint(){
+  renumber();
+  document.querySelectorAll('select').forEach(sel=>{
+    let sp=sel.nextElementSibling;
+    if(!sp?.classList?.contains('print-select-replacement')){sp=document.createElement('span');sp.className='print-select-replacement';sel.insertAdjacentElement('afterend',sp);}
+    sp.textContent=(sel.value&&sel.value.trim())?sel.options[sel.selectedIndex].text:'';
+  });
+  updatePnums();
+}
+function afterPrint(){document.querySelectorAll('.print-select-replacement').forEach(s=>s.remove());}
+window.addEventListener('beforeprint',prepForPrint);
+window.addEventListener('afterprint',afterPrint);
+function updatePnums(){const pages=document.querySelectorAll('.form-wrap .page');pages.forEach((p,i)=>{const pn=p.querySelector('.pnum'),pt=p.querySelector('.ptotal');if(pn)pn.textContent=i+1;if(pt)pt.textContent=pages.length;});}
+updatePnums();
+
+/* init */
+addRow();addRow();addRow();
+</script>
+</body>
+</html>
