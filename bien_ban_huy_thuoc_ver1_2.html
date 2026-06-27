@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hủy bao bì TXTT — Bệnh viện Nhi Trung ương</title>
+<style>
+:root{--ac:#1a5fa3;--acd:#134a80;--gr:#1e7d52;--re:#c0392b;--or:#d97706;--li:#000;--hi:#bbb;--bg:#f0f2f5;--rad:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Times New Roman",Times,serif;font-size:13px;background:var(--bg);color:#111;}
+
+/* ── SCREENS ── */
+.scr{display:none;}
+.scr.active{display:block;}
+
+/* ── ADMIN SHARED ── */
+.adm-hdr{background:linear-gradient(135deg,var(--acd),var(--ac));color:#fff;padding:22px 36px 18px;font-family:Arial,sans-serif;}
+.adm-hdr .hosp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.7;margin-bottom:3px;}
+.adm-hdr h1{font-size:20px;font-weight:700;}
+.adm-hdr .sub{font-size:12px;opacity:.75;margin-top:2px;}
+.back-bar{display:flex;align-items:center;gap:10px;padding:10px 36px;background:#fff;border-bottom:1px solid #dde;font-family:Arial,sans-serif;}
+.back-btn{background:none;border:1px solid #aaa;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;color:#444;}
+.back-btn:hover{background:#f0f2f5;}
+.back-bar .pg-title{font-size:14px;font-weight:700;color:var(--ac);}
+.adm-body{max-width:800px;margin:28px auto;padding:0 20px 60px;font-family:Arial,sans-serif;}
+.acard{background:#fff;border-radius:var(--rad);box-shadow:0 1px 4px rgba(0,0,0,.10);padding:22px 26px;margin-bottom:20px;}
+.acard h2{font-size:14px;font-weight:700;color:var(--ac);margin-bottom:5px;display:flex;align-items:center;gap:7px;}
+.acard .desc{font-size:12px;color:#666;margin-bottom:14px;line-height:1.55;}
+.rg{display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
+.rg input[type=text]{flex:1;min-width:220px;padding:8px 11px;border:1.5px solid #d0d5dd;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;}
+.rg input:focus{outline:none;border-color:var(--ac);}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border:none;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;cursor:pointer;font-weight:600;transition:filter .15s;white-space:nowrap;}
+.btn:hover{filter:brightness(1.08);}
+.btn-p{background:var(--ac);color:#fff;}
+.btn-g{background:var(--gr);color:#fff;}
+.btn-gh{background:#e8eef6;color:var(--acd);}
+.btn-or{background:var(--or);color:#fff;}
+.sbadge{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:18px;font-size:11.5px;font-weight:600;font-family:Arial,sans-serif;margin-top:9px;background:#f0f4f8;color:#555;}
+.sbadge.ok{background:#e6f9f0;color:var(--gr);}
+.sbadge.err{background:#fdecea;color:var(--re);}
+.sbadge.ld{background:#fef9e7;color:#8a6500;}
+
+/* ── HOME TILES ── */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.tile{background:#fff;border-radius:var(--rad);box-shadow:0 1px 4px rgba(0,0,0,.10);padding:22px 24px;cursor:pointer;border:2px solid transparent;transition:border-color .15s,box-shadow .15s;text-align:left;}
+.tile:hover{border-color:var(--ac);box-shadow:0 4px 14px rgba(26,95,163,.15);}
+.tile .icon{font-size:28px;margin-bottom:10px;}
+.tile h3{font-size:14px;font-weight:700;color:var(--ac);margin-bottom:4px;}
+.tile p{font-size:11.5px;color:#666;line-height:1.45;}
+.open-btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:16px 22px;background:var(--ac);color:#fff;border:none;border-radius:var(--rad);font-size:16px;font-family:Arial,sans-serif;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(26,95,163,.30);}
+.open-btn:hover{filter:brightness(1.08);}
+.open-btn .arr{font-size:20px;}
+.form-hint{font-size:11px;color:#888;text-align:center;margin-top:8px;}
+
+/* ── HOWTO ── */
+.howto{display:none;margin-top:12px;background:#f8fafc;border:1px solid #d0d5dd;border-radius:8px;padding:14px 16px;font-size:12px;line-height:1.7;color:#333;}
+.howto.open{display:block;}
+.howto ol{margin-left:16px;} .howto li{margin-bottom:4px;}
+.howto pre{background:#1e2130;color:#a8d8a8;padding:10px 14px;border-radius:5px;font-size:11px;white-space:pre-wrap;margin:8px 0;}
+.tgl{background:none;border:none;color:var(--ac);font-size:12px;font-family:Arial,sans-serif;cursor:pointer;text-decoration:underline;padding:0;margin-top:7px;}
+
+/* ── THEO DÕI ── */
+.theo-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end;}
+.theo-filters label{font-size:12px;color:#555;display:flex;flex-direction:column;gap:4px;}
+.theo-filters select,.theo-filters input{padding:7px 10px;border:1.5px solid #d0d5dd;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;}
+.rpt-wrap{background:#fff;padding:24px 28px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.10);}
+.rpt-title{text-align:center;font-weight:bold;text-transform:uppercase;font-size:13px;margin-bottom:6px;}
+.rpt-khoa{text-align:center;margin-bottom:14px;font-size:13px;}
+table.rpt{width:100%;border-collapse:collapse;font-size:11px;}
+table.rpt th,table.rpt td{border:1px solid #000;padding:3px 4px;text-align:center;vertical-align:middle;}
+table.rpt th{background:#f0f0f0;font-weight:bold;}
+table.rpt td input{width:100%;border:none;background:transparent;text-align:center;font-size:11px;font-family:inherit;}
+.rpt-note{font-size:11px;margin-top:10px;line-height:1.7;}
+.rpt-sign{display:flex;justify-content:space-between;margin-top:30px;}
+.rpt-sign .s-block{width:45%;text-align:center;font-size:12px;}
+.rpt-sign .s-block .role{font-weight:bold;}
+.rpt-sign .s-block .hint{font-style:italic;font-size:11px;}
+
+/* ── FORM BAR ── */
+.form-bar{position:sticky;top:0;z-index:50;background:#1a1a2e;color:#fff;padding:8px 18px;display:flex;align-items:center;gap:9px;font-family:Arial,sans-serif;}
+.form-bar .fbt{padding:7px 14px;border:none;border-radius:6px;font-size:12.5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;transition:filter .15s;display:inline-flex;align-items:center;gap:5px;}
+.form-bar .fbt:hover:not(:disabled){filter:brightness(1.1);}
+.form-bar .fbt.add{background:#2e8b57;color:#fff;}
+.form-bar .fbt.save{background:var(--or);color:#fff;}
+.form-bar .fbt.prt{background:var(--ac);color:#fff;}
+.form-bar .fbt:disabled{opacity:.35;cursor:not-allowed;}
+.form-bar .fbt-title{font-size:12px;font-weight:600;color:#c8d8f0;margin-right:auto;}
+.sbdg{display:none;align-items:center;gap:6px;background:#1e7d52;color:#fff;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;font-family:Arial,sans-serif;}
+.sbdg.show{display:inline-flex;}
+.new-btn{background:#4b5563;color:#fff;border:none;border-radius:6px;padding:7px 12px;font-size:12px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;display:none;align-items:center;gap:4px;}
+.new-btn.show{display:inline-flex;}
+
+/* ── FORM PAGES ── */
+.form-wrap{background:#6b7280;min-height:calc(100vh - 44px);padding:14px 0 40px;}
+.page{width:1100px;margin:14px auto;background:#fff;padding:32px 38px 12px;box-shadow:0 2px 12px rgba(0,0,0,.28);display:flex;flex-direction:column;}
+.static-date{font-style:italic;}
+.head-row{display:flex;justify-content:space-between;margin-bottom:4px;}
+.head-col{width:48%;text-align:center;}
+.head-col p{margin:0;line-height:1.5;}
+.bold{font-weight:bold;}.upper{text-transform:uppercase;}.underline{text-decoration:underline;}
+.head-right .line2{font-weight:bold;}
+.head-right .line3{font-style:italic;margin-top:16px;}
+.title{text-align:center;font-weight:bold;text-transform:uppercase;font-size:13px;margin:12px 0 9px;white-space:nowrap;}
+.khoa-line{display:flex;gap:0;align-items:baseline;margin-bottom:10px;}
+.khoa-line label{margin-right:4px;flex-shrink:0;}
+.khoa-input{border:none;border-bottom:1px dotted var(--hi);width:220px;flex-shrink:0;font-family:inherit;font-size:inherit;}
+.khoa-input.hv{border-bottom:none;}
+.khoa-sfx{flex-shrink:0;margin-left:4px;}
+table.main{width:100%;border-collapse:collapse;margin-top:5px;}
+table.main th,table.main td{border:1px solid var(--li);padding:3px;vertical-align:middle;text-align:center;}
+table.main th{font-weight:bold;background:#fafafa;font-size:11px;}
+table.main td{font-size:11px;}
+table.main thead{display:table-header-group;}
+td input[type=text]{width:100%;border:none;background:transparent;text-align:center;font-family:inherit;font-size:11px;padding:1px;}
+td input[type=text]{border-bottom:1px dotted var(--hi);}
+td input.hv{border-bottom:none;}
+td input:focus{outline:1px solid var(--ac);background:#eef5fc;}
+.stt-col{width:24px;}.row-act{width:24px;}
+.row-act button{border:none;background:#d9534f;color:#fff;border-radius:3px;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:1;}
+/* ── Searchable select ── */
+.ss{position:relative;display:block;}
+.ss-inp{width:100%;border:none;border-bottom:1px dotted var(--hi);background:transparent;text-align:center;font-family:inherit;font-size:11px;padding:1px;cursor:text;}
+.ss-inp.hv{border-bottom:none;}
+.ss-inp:focus{outline:1px solid var(--ac);background:#eef5fc;}
+.ss-inp:disabled{color:#aaa;cursor:default;}
+.ss-list{position:fixed;z-index:9999;background:#fff;border:1px solid #aaa;box-shadow:0 4px 12px rgba(0,0,0,.18);max-height:210px;overflow-y:auto;display:none;font-family:Arial,sans-serif;font-size:12px;text-align:left;border-radius:4px;}
+.ss-opt{padding:5px 10px;cursor:pointer;white-space:nowrap;}
+.ss-opt:hover{background:#e8f0fe;}
+/* plain selects in table */
+td select{width:100%;border:none;border-bottom:1px dotted var(--hi);background:transparent;text-align:center;font-family:inherit;font-size:11px;padding:1px;}
+td select.hv{border-bottom:none;}
+td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
+.psr{display:none;width:100%;text-align:center;font-family:inherit;font-size:11px;padding:1px;}
+/* nongdo cell */
+.ndc{display:flex;align-items:center;gap:1px;position:relative;}
+.ndc input{width:55%;text-align:right;}
+.ndc select{width:45%;font-size:10px;}
+.iw{display:none;position:absolute;background:#d9534f;color:#fff;font-size:10px;padding:2px 5px;border-radius:3px;white-space:nowrap;z-index:80;top:22px;font-family:Arial,sans-serif;}
+.dvt-cell{font-size:11px;}
+.add-bar{margin:7px 0 12px;font-family:Arial,sans-serif;}
+.add-bar button{background:#2e8b57;color:#fff;border:none;padding:5px 11px;border-radius:5px;cursor:pointer;font-size:11.5px;}
+/* locked form */
+.form-locked .ss-inp,.form-locked td input,.form-locked td select,.form-locked .khoa-input,.form-locked .sign-inp{pointer-events:none;background:transparent;color:#111;-webkit-appearance:none;appearance:none;}
+.form-locked .row-act,.form-locked .add-bar{display:none;}
+/* footnote + sign */
+.fnrow{display:flex;align-items:flex-start;gap:8px;margin-top:16px;}
+.fn{font-size:10px;line-height:1.55;width:38%;}
+.fn-t{font-style:italic;font-weight:bold;}
+.sgn{width:29%;text-align:center;}
+.sgn .sdt{margin:0 0 3px;font-style:italic;font-size:11px;}
+.sgn .role{font-weight:bold;margin:0;font-size:12px;}
+.sgn .hint{font-style:italic;font-size:10.5px;margin:0 0 5px;}
+.sgn .sign-inp{text-align:center;border:none;border-bottom:1px dotted var(--hi);width:80%;font-weight:bold;font-size:inherit;font-family:inherit;}
+.sgn .sign-inp.hv{border-bottom:none;}
+.sign-row2{display:flex;justify-content:space-between;margin-top:28px;}
+.sb2{width:46%;text-align:center;font-size:12px;}
+.sb2 .role{font-weight:bold;margin:0;}
+.sb2 .hint{font-style:italic;font-size:10.5px;}
+.section-title{font-weight:bold;margin-top:22px;margin-bottom:7px;}
+.pg-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-size:10.5px;padding-top:16px;}
+.method-row{display:flex;justify-content:space-between;margin-bottom:9px;gap:22px;}
+.method-l{width:58%;}
+.method-r{width:40%;}
+.method-r .nl{display:flex;gap:5px;margin-bottom:5px;align-items:baseline;}
+.method-r .nl .idx{width:16px;flex-shrink:0;}
+.method-r .nl input{flex:1;border:none;border-bottom:1px dotted var(--hi);font-family:inherit;font-style:italic;font-size:12px;}
+.method-r .nl input.hv{border-bottom:none;}
+.method-r .nl .pre{font-style:italic;font-size:12px;}
+.para{margin:12px 0;line-height:1.6;}
+.tl{display:flex;gap:5px;align-items:baseline;margin:12px 0;}
+.tl input{border:none;border-bottom:1px dotted var(--hi);width:46px;text-align:center;font-family:inherit;}
+.tl input.hv{border-bottom:none;}
+
+/* ── DEPT MANAGEMENT ── */
+.dept-list{margin-top:12px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;}
+.dept-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border:1px solid #e0e4ea;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;}
+.dept-item span{flex:1;}
+.dept-item button{border:none;background:none;color:var(--re);cursor:pointer;font-size:16px;padding:0 4px;line-height:1;}
+.dept-item button:hover{color:#a00;}
+.dept-add{display:flex;gap:8px;margin-top:12px;}
+.dept-add input{flex:1;padding:8px 11px;border:1.5px solid #d0d5dd;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;}
+.dept-add input:focus{outline:none;border-color:var(--ac);}
+.dept-empty{color:#aaa;font-size:12px;font-family:Arial,sans-serif;text-align:center;padding:16px 0;font-style:italic;}
+/* Khoa searchable input in form */
+.khoa-ss-wrap{position:relative;display:inline-block;}
+.khoa-ss-wrap .ss-list{position:fixed;z-index:9999;background:#fff;border:1px solid #aaa;box-shadow:0 4px 12px rgba(0,0,0,.18);max-height:180px;overflow-y:auto;display:none;font-family:Arial,sans-serif;font-size:12px;text-align:left;border-radius:4px;}
+.khoa-ss-wrap .ss-opt{padding:5px 10px;cursor:pointer;white-space:nowrap;}
+.khoa-ss-wrap .ss-opt:hover{background:#e8f0fe;}
+
+/* ── PRINT ── */
+@media print{
+  .scr:not(#s-form){display:none!important;}
+  #s-form{display:block!important;}
+  .form-bar,.add-bar,.row-act{display:none!important;}
+  .form-wrap{background:#fff;padding:0;min-height:unset;}
+  .page{box-shadow:none;margin:0;padding:8mm 11mm 6mm;width:auto;min-height:194mm;page-break-after:always;}
+  .page:last-child{page-break-after:auto;}
+  @page{size:A4 landscape;margin:7mm;}
+  input,select,td input,td select,.khoa-input,.sign-inp,.method-r input,.tl input{border-bottom:none!important;}
+  select,.ss-inp:not([type]){display:none!important;}
+  .ss-inp{display:none!important;}
+  .ss .psr{display:inline-block!important;}
+  td select{display:none!important;}
+  .psr{display:inline-block!important;}
+  .iw{display:none!important;}
+  .ndc input{width:55%!important;}
+  .ndc .psr{width:45%!important;font-size:10px!important;}
+  .para{margin:5px 0!important;}
+  .section-title{margin-top:8px!important;margin-bottom:4px!important;}
+  .method-row{margin-bottom:4px!important;}
+  .method-r .nl{margin-bottom:2px!important;}
+  .tl{margin:5px 0!important;}
+  .sign-row2{margin-top:12px!important;}
+  .sb2 div[style*="height"]{height:28px!important;}
+  .fnrow div[style*="height"]{height:28px!important;}
+  .fnrow{margin-top:14px!important;}
+  .pg-foot{padding-top:6px!important;}
+  /* Theo doi print */
+  .theo-filters,.back-bar,.form-bar{display:none!important;}
+  .rpt-wrap{box-shadow:none;padding:0;}
+}
+/* theo doi print specific */
+@media print{
+  #s-theo.active .adm-hdr{display:none;}
+  #s-theo.active .back-bar{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ S-HOME ══════════ -->
+<div class="scr" id="s-home">
+  <div class="adm-hdr">
+    <div class="hosp">Bệnh viện Nhi Trung ương — Hội đồng hủy thuốc</div>
+    <h1>Hệ thống biên bản hủy bao bì TXTT</h1>
+    <div class="sub">BM7/QTQL.D.22.1</div>
+  </div>
+  <div class="adm-body">
+    <div class="tiles">
+      <div class="tile" onclick="go('s-drug')">
+        <div class="icon">🔗</div>
+        <h3>Kết nối danh mục thuốc</h3>
+        <p>Cấu hình Google Sheet chứa danh sách thuốc GN-HT-TC đang có trong kho</p>
+      </div>
+      <div class="tile" onclick="go('s-script')">
+        <div class="icon">💾</div>
+        <h3>Cấu hình lưu biên bản</h3>
+        <p>Thiết lập Apps Script để tự động lưu mỗi biên bản vào Google Sheet tổng hợp</p>
+      </div>
+      <div class="tile" onclick="go('s-khoa')">
+        <div class="icon">🏥</div>
+        <h3>Danh sách khoa phòng</h3>
+        <p>Quản lý danh sách khoa/trung tâm — dùng làm dropdown trong biên bản và báo cáo</p>
+      </div>
+      <div class="tile" onclick="go('s-theo')">
+        <div class="icon">📊</div>
+        <h3>Theo dõi cấp phát</h3>
+        <p>Tạo báo cáo theo dõi cấp phát, thu hồi dư phẩm và bao bì TXTT theo khoa, tháng</p>
+      </div>
+    </div>
+    <p class="form-hint">Link dành cho khoa/phòng (chỉ nhập liệu): <code id="formLink"></code></p>
+    <button class="open-btn" onclick="go('s-form')" style="margin-top:12px;">
+      <span>📋 Mở giao diện nhập biên bản hủy bao bì</span>
+      <span class="arr">→</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════ S-KHOA ══════════ -->
+<div class="scr" id="s-khoa">
+  <div class="adm-hdr"><div class="hosp">Bệnh viện Nhi Trung ương</div><h1>Hệ thống biên bản hủy bao bì TXTT</h1></div>
+  <div class="back-bar">
+    <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
+    <span class="pg-title">🏥 Danh sách khoa phòng</span>
+  </div>
+  <div class="adm-body">
+    <div class="acard">
+      <h2>Đồng bộ từ Google Sheet</h2>
+      <div class="desc">Nếu có Google Sheet chứa sẵn danh sách khoa (1 cột "Tên khoa/Trung tâm"), dán link và tải về. Danh sách sẽ được lưu vào bộ nhớ trình duyệt và tự động dùng cho các dropdown.</div>
+      <div class="rg">
+        <input type="text" id="deptSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv">
+        <button class="btn btn-p" onclick="loadDeptsFromSheet()">📥 Tải từ Sheet</button>
+      </div>
+      <div id="deptSheetStatus" class="sbadge" style="display:none;"></div>
+    </div>
+    <div class="acard">
+      <h2>Quản lý danh sách</h2>
+      <div class="desc">Thêm hoặc xóa khoa/trung tâm. Danh sách được lưu ngay trong trình duyệt, có hiệu lực ngay lập tức trên tất cả form đang mở ở thiết bị này.</div>
+      <div class="dept-add">
+        <input type="text" id="newDept" placeholder="Nhập tên khoa/trung tâm…" onkeydown="if(event.key==='Enter')addDept()">
+        <button class="btn btn-g" onclick="addDept()">+ Thêm</button>
+      </div>
+      <div class="dept-list" id="deptList"><div class="dept-empty">Chưa có khoa nào. Thêm mới hoặc tải từ Google Sheet.</div></div>
+      <p style="font-size:11px;color:#999;margin-top:12px;font-family:Arial,sans-serif;">
+        💡 Dữ liệu lưu trong trình duyệt (localStorage). Để dùng trên nhiều thiết bị: duy trì một Google Sheet danh sách khoa và mỗi thiết bị "Tải từ Sheet" một lần.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S-DRUG ══════════ -->
+<div class="scr" id="s-drug">
+  <div class="adm-hdr"><div class="hosp">Bệnh viện Nhi Trung ương</div><h1>Hệ thống biên bản hủy bao bì TXTT</h1></div>
+  <div class="back-bar">
+    <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
+    <span class="pg-title">🔗 Kết nối danh mục thuốc</span>
+  </div>
+  <div class="adm-body">
+    <div class="acard">
+      <h2>Google Sheet — Danh mục thuốc đầu vào</h2>
+      <div class="desc">Sheet cần có 5 cột: <b>Tên thuốc</b>, <b>Tên hoạt chất</b>, <b>Nồng độ/hàm lượng</b>, <b>Số lô</b>, <b>ĐVT</b>.<br>
+      Chia sẻ: <i>File → Share → Publish to web → chọn sheet tab → CSV → Publish</i>, copy link dán vào đây.</div>
+      <div class="rg">
+        <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv">
+        <button class="btn btn-p" onclick="connectSheet()">🔗 Kết nối</button>
+        <button class="btn btn-gh" id="refreshBtn" onclick="refreshSheet()" style="display:none;">🔄 Làm mới</button>
+      </div>
+      <div id="dbStatus" class="sbadge">⚪ Chưa kết nối</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S-SCRIPT ══════════ -->
+<div class="scr" id="s-script">
+  <div class="adm-hdr"><div class="hosp">Bệnh viện Nhi Trung ương</div><h1>Hệ thống biên bản hủy bao bì TXTT</h1></div>
+  <div class="back-bar">
+    <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
+    <span class="pg-title">💾 Cấu hình lưu biên bản</span>
+  </div>
+  <div class="adm-body">
+    <div class="acard">
+      <h2>Apps Script Web App URL</h2>
+      <div class="desc">Mỗi lần bấm "Lưu biên bản", dữ liệu sẽ POST tới URL này và được ghi vào Google Sheet tổng hợp.</div>
+      <div class="rg">
+        <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/…/exec">
+        <button class="btn btn-p" onclick="saveScriptUrl()">💾 Lưu URL</button>
+        <button class="btn btn-gh" onclick="testScript()">🧪 Test</button>
+      </div>
+      <div id="scriptStatus" class="sbadge">⚪ Chưa cấu hình</div>
+      <button class="tgl" onclick="toggleHowto('hw1')">▶ Hướng dẫn thiết lập (5 bước)</button>
+      <div class="howto" id="hw1">
+        <ol>
+          <li>Tạo Google Sheet mới để chứa kết quả (đặt tên tùy ý).</li>
+          <li>Mở sheet → <b>Extensions → Apps Script</b>.</li>
+          <li>Xóa code mặc định, dán code sau → Save (Ctrl+S):</li>
+        </ol>
+        <pre>function doPost(e){
+  try{
+    var rows=JSON.parse(e.postData.contents);
+    var sheet=SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    rows.forEach(function(r){sheet.appendRow(r);});
+    return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }catch(err){
+    return ContentService.createTextOutput(JSON.stringify({status:'error',msg:err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</pre>
+        <ol start="4">
+          <li><b>Deploy → New deployment → Web app</b><br>
+          Execute as: <i>Me</i> | Who has access: <i>Anyone</i> → Deploy → cấp quyền khi được hỏi.</li>
+          <li>Copy <b>Web app URL</b> dán vào ô trên. Sheet này cũng dùng cho tính năng Theo dõi cấp phát — cần <b>Publish to web → CSV</b> để đọc lại.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S-THEO ══════════ -->
+<div class="scr" id="s-theo">
+  <div class="adm-hdr"><div class="hosp">Bệnh viện Nhi Trung ương</div><h1>Hệ thống biên bản hủy bao bì TXTT</h1></div>
+  <div class="back-bar">
+    <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
+    <span class="pg-title">📊 Theo dõi cấp phát</span>
+    <button class="btn btn-p" style="margin-left:auto;" onclick="window.print()">🖨️ In báo cáo</button>
+  </div>
+  <div class="adm-body" style="max-width:1100px;">
+    <div class="acard">
+      <h2>Sheet kết quả biên bản (đầu vào báo cáo)</h2>
+      <div class="desc">Sheet do Apps Script ghi vào mỗi lần lưu biên bản. Cần <b>Publish to web → CSV</b> để đọc.</div>
+      <div class="rg">
+        <input type="text" id="outSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv">
+        <button class="btn btn-p" onclick="loadOutSheet()">📥 Tải dữ liệu</button>
+      </div>
+      <div id="outStatus" class="sbadge">⚪ Chưa tải</div>
+    </div>
+    <div class="acard">
+      <h2>Bộ lọc báo cáo</h2>
+      <div class="theo-filters">
+        <label>Khoa/Trung tâm
+          <select id="fKhoa" style="min-width:160px;"><option value="">-- Tất cả --</option></select>
+        </label>
+        <label>Tháng
+          <select id="fThang">
+            <option value="">-- Tất cả --</option>
+            ${Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}
+          </select>
+        </label>
+        <label>Năm
+          <input type="text" id="fNam" placeholder="${new Date().getFullYear()}" style="width:80px;">
+        </label>
+        <div style="align-self:flex-end;">
+          <button class="btn btn-g" onclick="buildReport()">📊 Tạo báo cáo</button>
+        </div>
+      </div>
+    </div>
+    <div id="rptArea" style="display:none;">
+      <div class="rpt-wrap">
+        <div class="rpt-title">Báo cáo theo dõi cấp phát, thu hồi dư phẩm và bao bì tiếp xúc trực tiếp<br>của các thuốc GN-HT-TC</div>
+        <div class="rpt-khoa">KHOA: <span id="rptKhoa" style="font-weight:bold;"></span> &nbsp;&nbsp; Tháng <span id="rptThang"></span> năm <span id="rptNam"></span></div>
+        <div style="overflow-x:auto;">
+          <table class="rpt" id="rptTable">
+            <thead>
+              <tr>
+                <th rowspan="2" style="width:22px;">STT</th>
+                <th rowspan="2" style="width:120px;">Tên thuốc/<br>Hàm lượng</th>
+                <th rowspan="2" style="width:80px;">Hoạt chất</th>
+                <th rowspan="2" style="width:36px;">ĐVT</th>
+                <th rowspan="2" style="width:70px;">Số lô</th>
+                <th rowspan="2" style="width:55px;">Chênh lệch vỏ lọ tháng trước</th>
+                <th colspan="3">Lĩnh thuốc</th>
+                <th colspan="3">Hoàn trả thuốc</th>
+                <th colspan="3">Hoàn trả vỏ lọ</th>
+                <th rowspan="2" style="width:52px;">Chênh lệch vỏ lọ trong tháng</th>
+                <th rowspan="2" style="width:52px;">Chênh vỏ lọ cuối</th>
+                <th rowspan="2" style="width:52px;">Hoàn trả thuốc dư phẩm</th>
+                <th rowspan="2" style="width:60px;">Ghi chú</th>
+              </tr>
+              <tr>
+                <th style="width:46px;">Tăng từ trực</th>
+                <th style="width:46px;">Bù từ trực</th>
+                <th style="width:46px;">Lĩnh khác</th>
+                <th style="width:46px;">Theo người bệnh</th>
+                <th style="width:46px;">Tích lũy khoa phòng</th>
+                <th style="width:46px;">Trả khác</th>
+                <th style="width:52px;">Thu hồi vỏ lọ</th>
+                <th style="width:52px;">Vỏ lọ dùng dư phẩm</th>
+                <th style="width:52px;">Vỏ lọ đựng thuốc hủy</th>
+              </tr>
+            </thead>
+            <tbody id="rptBody"></tbody>
+          </table>
+        </div>
+        <div class="rpt-note">
+          <b>• Ghi chú:</b><br>
+          &nbsp;&nbsp;Các số liệu tính đến hết tháng.<br>
+          &nbsp;&nbsp;Số lượng thu hồi vỏ lọ, vỏ lọ đựng dư phẩm theo số liệu trong các biên bản thu hồi và hủy.
+        </div>
+        <div class="rpt-sign">
+          <div class="s-block"><p class="role">Điều dưỡng HC khoa lâm sàng</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
+          <div class="s-block"><p class="role">Người tổng kết</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S-FORM ══════════ -->
+<div class="scr" id="s-form">
+  <div class="form-bar">
+    <span class="fbt-title">Biên bản hủy bao bì TXTT &amp; dư phẩm thuốc — BM7/QTQL.D.22.1</span>
+    <button class="fbt add" id="btnAdd" onclick="addRow()">+ Thêm dòng</button>
+    <button class="fbt save" id="btnSave" onclick="saveForm()">💾 Lưu biên bản</button>
+    <span class="sbdg" id="sbdg">✅ Đã lưu lúc <span id="savedTime"></span></span>
+    <button class="fbt prt" id="btnPrint" onclick="window.print()" disabled>🖨️ In / PDF</button>
+    <button class="new-btn" id="btnNew" onclick="resetForm()">📋 Biên bản mới</button>
+  </div>
+  <div class="form-wrap" id="formWrap">
+
+    <!-- PAGE 1 -->
+    <div class="page">
+      <div class="head-row">
+        <div class="head-col"><p class="bold upper">Bệnh viện Nhi Trung ương</p><p class="bold upper underline">Hội đồng hủy thuốc</p></div>
+        <div class="head-col head-right">
+          <p class="bold upper">Cộng hoà xã hội chủ nghĩa Việt Nam</p>
+          <p class="bold line2 underline">Độc lập - Tự do - Hạnh phúc</p>
+          <p class="line3">Hà Nội, ngày <span class="static-date" id="curDay"></span> tháng <span class="static-date" id="curMonth"></span> năm <span class="static-date" id="curYear"></span></p>
+        </div>
+      </div>
+      <div class="title">Biên bản hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất</div>
+      <div class="khoa-line">
+        <label class="bold" style="white-space:nowrap;">1. Khoa/Trung tâm</label>
+        <div class="khoa-ss-wrap" id="khoaSSWrap">
+          <input type="text" class="khoa-input" id="khoaInput" autocomplete="off" spellcheck="false" placeholder=".........................................." oninput="this.classList.toggle('hv',!!this.value);khoaSSFilter(this.value);" onfocus="khoaSSOpen();" onblur="setTimeout(khoaSSClose,160);">
+          <div class="ss-list" id="khoaSSList"></div>
+        </div>
+        <span class="khoa-sfx">thực hiện thu hồi và đề xuất hủy các thuốc sau:</span>
+      </div>
+      <table class="main" id="mainTable">
+        <thead>
+          <tr>
+            <th rowspan="2" class="stt-col">STT</th>
+            <th rowspan="2" style="width:110px;">Tên thuốc</th>
+            <th rowspan="2" style="width:100px;">Tên hoạt chất</th>
+            <th rowspan="2" style="width:88px;">Nồng độ/hàm lượng</th>
+            <th rowspan="2" style="width:76px;">Số lô</th>
+            <th rowspan="2" style="width:50px;">ĐVT</th>
+            <th rowspan="2" style="width:65px;">Số lượng bao bì TXTT cần hủy</th>
+            <th colspan="7">Tình trạng dư phẩm thuốc cần hủy</th>
+            <th rowspan="2" style="width:58px;">Dược sĩ xác nhận (***)</th>
+            <th rowspan="2" class="row-act"></th>
+          </tr>
+          <tr>
+            <th style="width:76px;">Bao bì chứa dư phẩm</th>
+            <th style="width:82px;">Dịch truyền pha 1 ĐVT thuốc (*)</th>
+            <th style="width:82px;">Nồng độ thuốc trong dư phẩm</th>
+            <th style="width:65px;">Thể tích dư phẩm cần hủy (ml)</th>
+            <th style="width:70px;">Tỷ lệ dư phẩm trên đơn vị tính (**)</th>
+            <th style="width:70px;">Điều dưỡng thực hiện y lệnh</th>
+            <th style="width:70px;">Bác sĩ điều trị</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="add-bar"><button onclick="addRow()">+ Thêm dòng thuốc</button></div>
+      <div class="fnrow">
+        <div class="fn">
+          <span class="fn-t">Chú thích:</span><br>
+          (*) DW (Nước cất pha tiêm), NS (NaCl 0,9%), G5 (Glucose 5%)<br>
+          (**) Lượng thuốc trong dư phẩm/hàm lượng thuốc của 1 ĐVT<br>
+          (***) Nhân viên khoa dược kiểm tra và nhận bàn giao danh mục, số lượng bao bì TXTT và đúng tình trạng thực tế của dư phẩm thuốc, ký &amp; ghi rõ họ tên
+        </div>
+        <div class="sgn">
+          <p class="sdt" style="visibility:hidden;" aria-hidden="true">Hà Nội, ngày .... tháng .... năm ....</p>
+          <p class="role">Điều dưỡng hành chính</p>
+          <p class="hint">(Ký, ghi rõ họ tên)</p>
+          <div style="height:46px;"></div>
+          <input type="text" class="sign-inp" placeholder="Họ và tên" oninput="this.classList.toggle('hv',!!this.value)">
+        </div>
+        <div class="sgn">
+          <p class="sdt">Hà Nội, ngày .... tháng .... năm ....</p>
+          <p class="role">Lãnh đạo khoa/Trung tâm</p>
+          <p class="hint">(Ký, ghi rõ họ tên)</p>
+          <div style="height:46px;"></div>
+          <input type="text" class="sign-inp" placeholder="Họ và tên" oninput="this.classList.toggle('hv',!!this.value)">
+        </div>
+      </div>
+      <div class="pg-foot">
+        <span>BM7/QTQL.D.22.1</span>
+        <span>Trang <span class="pnum"></span> / <span class="ptotal"></span></span>
+        <span>22/06/2026</span>
+      </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="page">
+      <div class="section-title">2. Tiến hành tiêu hủy</div>
+      <p class="para">Căn cứ theo đề xuất hủy của khoa<input type="text" id="khoaP2" style="border:none;border-bottom:1px dotted var(--hi);width:130px;" oninput="this.classList.toggle('hv',!!this.value)">, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất:</p>
+      <div class="khoa-line">
+        <label class="bold" style="white-space:nowrap;">Địa điểm:</label>
+        <input type="text" id="diaDiem" class="khoa-input hv" value="Khoa Dược" style="font-style:italic;width:140px;" oninput="this.classList.toggle('hv',!!this.value)">
+      </div>
+      <div class="khoa-line">
+        <label class="bold" style="white-space:nowrap;">Thời gian:</label>
+        <input type="text" id="thoiGian" class="khoa-input" placeholder="....giờ.... ngày..../..../....">
+      </div>
+      <div class="method-row" style="margin-top:16px;">
+        <div class="method-l">
+          <p class="bold" style="margin-bottom:9px;">Phương pháp hủy:</p>
+          <p style="margin:4px 0;">- Với bao bì TXTT: Phá hủy bằng cách cắt/ đập vỡ/nghiền biến dạng rồi xử lý rác thải theo qui định của Bệnh viện</p>
+          <p style="margin:4px 0;">- Với dư phẩm thuốc: Đổ dư phẩm thuốc vào xô nước để hòa loãng rồi đổ vào đường nước thải chung</p>
+        </div>
+        <div class="method-r">
+          <p class="bold" style="margin-bottom:5px;">Thành phần tham gia:</p>
+          <div class="nl"><span class="idx">1.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược, TV Hội đồng hủy</span></div>
+          <div class="nl"><span class="idx">2.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Phòng TCKT, TV Hội đồng hủy</span></div>
+          <div class="nl"><span class="idx">3.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa DP&amp;KSNK</span></div>
+          <div class="nl"><span class="idx">4.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược</span></div>
+        </div>
+      </div>
+      <p class="para">Chúng tôi cùng chứng kiến và thực hiện hủy hết lượng bao bì TXTT và dư phẩm thuốc gây nghiện, hướng thần và tiền chất đúng như trên Mục 1.</p>
+      <div class="tl">
+        <span>Việc tiêu hủy kết thúc vào lúc</span>
+        <input id="gioKT" oninput="this.classList.toggle('hv',!!this.value)"><span>giờ</span>
+        <input id="phutKT" oninput="this.classList.toggle('hv',!!this.value)"><span>phút cùng ngày.</span>
+      </div>
+      <p class="para">Biên bản hủy thuốc được báo cáo lên <input id="baoCao" style="border:none;border-bottom:1px dotted var(--hi);width:240px;" oninput="this.classList.toggle('hv',!!this.value)"></p>
+      <p class="para">Biên bản này được lập thành 01 bản, Hội đồng hủy thuốc lưu bản chính.</p>
+      <div class="sign-row2" style="margin-top:36px;">
+        <div class="sb2"><p class="role">THÀNH VIÊN THAM GIA HỦY</p><p class="hint">(Ký và ghi rõ họ tên)</p><div style="height:65px;"></div></div>
+        <div class="sb2"><p class="role">CHỦ TỊCH HỘI ĐỒNG</p><p class="hint">(Ký tên và đóng dấu)</p><div style="height:65px;"></div></div>
+      </div>
+      <div class="pg-foot">
+        <span>BM7/QTQL.D.22.1</span>
+        <span>Trang <span class="pnum"></span> / <span class="ptotal"></span></span>
+        <span>22/06/2026</span>
+      </div>
+    </div>
+  </div>
+</div><!-- /s-form -->
+
+<script>
+/* ── ROUTER ── */
+const SCREENS=['s-home','s-drug','s-script','s-khoa','s-theo','s-form'];
+function go(id){
+  SCREENS.forEach(s=>document.getElementById(s).classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='s-form') window.history.replaceState(null,'','#form');
+  else if(id==='s-home') window.history.replaceState(null,'','#');
+  else window.history.replaceState(null,'','#'+id.replace('s-',''));
+}
+function checkRoute(){
+  const h=location.hash;
+  if(h==='#form') go('s-form');
+  else if(h==='#drug') go('s-drug');
+  else if(h==='#script') go('s-script');
+  else if(h==='#khoa') go('s-khoa');
+  else if(h==='#theo-doi') go('s-theo');
+  else go('s-home');
+}
+checkRoute();
+window.addEventListener('hashchange',checkRoute);
+(function(){const el=document.getElementById('formLink');if(el)el.textContent=location.origin+location.pathname+'#form';})();
+
+/* ── DATE ── */
+(function(){const n=new Date();document.getElementById('curDay').textContent=n.getDate();document.getElementById('curMonth').textContent=n.getMonth()+1;document.getElementById('curYear').textContent=n.getFullYear();})();
+
+/* ── PAGE NUMBERS ── */
+function upPnums(){const pp=document.querySelectorAll('.form-wrap .page');pp.forEach((p,i)=>{const a=p.querySelector('.pnum'),b=p.querySelector('.ptotal');if(a)a.textContent=i+1;if(b)b.textContent=pp.length;});}
+upPnums();
+
+/* ── URL PARSER ── */
+function buildCsvUrl(u){
+  u=u.trim();
+  const pm=u.match(/\/spreadsheets\/d\/e\/([A-Za-z0-9_-]+)/);
+  if(pm){const gm=u.match(/[?&]gid=(\d+)/);return`https://docs.google.com/spreadsheets/d/e/${pm[1]}/pub?output=csv${gm?'&gid='+gm[1]:''}`;}
+  const im=u.match(/\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/);
+  if(im){const gm=u.match(/[?&#]gid=(\d+)/);return`https://docs.google.com/spreadsheets/d/${im[1]}/export?format=csv${gm?'&gid='+gm[1]:''}`;}
+  return null;
+}
+
+/* ── CSV PARSER ── */
+function parseCsv(text){
+  const rows=[];const re=/("(?:[^"]|"")*"|[^,\r\n]*)(,|\r?\n|$)/g;let row=[],m;
+  while((m=re.exec(text))!==null){let v=m[1];if(v.startsWith('"'))v=v.slice(1,-1).replace(/""/g,'"');row.push(v.trim());if(m[2]!==','){if(row.some(c=>c!==''))rows.push(row);row=[];}if(m[2]==='')break;}
+  return rows;
+}
+const HA={tenThuoc:["ten thuoc","tên thuốc"],hoatChat:["ten hoat chat","hoat chat","tên hoạt chất","hoạt chất"],nongDo:["nong do","nong do/ham luong","nồng độ","nồng độ/hàm lượng","ham luong"],soLo:["so lo","số lô"],dvt:["dvt","don vi tinh","đvt","đơn vị tính"]};
+function norm(s){return(s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9/ ]/g,"").trim();}
+function mh(h){const n=norm(h);for(const k in HA)if(HA[k].some(a=>norm(a)===n||n.includes(norm(a))))return k;return null;}
+function parseDrugCsv(text){
+  const rows=parseCsv(text);if(rows.length<2)return[];
+  const cm={};rows[0].forEach((h,i)=>{const k=mh(h);if(k)cm[k]=i;});
+  const miss=['tenThuoc','hoatChat','nongDo','soLo','dvt'].filter(k=>!(k in cm));
+  if(miss.length)throw new Error(`Thiếu cột: ${miss.join(', ')}`);
+  const d=[];for(let i=1;i<rows.length;i++){const r=rows[i];if(!r||r.every(c=>c===''))continue;d.push({tenThuoc:r[cm.tenThuoc]||'',hoatChat:r[cm.hoatChat]||'',nongDo:r[cm.nongDo]||'',soLo:r[cm.soLo]||'',dvt:r[cm.dvt]||''});}
+  return d;
+}
+
+/* ── DRUG DB ── */
+let DRUG_DB=[];
+const ssUrl=localStorage.getItem('sheetUrl')||'';
+if(ssUrl){document.getElementById('sheetUrl').value=ssUrl;connectSheet(true);}
+const scUrl=localStorage.getItem('scriptUrl')||'';
+if(scUrl){document.getElementById('scriptUrl').value=scUrl;setSt('scriptStatus','ok','✅ Đã cấu hình');}
+const osUrl=localStorage.getItem('outSheetUrl')||'';
+if(osUrl){document.getElementById('outSheetUrl').value=osUrl;}
+
+function setSt(id,cls,msg){const el=document.getElementById(id);el.className='sbadge '+(cls||'');el.textContent=msg;}
+async function connectSheet(silent){
+  const raw=(document.getElementById('sheetUrl').value||'').trim();
+  if(!raw){if(!silent)alert('Nhập URL Google Sheet.');return;}
+  const u=buildCsvUrl(raw);
+  if(!u){if(!silent)alert('URL không nhận ra. Dùng link "Publish to web" dạng .../pub?output=csv hoặc link chỉnh sửa thông thường.');return;}
+  setSt('dbStatus','ld','⏳ Đang tải…');
+  try{
+    const res=await fetch(u);
+    if(!res.ok)throw new Error(`HTTP ${res.status} — kiểm tra quyền Sheet`);
+    const db=parseDrugCsv(await res.text());
+    if(!db.length)throw new Error('Không đọc được dữ liệu. Kiểm tra tiêu đề cột.');
+    DRUG_DB=db;localStorage.setItem('sheetUrl',raw);
+    setSt('dbStatus','ok',`✅ ${db.length} thuốc — ${new Date().toLocaleTimeString('vi-VN')}`);
+    document.getElementById('refreshBtn').style.display='';
+    rebuildSS();
+    if(!silent)alert(`Đã tải ${db.length} dòng.`);
+  }catch(e){
+    setSt('dbStatus','err','🔴 '+e.message);
+    if(!silent)alert('Lỗi: '+e.message+'\n\nGiải pháp:\n1. File → Share → Publish to web → CSV → Publish, copy link đó.\n2. Hoặc Share → Anyone with link → Viewer rồi dán link thông thường.\n3. Nếu mở từ file:// cần upload lên GitHub Pages trước.');
+  }
+}
+function refreshSheet(){connectSheet(false);}
+function saveScriptUrl(){const u=(document.getElementById('scriptUrl').value||'').trim();if(!u||!u.includes('script.google.com')){alert('URL cần dạng https://script.google.com/macros/s/…/exec');return;}localStorage.setItem('scriptUrl',u);setSt('scriptStatus','ok','✅ Đã lưu');}
+async function testScript(){const u=localStorage.getItem('scriptUrl');if(!u){alert('Chưa có URL.');return;}setSt('scriptStatus','ld','⏳ Test…');try{await fetch(u,{method:'POST',mode:'no-cors',body:JSON.stringify([['__TEST__']])});setSt('scriptStatus','ok','✅ Đã gửi (kiểm tra Sheet xem có dòng __TEST__ không)');}catch(e){setSt('scriptStatus','err','🔴 '+e.message);}}
+function toggleHowto(id){const b=document.getElementById(id);b.classList.toggle('open');b.previousElementSibling.textContent=(b.classList.contains('open')?'▼':'▶')+' Hướng dẫn thiết lập (5 bước)';}
+
+/* ── SEARCHABLE SELECT CLASS ── */
+class SS{
+  constructor(container,opts,onChange){
+    this.el=container;this.inp=container.querySelector('.ss-inp');this.lst=container.querySelector('.ss-list');
+    this.value='';this.opts=[];this.cb=onChange;
+    this._bind();this.setOpts(opts,true);
+  }
+  setOpts(opts,enabled){
+    this.opts=opts||[];
+    this.inp.disabled=!enabled||!this.opts.length;
+    if(!enabled){this.value='';this.inp.value='';}
+  }
+  pick(v){this.value=v;this.inp.value=v;this.inp.classList.toggle('hv',!!v);this._close();if(this.cb)this.cb(v);}
+  reset(){this.value='';this.inp.value='';this.inp.classList.remove('hv');this.inp.disabled=true;}
+  _filt(q){return q?this.opts.filter(o=>o.toLowerCase().includes(q.toLowerCase())):this.opts;}
+  _render(q){
+    this.lst.innerHTML='';
+    const fl=this._filt(q);
+    if(!fl.length){const d=document.createElement('div');d.className='ss-opt';d.style.color='#aaa';d.textContent='(không có kết quả)';this.lst.appendChild(d);return;}
+    fl.forEach(o=>{const d=document.createElement('div');d.className='ss-opt';d.textContent=o;d.addEventListener('mousedown',e=>{e.preventDefault();this.pick(o);});this.lst.appendChild(d);});
+  }
+  _open(){
+    this._render(this.inp.value);
+    const r=this.inp.getBoundingClientRect();
+    const cw=(this.el.closest('td')?.offsetWidth||r.width);
+    const mw=Math.max(cw*1.5,120);
+    let L=r.left;
+    if(L+mw>window.innerWidth-6)L=Math.max(0,window.innerWidth-mw-6);
+    Object.assign(this.lst.style,{top:r.bottom+'px',left:L+'px',maxWidth:mw+'px',minWidth:r.width+'px',display:'block'});
+  }
+  _close(){this.lst.style.display='none';}
+  _bind(){
+    this.inp.addEventListener('focus',()=>{if(!this.inp.disabled)this._open();});
+    this.inp.addEventListener('input',()=>{this._render(this.inp.value);this._open();});
+    this.inp.addEventListener('blur',()=>setTimeout(()=>this._close(),160));
+  }
+}
+/* close all dropdowns on scroll */
+document.addEventListener('scroll',()=>document.querySelectorAll('.ss-list').forEach(l=>l.style.display='none'),true);
+
+function rebuildSS(){
+  const list=[...new Set(DRUG_DB.map(d=>d.tenThuoc))];
+  document.querySelectorAll('#tbody tr').forEach(tr=>{
+    const tt=tr._ss?.tt;if(tt){tt.setOpts(list,true);}
+  });
+}
+
+/* ── ADD ROW ── */
+let rowCount=0;
+function makeOpts(arr,ph=''){let h=`<option value="">${ph}</option>`;arr.forEach(v=>h+=`<option value="${v}">${v}</option>`);return h;}
+
+function addRow(){
+  rowCount++;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td class="stt-col"></td>
+    <td><div class="ss" data-f="tt"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false"><div class="ss-list"></div></div><span class="psr"></span></td>
+    <td><div class="ss" data-f="hc"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
+    <td><div class="ss" data-f="nd"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
+    <td><div class="ss" data-f="sl"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
+    <td class="dvt-cell"></td>
+    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
+    <td><select class="bbdp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['Ống','Lọ','Bơm tiêm','Chai','Túi'])}</select><span class="psr"></span></td>
+    <td><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select><span class="psr"></span></td>
+    <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><select class="nu" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['mg/ml','mcg/ml'])}</select><span class="psr"></span><span class="iw"></span></div></td>
+    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
+    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
+    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
+    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
+    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
+    <td class="row-act"><button onclick="this.closest('tr').remove();renumber();">✕</button></td>`;
+  document.getElementById('tbody').appendChild(tr);
+
+  const tlist=[...new Set(DRUG_DB.map(d=>d.tenThuoc))];
+  const dvtCell=tr.querySelector('.dvt-cell');
+
+  const ttSS=new SS(tr.querySelector('[data-f=tt]'),tlist,v=>{
+    const m=DRUG_DB.filter(d=>d.tenThuoc===v);
+    const l=[...new Set(m.map(d=>d.hoatChat))];
+    hcSS.setOpts(l,true);ndSS.reset();slSS.reset();dvtCell.textContent='';
+    if(l.length===1)hcSS.pick(l[0]);
+  });
+  const hcSS=new SS(tr.querySelector('[data-f=hc],[data-f="hc"]'),[],(v)=>{
+    const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===v);
+    const l=[...new Set(m.map(d=>d.nongDo))];
+    ndSS.setOpts(l,true);slSS.reset();dvtCell.textContent='';
+    if(l.length===1)ndSS.pick(l[0]);
+  });
+  const ndSS=new SS(tr.querySelector('[data-f=nd]'),[],(v)=>{
+    const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===hcSS.value&&d.nongDo===v);
+    const l=[...new Set(m.map(d=>d.soLo))];
+    slSS.setOpts(l,true);dvtCell.textContent='';
+    if(l.length===1)slSS.pick(l[0]);
+  });
+  const slSS=new SS(tr.querySelector('[data-f=sl]'),[],(v)=>{
+    const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===hcSS.value&&d.nongDo===ndSS.value&&d.soLo===v);
+    dvtCell.textContent=m[0]?.dvt||'';
+  });
+
+  // Store refs for rebuildSS
+  tr._ss={tt:ttSS,hc:hcSS,nd:ndSS,sl:slSS};
+
+  // Print replacement spans
+  [ttSS,hcSS,ndSS,slSS].forEach(ss=>{
+    const psr=ss.el.nextElementSibling;
+    const origCb=ss.cb;
+    ss.cb=v=>{if(psr)psr.textContent=v||'';if(origCb)origCb(v);};
+  });
+
+  attachDotGuard(tr.querySelector('.nv'));
+  renumber();
+}
+function renumber(){document.querySelectorAll('#tbody tr').forEach((r,i)=>r.querySelector('.stt-col').textContent=i+1);}
+
+function attachDotGuard(inp){
+  const w=inp.closest('.ndc')?.querySelector('.iw');let t;
+  function warn(m){if(!w)return;w.textContent=m;w.style.display='block';clearTimeout(t);t=setTimeout(()=>w.style.display='none',2200);}
+  inp.addEventListener('beforeinput',e=>{if(e.data==null)return;if(e.data.includes('.')){e.preventDefault();warn('Dùng dấu phẩy ( , ) cho thập phân');return;}if(e.data.includes(',')&&inp.value.includes(',')){e.preventDefault();warn('Chỉ được 1 dấu phẩy');return;}if(!/^[0-9,]+$/.test(e.data))e.preventDefault();});
+  inp.addEventListener('paste',e=>{if((e.clipboardData||window.clipboardData).getData('text').includes('.')){e.preventDefault();warn('Dùng dấu phẩy ( , )  cho thập phân');}});
+}
+
+/* ── PRINT SELECT REPLACEMENT ── */
+function prepPrint(){
+  renumber();upPnums();
+  document.querySelectorAll('td select').forEach(sel=>{
+    let sp=sel.nextElementSibling;if(!sp||!sp.classList.contains('psr'))return;
+    sp.textContent=(sel.value&&sel.value.trim())?sel.options[sel.selectedIndex].text:'';
+  });
+  // nongdo-unit
+  document.querySelectorAll('.nu').forEach(sel=>{
+    let sp=sel.nextElementSibling;if(sp&&sp.classList.contains('psr'))sp.textContent=(sel.value&&sel.value.trim())?sel.options[sel.selectedIndex].text:'';
+  });
+}
+function afterPrint(){/* psr spans stay — they're in DOM, CSS hides on screen */}
+window.addEventListener('beforeprint',prepPrint);
+
+/* ── SAVE FORM ── */
+async function saveForm(){
+  const rows=document.querySelectorAll('#tbody tr');
+  if(!rows.length){alert('Chưa có dòng thuốc nào.');return;}
+  const su=localStorage.getItem('scriptUrl');
+  if(!su){alert('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
+  const ngay=`${document.getElementById('curDay').textContent}/${document.getElementById('curMonth').textContent}/${document.getElementById('curYear').textContent}`;
+  const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
+  const HEADER=['Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Dược sĩ xác nhận','Khoa (trang 2)','Địa điểm','Thời gian','TV1','TV2','TV3','TV4','Giờ KT','Phút KT','Báo cáo lên'];
+  const now=new Date().toLocaleString('vi-VN');
+  const dr=[];
+  rows.forEach((tr,i)=>{
+    const tds=[...tr.querySelectorAll('td')];
+    const txt=td=>td?.querySelector('input[type=text]:not(.ss-inp):not(.nv),select')?.value?.trim()||td?.textContent?.trim()||'';
+    dr.push([now,ngay,khoa,i+1,
+      tr._ss?.tt?.value||'',tr._ss?.hc?.value||'',tr._ss?.nd?.value||'',tr._ss?.sl?.value||'',tds[5]?.textContent?.trim()||'',
+      txt(tds[6]),tr.querySelector('.bbdp')?.value||'',tr.querySelector('.dtp')?.value||'',
+      tr.querySelector('.nv')?.value?.trim()||'',tr.querySelector('.nu')?.value?.trim()||'',
+      txt(tds[10]),txt(tds[11]),txt(tds[12]),txt(tds[13]),txt(tds[14]),
+      document.getElementById('khoaP2')?.value||'',document.getElementById('diaDiem')?.value||'',
+      document.getElementById('thoiGian')?.value||'',
+      ...[...document.querySelectorAll('.tv')].map(i=>i.value||''),
+      document.getElementById('gioKT')?.value||'',document.getElementById('phutKT')?.value||'',
+      document.getElementById('baoCao')?.value||'']);
+  });
+  const bs=document.getElementById('btnSave');
+  bs.textContent='⏳ Đang lưu…';bs.disabled=true;
+  try{
+    await fetch(su,{method:'POST',mode:'no-cors',body:JSON.stringify([HEADER,...dr])});
+    document.getElementById('savedTime').textContent=new Date().toLocaleTimeString('vi-VN');
+    document.getElementById('sbdg').classList.add('show');
+    document.getElementById('btnPrint').disabled=false;
+    bs.style.display='none';document.getElementById('btnAdd').style.display='none';
+    document.getElementById('btnNew').classList.add('show');
+    document.getElementById('formWrap').classList.add('form-locked');
+    document.querySelectorAll('.add-bar button').forEach(b=>b.disabled=true);
+  }catch(e){
+    bs.textContent='💾 Lưu biên bản';bs.disabled=false;
+    alert('Lỗi gửi dữ liệu: '+e.message);
+  }
+}
+function resetForm(){
+  if(!confirm('Tạo biên bản mới sẽ xoá toàn bộ nội dung. Tiếp tục?'))return;
+  document.getElementById('tbody').innerHTML='';rowCount=0;
+  document.getElementById('khoaInput').value='';document.getElementById('khoaInput').classList.remove('hv');
+  document.querySelectorAll('.form-wrap input[type=text]:not(#khoaInput)').forEach(el=>{el.value='';el.classList.remove('hv');});
+  document.getElementById('diaDiem').value='Khoa Dược';document.getElementById('diaDiem').classList.add('hv');
+  document.getElementById('formWrap').classList.remove('form-locked');
+  document.getElementById('sbdg').classList.remove('show');
+  document.getElementById('btnPrint').disabled=true;
+  const bs=document.getElementById('btnSave');bs.style.display='';bs.disabled=false;bs.textContent='💾 Lưu biên bản';
+  document.getElementById('btnAdd').style.display='';
+  document.getElementById('btnNew').classList.remove('show');
+  document.querySelectorAll('.add-bar button').forEach(b=>b.disabled=false);
+  const n=new Date();document.getElementById('curDay').textContent=n.getDate();document.getElementById('curMonth').textContent=n.getMonth()+1;document.getElementById('curYear').textContent=n.getFullYear();
+  addRow();addRow();addRow();
+}
+
+/* ── THEO DÕI ── */
+let OUT_DATA=[];
+async function loadOutSheet(){
+  const raw=(document.getElementById('outSheetUrl').value||'').trim();
+  if(!raw){alert('Nhập URL Sheet kết quả.');return;}
+  const u=buildCsvUrl(raw);
+  if(!u){alert('URL không hợp lệ.');return;}
+  setSt('outStatus','ld','⏳ Đang tải…');
+  try{
+    const res=await fetch(u);if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const rows=parseCsv(await res.text());
+    if(rows.length<2)throw new Error('Không có dữ liệu.');
+    // skip header row (row 0)
+    OUT_DATA=rows.slice(1).filter(r=>r.some(c=>c!==''));
+    localStorage.setItem('outSheetUrl',raw);
+    // populate khoa filter
+    const khoaSet=new Set(OUT_DATA.map(r=>r[2]||'').filter(Boolean));
+    const sel=document.getElementById('fKhoa');
+    sel.innerHTML='<option value="">-- Tất cả --</option>';
+    [...khoaSet].sort().forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);});
+    setSt('outStatus','ok',`✅ ${OUT_DATA.length} dòng — ${new Date().toLocaleTimeString('vi-VN')}`);
+    refreshKhoaFilter();
+  }catch(e){setSt('outStatus','err','🔴 '+e.message);}
+}
+
+function buildReport(){
+  if(!OUT_DATA.length){alert('Chưa tải dữ liệu Sheet kết quả.');return;}
+  const khoa=document.getElementById('fKhoa').value;
+  const thang=parseInt(document.getElementById('fThang').value)||null;
+  const nam=document.getElementById('fNam').value.trim()||new Date().getFullYear().toString();
+
+  // Filter rows
+  // Col indices (from HEADER saved): 0=Ngày lưu,1=Ngày biên bản(dd/mm/yyyy),2=Khoa,3=STT,4=Tên thuốc,5=Hoạt chất,6=Nồng độ/HL,7=Số lô,8=ĐVT,9=Số lượng bao bì,10=Bao bì,...
+  const filtered=OUT_DATA.filter(r=>{
+    if(khoa && r[2]!==khoa)return false;
+    const parts=(r[1]||'').split('/');// dd/mm/yyyy
+    if(parts.length<3)return false;
+    if(thang && parseInt(parts[1])!==thang)return false;
+    if(nam && parts[2]!==nam)return false;
+    return true;
+  });
+
+  if(!filtered.length){alert('Không có dữ liệu phù hợp với bộ lọc.');return;}
+
+  // Group by (Tên thuốc + Nồng độ/HL, Hoạt chất, ĐVT, Số lô)
+  const groups={};
+  filtered.forEach(r=>{
+    const key=[r[4],r[5],r[6],r[7],r[8]].join('||');
+    if(!groups[key]){groups[key]={tenThuoc:r[4],hoatChat:r[5],nongDo:r[6],soLo:r[7],dvt:r[8],thuHoi:0,vloDP:0};}
+    const qty=parseFloat((r[9]||'0').replace(',','.'))||0;
+    const bb=(r[10]||'').trim();
+    groups[key].thuHoi+=qty;
+    if(bb==='Lọ'||bb==='Lo')groups[key].vloDP+=qty;
+  });
+
+  // Set report header
+  document.getElementById('rptKhoa').textContent=khoa||'Tất cả';
+  document.getElementById('rptThang').textContent=thang||'Tất cả';
+  document.getElementById('rptNam').textContent=nam;
+
+  // Build table body
+  const tbody=document.getElementById('rptBody');
+  tbody.innerHTML='';
+  Object.values(groups).forEach((g,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${i+1}</td>
+      <td style="text-align:left;">${g.tenThuoc}${g.nongDo?' '+g.nongDo:''}</td>
+      <td>${g.hoatChat}</td>
+      <td>${g.dvt}</td>
+      <td>${g.soLo}</td>
+      <td><input></td>
+      <td><input></td><td><input></td><td><input></td>
+      <td><input></td><td><input></td><td><input></td>
+      <td style="font-weight:bold;">${g.thuHoi||''}</td>
+      <td>${g.vloDP||''}</td>
+      <td><input></td>
+      <td><input></td>
+      <td><input></td>
+      <td><input></td>
+      <td><input></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('rptArea').style.display='';
+}
+
+/* ── DEPT MANAGEMENT ── */
+let DEPTS = JSON.parse(localStorage.getItem('depts') || '[]');
+const savedDeptSheetUrl = localStorage.getItem('deptSheetUrl') || '';
+if(savedDeptSheetUrl) document.getElementById('deptSheetUrl').value = savedDeptSheetUrl;
+
+function renderDeptList(){
+  const ul = document.getElementById('deptList');
+  if(!DEPTS.length){ul.innerHTML='<div class="dept-empty">Chưa có khoa nào. Thêm mới hoặc tải từ Google Sheet.</div>';return;}
+  ul.innerHTML = '';
+  DEPTS.forEach((d,i)=>{
+    const div = document.createElement('div');
+    div.className = 'dept-item';
+    div.innerHTML = `<span>${d}</span><button onclick="deleteDept(${i})" title="Xóa">✕</button>`;
+    ul.appendChild(div);
+  });
+}
+
+function addDept(){
+  const inp = document.getElementById('newDept');
+  const v = inp.value.trim();
+  if(!v) return;
+  if(DEPTS.includes(v)){alert('Khoa này đã có trong danh sách.');return;}
+  DEPTS.push(v);
+  saveDepts();
+  inp.value = '';
+  renderDeptList();
+}
+
+function deleteDept(i){
+  if(!confirm(`Xóa "${DEPTS[i]}" khỏi danh sách?`)) return;
+  DEPTS.splice(i,1);
+  saveDepts();
+  renderDeptList();
+}
+
+function saveDepts(){
+  localStorage.setItem('depts', JSON.stringify(DEPTS));
+  updateKhoaDropdowns();
+}
+
+function updateKhoaDropdowns(){
+  // Update khoa searchable in form
+  khoaSSRender('');
+  // Update fKhoa in theo doi (merge with data-driven list)
+  refreshKhoaFilter();
+}
+
+async function loadDeptsFromSheet(){
+  const raw = (document.getElementById('deptSheetUrl').value||'').trim();
+  if(!raw){alert('Nhập URL Sheet danh sách khoa.');return;}
+  const u = buildCsvUrl(raw);
+  if(!u){alert('URL không hợp lệ.');return;}
+  const stEl = document.getElementById('deptSheetStatus');
+  stEl.style.display='';setSt('deptSheetStatus','ld','⏳ Đang tải…');
+  try{
+    const res = await fetch(u);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const rows = parseCsv(await res.text());
+    const depts = rows.slice(1).map(r=>r[0]).filter(Boolean);
+    if(!depts.length) throw new Error('Không đọc được danh sách khoa. Sheet cần có cột "Tên khoa/Trung tâm".');
+    DEPTS = depts;
+    localStorage.setItem('deptSheetUrl', raw);
+    saveDepts();
+    renderDeptList();
+    setSt('deptSheetStatus','ok',`✅ Đã tải ${depts.length} khoa/trung tâm`);
+  }catch(e){
+    setSt('deptSheetStatus','err','🔴 '+e.message);
+    alert('Lỗi: '+e.message);
+  }
+}
+
+/* ── KHOA SEARCHABLE DROPDOWN (form) ── */
+function khoaSSRender(q){
+  const list = document.getElementById('khoaSSList');
+  if(!list) return;
+  const filtered = q ? DEPTS.filter(d=>d.toLowerCase().includes(q.toLowerCase())) : DEPTS;
+  list.innerHTML = '';
+  if(!filtered.length){list.style.display='none';return;}
+  filtered.forEach(d=>{
+    const div = document.createElement('div');
+    div.className = 'ss-opt';
+    div.textContent = d;
+    div.addEventListener('mousedown', e=>{
+      e.preventDefault();
+      const inp = document.getElementById('khoaInput');
+      inp.value = d; inp.classList.add('hv');
+      khoaSSClose();
+    });
+    list.appendChild(div);
+  });
+}
+function khoaSSFilter(q){ khoaSSRender(q); khoaSSOpen(); }
+function khoaSSOpen(){
+  if(!DEPTS.length) return;
+  const inp = document.getElementById('khoaInput');
+  const list = document.getElementById('khoaSSList');
+  if(!list) return;
+  khoaSSRender(inp.value);
+  const rect = inp.getBoundingClientRect();
+  const mw = Math.max(rect.width * 1.5, 200);
+  let L = rect.left;
+  if(L + mw > window.innerWidth - 6) L = Math.max(0, window.innerWidth - mw - 6);
+  Object.assign(list.style, {top:rect.bottom+'px', left:L+'px', maxWidth:mw+'px', minWidth:rect.width+'px', display:'block'});
+}
+function khoaSSClose(){ const l=document.getElementById('khoaSSList'); if(l)l.style.display='none'; }
+
+/* ── KHOA FILTER in Theo dõi ── */
+function refreshKhoaFilter(){
+  const sel = document.getElementById('fKhoa');
+  if(!sel) return;
+  const cur = sel.value;
+  // merge DEPTS + unique values from OUT_DATA col 2
+  const fromData = OUT_DATA.map(r=>r[2]).filter(Boolean);
+  const allKhoa = [...new Set([...DEPTS, ...fromData])].sort();
+  sel.innerHTML = '<option value="">-- Tất cả --</option>';
+  allKhoa.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;if(k===cur)o.selected=true;sel.appendChild(o);});
+}
+
+/* ── INIT ── */
+renderDeptList();
+updateKhoaDropdowns();
+addRow();addRow();addRow();
+</script>
+</body>
+</html>
