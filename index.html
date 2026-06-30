@@ -235,6 +235,17 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
     <div class="sub">BM7/QTQL.D.22.1</div>
   </div>
   <div class="adm-body">
+    <div class="acard" style="border:2px solid var(--ac);background:#f0f6ff;">
+      <h2>🔧 Cấu hình trung tâm</h2>
+      <div class="desc" style="margin-bottom:10px;">
+        Toàn bộ kết nối dữ liệu (danh mục thuốc, lưu biên bản, danh sách khoa, kết quả tổng hợp) được tải tự động từ Google Sheet cấu hình mỗi khi mở ứng dụng. Liên hệ quản trị viên nếu cần cập nhật.
+      </div>
+      <div class="rg">
+        <input type="text" id="configUrl" placeholder="URL Google Sheet cấu hình" style="border-color:var(--ac);">
+        <button class="btn btn-p" onclick="applyConfig(false)">🔄 Tải lại cấu hình</button>
+      </div>
+      <div id="configStatus" class="sbadge">⚪ Đang tải…</div>
+    </div>
     <div class="tiles">
       <div class="tile" onclick="go('s-drug')">
         <div class="icon">🔗</div>
@@ -256,7 +267,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
         <h3>Theo dõi cấp phát</h3>
         <p>Tạo báo cáo theo dõi cấp phát, thu hồi dư phẩm và bao bì TXTT theo khoa, tháng</p>
       </div>
-    </div>
+    </div><!-- /tiles -->
     <p class="form-hint">Link dành cho khoa/phòng (chỉ nhập liệu): <code id="formLink"></code></p>
     <button class="open-btn" onclick="go('s-form')" style="margin-top:12px;">
       <span>📋 Mở giao diện nhập biên bản hủy bao bì</span>
@@ -275,10 +286,10 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   <div class="adm-body">
     <div class="acard">
       <h2>Đồng bộ từ Google Sheet</h2>
-      <div class="desc">Nếu có Google Sheet chứa sẵn danh sách khoa (1 cột "Tên khoa/Trung tâm"), dán link và tải về. Danh sách sẽ được lưu vào bộ nhớ trình duyệt và tự động dùng cho các dropdown.</div>
+      <div class="desc">Danh sách khoa/trung tâm được tải tự động từ cấu hình trung tâm. Bấm "Tải lại" để cập nhật nếu có thay đổi.</div>
       <div class="rg">
-        <input type="text" id="deptSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv">
-        <button class="btn btn-p" onclick="loadDeptsFromSheet()">📥 Tải từ Sheet</button>
+        <input type="text" id="deptSheetUrl" placeholder="URL tự động tải từ cấu hình trung tâm" readonly style="background:#f8f8f8;color:#666;">
+        <button class="btn btn-p" onclick="loadDeptsFromSheet(false)">📥 Tải lại</button>
       </div>
       <div id="deptSheetStatus" class="sbadge" style="display:none;"></div>
     </div>
@@ -307,11 +318,10 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   <div class="adm-body">
     <div class="acard">
       <h2>Google Sheet — Danh mục thuốc đầu vào</h2>
-      <div class="desc">Sheet cần có 5 cột: <b>Tên thuốc</b>, <b>Tên hoạt chất</b>, <b>Nồng độ/hàm lượng</b>, <b>Số lô</b>, <b>ĐVT</b>.<br>
-      Chia sẻ: <i>File → Share → Publish to web → chọn sheet tab → CSV → Publish</i>, copy link dán vào đây.</div>
+      <div class="desc">Danh sách thuốc GN-HT-TC đang tồn kho, được tải tự động từ cấu hình trung tâm. Ô dưới đây hiển thị trạng thái kết nối hiện tại.</div>
       <div class="rg">
-        <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv">
-        <button class="btn btn-p" onclick="connectSheet()">🔗 Kết nối</button>
+        <input type="text" id="sheetUrl" placeholder="URL tự động tải từ cấu hình trung tâm" readonly style="background:#f8f8f8;color:#666;">
+        <button class="btn btn-p" onclick="connectSheet(false)">🔗 Kết nối lại</button>
         <button class="btn btn-gh" id="refreshBtn" onclick="refreshSheet()" style="display:none;">🔄 Làm mới</button>
       </div>
       <div id="dbStatus" class="sbadge">⚪ Chưa kết nối</div>
@@ -328,39 +338,13 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   </div>
   <div class="adm-body">
     <div class="acard">
-      <h2>Apps Script Web App URL</h2>
-      <div class="desc">Mỗi lần bấm "Lưu biên bản", dữ liệu sẽ POST tới URL này và được ghi vào Google Sheet tổng hợp.</div>
+      <h2>Apps Script — Lưu biên bản tự động</h2>
+      <div class="desc">Mỗi lần nhân viên bấm <b>"Lưu biên bản"</b>, dữ liệu được ghi tự động vào Google Sheet tổng hợp thông qua Apps Script. URL được tải từ cấu hình trung tâm.</div>
       <div class="rg">
-        <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/…/exec">
-        <button class="btn btn-p" onclick="saveScriptUrl()">💾 Lưu URL</button>
-        <button class="btn btn-gh" onclick="testScript()">🧪 Test</button>
+        <input type="text" id="scriptUrl" placeholder="URL tự động tải từ cấu hình trung tâm" readonly style="background:#f8f8f8;color:#666;">
+        <button class="btn btn-gh" onclick="testScript()">🧪 Test kết nối</button>
       </div>
       <div id="scriptStatus" class="sbadge">⚪ Chưa cấu hình</div>
-      <button class="tgl" onclick="toggleHowto('hw1')">▶ Hướng dẫn thiết lập (5 bước)</button>
-      <div class="howto" id="hw1">
-        <ol>
-          <li>Tạo Google Sheet mới để chứa kết quả (đặt tên tùy ý).</li>
-          <li>Mở sheet → <b>Extensions → Apps Script</b>.</li>
-          <li>Xóa code mặc định, dán code sau → Save (Ctrl+S):</li>
-        </ol>
-        <pre>function doPost(e){
-  try{
-    var rows=JSON.parse(e.postData.contents);
-    var sheet=SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    rows.forEach(function(r){sheet.appendRow(r);});
-    return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }catch(err){
-    return ContentService.createTextOutput(JSON.stringify({status:'error',msg:err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}</pre>
-        <ol start="4">
-          <li><b>Deploy → New deployment → Web app</b><br>
-          Execute as: <i>Me</i> | Who has access: <i>Anyone</i> → Deploy → cấp quyền khi được hỏi.</li>
-          <li>Copy <b>Web app URL</b> dán vào ô trên. Sheet này cũng dùng cho tính năng Theo dõi cấp phát — cần <b>Publish to web → CSV</b> để đọc lại.</li>
-        </ol>
-      </div>
     </div>
   </div>
 </div>
@@ -375,11 +359,11 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   </div>
   <div class="adm-body" style="max-width:1100px;">
     <div class="acard">
-      <h2>Sheet kết quả biên bản (đầu vào báo cáo)</h2>
-      <div class="desc">Sheet do Apps Script ghi vào mỗi lần lưu biên bản. Cần <b>Publish to web → CSV</b> để đọc.</div>
+      <h2>Sheet kết quả biên bản</h2>
+      <div class="desc">Dữ liệu biên bản đã lưu, được tải tự động từ cấu hình trung tâm để tạo báo cáo.</div>
       <div class="rg">
-        <input type="text" id="outSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv">
-        <button class="btn btn-p" onclick="loadOutSheet()">📥 Tải dữ liệu</button>
+        <input type="text" id="outSheetUrl" placeholder="URL tự động tải từ cấu hình trung tâm" readonly style="background:#f8f8f8;color:#666;">
+        <button class="btn btn-p" onclick="loadOutSheet(false)">📥 Tải lại</button>
       </div>
       <div id="outStatus" class="sbadge">⚪ Chưa tải</div>
     </div>
@@ -586,6 +570,8 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 </div><!-- /s-form -->
 
 <script>
+const HARDCODED_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqFN6NpkyhqGjmUYv9e_9r_zkydZtNw-FGHI3Sr2fDT2W5uVtXbzderRq6f-uhN8mRmeL2THjPD3BX/pub?output=csv';
+
 /* ── ROUTER ── */
 const SCREENS=['s-home','s-drug','s-script','s-khoa','s-theo','s-form'];
 function go(id){
@@ -600,12 +586,75 @@ function go(id){
   else if(id==='s-khoa') { if(localStorage.getItem('deptSheetUrl')) loadDeptsFromSheet(true); }
   else if(id==='s-theo') { if(localStorage.getItem('outSheetUrl')) loadOutSheet(true); }
 }
-async function silentRefreshAll(){
+
+/* Refresh all data connections (no config reload — avoids infinite loop) */
+async function refreshConnections(){
   const p=[];
-  if(localStorage.getItem('sheetUrl')) p.push(connectSheet(true));
-  if(localStorage.getItem('deptSheetUrl')) p.push(loadDeptsFromSheet(true));
+  if(localStorage.getItem('sheetUrl'))    p.push(connectSheet(true));
+  if(localStorage.getItem('deptSheetUrl'))p.push(loadDeptsFromSheet(true));
   if(localStorage.getItem('outSheetUrl')) p.push(loadOutSheet(true));
   await Promise.allSettled(p);
+}
+
+/* silentRefreshAll: reload config first (syncs URLs), then refresh connections */
+async function silentRefreshAll(){
+  if(localStorage.getItem('configUrl')) await applyConfig(true);
+  else await refreshConnections();
+}
+
+/* applyConfig: fetch the central config sheet, distribute URLs to localStorage & inputs */
+async function applyConfig(silent){
+  const raw = HARDCODED_CONFIG_URL   // 1. Hardcoded in HTML (highest priority, all devices)
+    || (silent ? localStorage.getItem('configUrl') : null)  // 2. Saved locally (this device)
+    || (document.getElementById('configUrl')?.value||'').trim(); // 3. Typed by user right now
+  if(!raw){ if(!silent) alert('Nhập URL Sheet cấu hình.'); return; }
+  const u = buildCsvUrl(raw);
+  if(!u){ if(!silent) alert('URL không hợp lệ.'); return; }
+  if(!silent) setSt('configStatus','ld','⏳ Đang tải cấu hình…');
+  try{
+    const res = await fetch(u);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const rows = parseCsv(await res.text());
+    // Parse key→value (skip header row if header contains "key")
+    const cfg={};
+    rows.forEach(r=>{
+      if(r[0] && r[1] && r[0].toLowerCase()!=='key') cfg[r[0].trim().toLowerCase()]=r[1].trim();
+    });
+    // Map keys to localStorage entries and input fields
+    const MAP={
+      drug_url:   {ls:'sheetUrl',    el:'sheetUrl'},
+      script_url: {ls:'scriptUrl',   el:'scriptUrl'},
+      dept_url:   {ls:'deptSheetUrl',el:'deptSheetUrl'},
+      out_url:    {ls:'outSheetUrl', el:'outSheetUrl'},
+    };
+    let loaded=0;
+    for(const [key,{ls,el}] of Object.entries(MAP)){
+      if(cfg[key]){
+        localStorage.setItem(ls, cfg[key]);
+        const inp=document.getElementById(el);
+        if(inp) inp.value=cfg[key];
+        loaded++;
+      }
+    }
+    // Handle script_url separately (not a fetch target, just store & show status)
+    if(cfg.script_url){
+      localStorage.setItem('scriptUrl', cfg.script_url);
+      const inp=document.getElementById('scriptUrl');
+      if(inp) inp.value=cfg.script_url;
+      setSt('scriptStatus','ok','✅ Đã cấu hình từ Config Sheet');
+    }
+    localStorage.setItem('configUrl', raw);
+    if(!silent){
+      document.getElementById('configUrl').value=raw;
+      setSt('configStatus','ok',`✅ Đã tải ${loaded}/4 cài đặt — ${new Date().toLocaleTimeString('vi-VN')}`);
+    }
+    // Refresh all connections with the newly populated URLs
+    await refreshConnections();
+  }catch(e){
+    if(!silent) setSt('configStatus','err','🔴 '+e.message);
+    // Fall back to individual localStorage URLs
+    await refreshConnections();
+  }
 }
 function checkRoute(){
   const h=location.hash;
@@ -665,17 +714,27 @@ function parseDrugCsv(text){
 
 /* ── DRUG DB ── */
 let DRUG_DB=[];
-const ssUrl=localStorage.getItem('sheetUrl')||'';
-if(ssUrl){document.getElementById('sheetUrl').value=ssUrl;connectSheet(true);}
-const scUrl=localStorage.getItem('scriptUrl')||'';
-if(scUrl){document.getElementById('scriptUrl').value=scUrl;setSt('scriptStatus','ok','✅ Đã cấu hình');}
-const osUrl=localStorage.getItem('outSheetUrl')||'';
-if(osUrl){document.getElementById('outSheetUrl').value=osUrl;}
+// Pre-fill all URL inputs from localStorage (for display only; actual data loaded via silentRefreshAll)
+(function prefillInputs(){
+  const map={sheetUrl:'sheetUrl',scriptUrl:'scriptUrl',outSheetUrl:'outSheetUrl',deptSheetUrl:'deptSheetUrl',configUrl:'configUrl'};
+  for(const [ls,el] of Object.entries(map)){
+    const v=localStorage.getItem(ls)||'';
+    const inp=document.getElementById(el);
+    if(v&&inp) inp.value=v;
+  }
+  // If hardcoded, override configUrl input display
+  if(HARDCODED_CONFIG_URL){
+    const el=document.getElementById('configUrl');
+    if(el){ el.value=HARDCODED_CONFIG_URL; el.readOnly=true; el.style.background='#f0f6ff'; el.title='URL được nhúng sẵn trong HTML bởi admin — không thể sửa tại đây'; }
+    setSt('configStatus','ok','✅ Sử dụng URL nhúng sẵn trong HTML');
+  }
+  if(localStorage.getItem('scriptUrl')) setSt('scriptStatus','ok','✅ Đã cấu hình');
+})();
 
 function setSt(id,cls,msg){const el=document.getElementById(id);el.className='sbadge '+(cls||'');el.textContent=msg;}
 async function connectSheet(silent){
-  const raw=(document.getElementById('sheetUrl').value||'').trim();
-  if(!raw){if(!silent)alert('Nhập URL Google Sheet.');return;}
+  const raw=localStorage.getItem('sheetUrl')||(document.getElementById('sheetUrl').value||'').trim();
+  if(!raw){if(!silent)alert('Chưa có URL danh mục thuốc. Kiểm tra cấu hình trung tâm.');return;}
   const u=buildCsvUrl(raw);
   if(!u){if(!silent)alert('URL không nhận ra. Dùng link "Publish to web" dạng .../pub?output=csv hoặc link chỉnh sửa thông thường.');return;}
   setSt('dbStatus','ld','⏳ Đang tải…');
@@ -691,7 +750,7 @@ async function connectSheet(silent){
     if(!silent)alert(`Đã tải ${db.length} dòng.`);
   }catch(e){
     setSt('dbStatus','err','🔴 '+e.message);
-    if(!silent)alert('Lỗi: '+e.message+'\n\nGiải pháp:\n1. File → Share → Publish to web → CSV → Publish, copy link đó.\n2. Hoặc Share → Anyone with link → Viewer rồi dán link thông thường.\n3. Nếu mở từ file:// cần upload lên GitHub Pages trước.');
+    if(!silent)alert('Lỗi tải danh mục thuốc: '+e.message+'\n\nVui lòng liên hệ quản trị viên để kiểm tra cấu hình.');
   }
 }
 function refreshSheet(){connectSheet(false);}
@@ -977,8 +1036,6 @@ function buildReport(){
 
 /* ── DEPT MANAGEMENT ── */
 let DEPTS = JSON.parse(localStorage.getItem('depts') || '[]');
-const savedDeptSheetUrl = localStorage.getItem('deptSheetUrl') || '';
-if(savedDeptSheetUrl) document.getElementById('deptSheetUrl').value = savedDeptSheetUrl;
 
 function renderDeptList(){
   const ul = document.getElementById('deptList');
@@ -1094,6 +1151,8 @@ function refreshKhoaFilter(){
 renderDeptList();
 updateKhoaDropdowns();
 addRow();addRow();addRow();
+// Auto-load all connections on startup
+silentRefreshAll();
 </script>
 </body>
 </html>
