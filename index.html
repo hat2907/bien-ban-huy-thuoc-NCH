@@ -119,7 +119,9 @@ td input:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .row-act button{border:none;background:#d9534f;color:#fff;border-radius:3px;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:1;}
 /* ── Searchable select ── */
 .ss{position:relative;display:block;}
-.ss-inp{width:100%;border:none;border-bottom:1px dotted var(--hi);background:transparent;text-align:center;font-family:inherit;font-size:11px;padding:1px;cursor:text;}
+.ss::after{content:'▾';position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:9px;color:#555;pointer-events:none;line-height:1;}
+.ss:has(.ss-inp:disabled)::after{color:#ccc;}
+.ss-inp{width:100%;border:none;border-bottom:1px dotted var(--hi);background:transparent;text-align:center;font-family:inherit;font-size:11px;padding:1px 12px 1px 1px;cursor:text;}
 .ss-inp.hv{border-bottom:none;}
 .ss-inp:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .ss-inp:disabled{color:#aaa;cursor:default;}
@@ -135,6 +137,9 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .ndc{display:flex;align-items:center;gap:1px;position:relative;}
 .ndc input{width:55%;text-align:right;}
 .ndc select{width:45%;font-size:10px;}
+.numwrap{position:relative;}
+.numwrap input{width:100%;text-align:center;}
+.tyle-result{background:#f4f8ee!important;color:#2f5a1f;font-weight:600;cursor:default;}
 .iw{display:none;position:absolute;background:#d9534f;color:#fff;font-size:10px;padding:2px 5px;border-radius:3px;white-space:nowrap;z-index:80;top:22px;font-family:Arial,sans-serif;}
 .dvt-cell{font-size:11px;}
 .add-bar{margin:7px 0 12px;font-family:Arial,sans-serif;}
@@ -200,6 +205,8 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   body[data-ps=s-form] .page:last-child{page-break-after:auto;}
   body[data-ps=s-form] input,body[data-ps=s-form] select,body[data-ps=s-form] td input,body[data-ps=s-form] td select,body[data-ps=s-form] .khoa-input,body[data-ps=s-form] .sign-inp,body[data-ps=s-form] .method-r input,body[data-ps=s-form] .tl input{border-bottom:none!important;}
   body[data-ps=s-form] select,body[data-ps=s-form] .ss-inp{display:none!important;}
+  body[data-ps=s-form] .ss::after{display:none!important;}
+  body[data-ps=s-form] .tyle-result{background:transparent!important;color:#111!important;}
   body[data-ps=s-form] .ss .psr,body[data-ps=s-form] .psr{display:inline-block!important;}
   body[data-ps=s-form] .iw{display:none!important;}
   body[data-ps=s-form] .ndc input{width:55%!important;}
@@ -380,7 +387,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
           <input type="date" id="fToDate">
         </label>
         <div style="align-self:flex-end;">
-          <button class="btn btn-g" onclick="buildReport()">📊 Tạo báo cáo</button>
+          <button class="btn btn-g" onclick="buildReport()" id="btnBuildReport">📊 Tạo báo cáo</button>
         </div>
       </div>
     </div>
@@ -461,7 +468,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
       <div class="khoa-line">
         <label class="bold" style="white-space:nowrap;">1. Khoa/Trung tâm</label>
         <div class="khoa-ss-wrap" id="khoaSSWrap">
-          <input type="text" class="khoa-input" id="khoaInput" autocomplete="off" spellcheck="false" placeholder=".........................................." oninput="this.classList.toggle('hv',!!this.value);khoaSSFilter(this.value);" onfocus="khoaSSOpen();" onblur="setTimeout(khoaSSClose,160);">
+          <input type="text" class="khoa-input" id="khoaInput" autocomplete="off" spellcheck="false" placeholder=".........................................." oninput="this.classList.toggle('hv',!!this.value);khoaSSFilter(this.value);syncKhoaP2();" onfocus="khoaSSOpen();" onblur="setTimeout(khoaSSClose,160);">
           <div class="ss-list" id="khoaSSList"></div>
         </div>
         <span class="khoa-sfx">thực hiện thu hồi và đề xuất hủy các thuốc sau:</span>
@@ -525,7 +532,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
     <!-- PAGE 2 -->
     <div class="page">
       <div class="section-title">2. Tiến hành tiêu hủy</div>
-      <p class="para">Căn cứ theo đề xuất hủy của khoa<input type="text" id="khoaP2" style="border:none;border-bottom:1px dotted var(--hi);width:130px;" oninput="this.classList.toggle('hv',!!this.value)">, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất:</p>
+      <p class="para">Căn cứ theo đề xuất hủy của khoa <span id="khoaP2Display" class="khoa-input" style="display:inline-block;min-width:130px;"></span>, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất:</p>
       <div class="khoa-line">
         <label class="bold" style="white-space:nowrap;">Địa điểm:</label>
         <input type="text" id="diaDiem" class="khoa-input hv" value="Khoa Dược" style="font-style:italic;width:140px;" oninput="this.classList.toggle('hv',!!this.value)">
@@ -570,7 +577,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 </div><!-- /s-form -->
 
 <script>
-const HARDCODED_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvCxR-7JPx-DakwsRf4Bwoc1PN8JXh9Dn3V7hQZXFmbMins9XwEXwHcPPmssVf8lH4vSyl3bO9bdNp/pub?output=csv';
+const HARDCODED_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqFN6NpkyhqGjmUYv9e_9r_zkydZtNw-FGHI3Sr2fDT2W5uVtXbzderRq6f-uhN8mRmeL2THjPD3BX/pub?output=csv';
 
 /* ── ROUTER ── */
 const SCREENS=['s-home','s-drug','s-script','s-khoa','s-theo','s-form'];
@@ -700,7 +707,17 @@ function parseCsv(text){
   while((m=re.exec(text))!==null){let v=m[1];if(v.startsWith('"'))v=v.slice(1,-1).replace(/""/g,'"');row.push(v.trim());if(m[2]!==','){if(row.some(c=>c!==''))rows.push(row);row=[];}if(m[2]==='')break;}
   return rows;
 }
-const HA={tenThuoc:["ten thuoc","tên thuốc"],hoatChat:["ten hoat chat","hoat chat","tên hoạt chất","hoạt chất"],nongDo:["nong do","nong do/ham luong","nồng độ","nồng độ/hàm lượng","ham luong"],soLo:["so lo","số lô"],dvt:["dvt","don vi tinh","đvt","đơn vị tính"]};
+const HA={
+  tenThuoc:["ten thuoc","tên thuốc"],
+  hoatChat:["ten hoat chat","hoat chat","tên hoạt chất","hoạt chất"],
+  nongDo:["nong do","nong do/ham luong","nồng độ","nồng độ/hàm lượng","ham luong"],
+  soLo:["so lo","số lô"],
+  dvt:["dvt","don vi tinh","đvt","đơn vị tính"],
+  hamLuongDVT:["ham luong trong dvt","hàm lượng trong đvt","ham luong dvt"],
+  donViHamLuong:["don vi ham luong","đơn vị hàm lượng"],
+  theTichDVT:["the tich trong dvt","thể tích trong đvt","the tich dvt"],
+  donViTheTich:["don vi the tich","đơn vị thể tích"]
+};
 function norm(s){return(s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9/ ]/g,"").trim();}
 function mh(h){const n=norm(h);for(const k in HA)if(HA[k].some(a=>norm(a)===n||n.includes(norm(a))))return k;return null;}
 function parseDrugCsv(text){
@@ -708,7 +725,17 @@ function parseDrugCsv(text){
   const cm={};rows[0].forEach((h,i)=>{const k=mh(h);if(k)cm[k]=i;});
   const miss=['tenThuoc','hoatChat','nongDo','soLo','dvt'].filter(k=>!(k in cm));
   if(miss.length)throw new Error(`Thiếu cột: ${miss.join(', ')}`);
-  const d=[];for(let i=1;i<rows.length;i++){const r=rows[i];if(!r||r.every(c=>c===''))continue;d.push({tenThuoc:r[cm.tenThuoc]||'',hoatChat:r[cm.hoatChat]||'',nongDo:r[cm.nongDo]||'',soLo:r[cm.soLo]||'',dvt:r[cm.dvt]||''});}
+  const d=[];for(let i=1;i<rows.length;i++){const r=rows[i];if(!r||r.every(c=>c===''))continue;d.push({
+    tenThuoc:r[cm.tenThuoc]||'',
+    hoatChat:r[cm.hoatChat]||'',
+    nongDo:r[cm.nongDo]||'',
+    soLo:r[cm.soLo]||'',
+    dvt:r[cm.dvt]||'',
+    hamLuongDVT: cm.hamLuongDVT!=null ? (r[cm.hamLuongDVT]||'') : '',
+    donViHamLuong: cm.donViHamLuong!=null ? (r[cm.donViHamLuong]||'').trim().toLowerCase() : '',
+    theTichDVT: cm.theTichDVT!=null ? (r[cm.theTichDVT]||'') : '',
+    donViTheTich: cm.donViTheTich!=null ? (r[cm.donViTheTich]||'') : '',
+  });}
   return d;
 }
 
@@ -823,8 +850,8 @@ function addRow(){
     <td><select class="bbdp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['Ống','Lọ','Bơm tiêm','Chai','Túi'])}</select><span class="psr"></span></td>
     <td><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select><span class="psr"></span></td>
     <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><select class="nu" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['mg/ml','mcg/ml'])}</select><span class="psr"></span><span class="iw"></span></div></td>
-    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
-    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
+    <td><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
+    <td><input type="text" class="tyle-result" readonly tabindex="-1" title="Tự động tính: Nồng độ × Thể tích / Hàm lượng trong ĐVT"></td>
     <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
     <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
     <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
@@ -838,23 +865,28 @@ function addRow(){
     const m=DRUG_DB.filter(d=>d.tenThuoc===v);
     const l=[...new Set(m.map(d=>d.hoatChat))];
     hcSS.setOpts(l,true);ndSS.reset();slSS.reset();dvtCell.textContent='';
+    tr._drugRecord=null;computeTyLe(tr);
     if(l.length===1)hcSS.pick(l[0]);
   });
   const hcSS=new SS(tr.querySelector('[data-f=hc],[data-f="hc"]'),[],(v)=>{
     const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===v);
     const l=[...new Set(m.map(d=>d.nongDo))];
     ndSS.setOpts(l,true);slSS.reset();dvtCell.textContent='';
+    tr._drugRecord=null;computeTyLe(tr);
     if(l.length===1)ndSS.pick(l[0]);
   });
   const ndSS=new SS(tr.querySelector('[data-f=nd]'),[],(v)=>{
     const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===hcSS.value&&d.nongDo===v);
     const l=[...new Set(m.map(d=>d.soLo))];
     slSS.setOpts(l,true);dvtCell.textContent='';
+    tr._drugRecord=null;computeTyLe(tr);
     if(l.length===1)slSS.pick(l[0]);
   });
   const slSS=new SS(tr.querySelector('[data-f=sl]'),[],(v)=>{
     const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===hcSS.value&&d.nongDo===ndSS.value&&d.soLo===v);
     dvtCell.textContent=m[0]?.dvt||'';
+    tr._drugRecord=m[0]||null;
+    computeTyLe(tr);
   });
 
   // Store refs for rebuildSS
@@ -868,12 +900,40 @@ function addRow(){
   });
 
   attachDotGuard(tr.querySelector('.nv'));
+  attachDotGuard(tr.querySelector('.vol-input'));
+  tr.querySelector('.nv').addEventListener('input',()=>computeTyLe(tr));
+  tr.querySelector('.nu').addEventListener('change',()=>computeTyLe(tr));
+  tr.querySelector('.vol-input').addEventListener('input',()=>computeTyLe(tr));
   renumber();
 }
 function renumber(){document.querySelectorAll('#tbody tr').forEach((r,i)=>r.querySelector('.stt-col').textContent=i+1);}
 
+/* ── AUTO-CALCULATE Tỷ lệ dư phẩm trên ĐVT ──
+   Công thức: [Nồng độ thuốc trong dư phẩm] × [Thể tích dư phẩm cần hủy] / [Hàm lượng trong ĐVT]
+   Quy ước đơn vị: 1mg = 1000mcg — quy đổi nồng độ về cùng đơn vị với hàm lượng trước khi tính. */
+function computeTyLe(tr){
+  const out=tr.querySelector('.tyle-result');
+  if(!out) return;
+  const rec=tr._drugRecord;
+  const hamLuong=parseFloat((rec?.hamLuongDVT||'').toString().replace(',','.'));
+  if(!rec || isNaN(hamLuong) || hamLuong===0){ out.value=''; out.classList.remove('hv'); return; }
+  const nv=parseFloat((tr.querySelector('.nv')?.value||'').trim().replace(',','.'));
+  const vol=parseFloat((tr.querySelector('.vol-input')?.value||'').trim().replace(',','.'));
+  if(isNaN(nv)||isNaN(vol)){ out.value=''; out.classList.remove('hv'); return; }
+  const nuRaw=(tr.querySelector('.nu')?.value||'').split('/')[0].trim().toLowerCase(); // 'mg' | 'mcg' | ''
+  const hlUnit=(rec.donViHamLuong||'').trim().toLowerCase(); // 'mg' | 'mcg' | ''
+  let nvConverted=nv;
+  if(nuRaw && hlUnit && nuRaw!==hlUnit){
+    if(nuRaw==='mg' && hlUnit==='mcg') nvConverted=nv*1000;
+    else if(nuRaw==='mcg' && hlUnit==='mg') nvConverted=nv/1000;
+  }
+  const ratioPercent=(nvConverted*vol/hamLuong)*100;
+  out.value=ratioPercent.toLocaleString('vi-VN',{maximumFractionDigits:2})+'%';
+  out.classList.add('hv');
+}
+
 function attachDotGuard(inp){
-  const w=inp.closest('.ndc')?.querySelector('.iw');let t;
+  const w=inp.closest('.ndc, .numwrap')?.querySelector('.iw');let t;
   function warn(m){if(!w)return;w.textContent=m;w.style.display='block';clearTimeout(t);t=setTimeout(()=>w.style.display='none',2200);}
   inp.addEventListener('beforeinput',e=>{if(e.data==null)return;if(e.data.includes('.')){e.preventDefault();warn('Dùng dấu phẩy ( , ) cho thập phân');return;}if(e.data.includes(',')&&inp.value.includes(',')){e.preventDefault();warn('Chỉ được 1 dấu phẩy');return;}if(!/^[0-9,]+$/.test(e.data))e.preventDefault();});
   inp.addEventListener('paste',e=>{if((e.clipboardData||window.clipboardData).getData('text').includes('.')){e.preventDefault();warn('Dùng dấu phẩy ( , )  cho thập phân');}});
@@ -913,7 +973,7 @@ async function saveForm(){
       txt(tds[6]),tr.querySelector('.bbdp')?.value||'',tr.querySelector('.dtp')?.value||'',
       tr.querySelector('.nv')?.value?.trim()||'',tr.querySelector('.nu')?.value?.trim()||'',
       txt(tds[10]),txt(tds[11]),txt(tds[12]),txt(tds[13]),txt(tds[14]),
-      document.getElementById('khoaP2')?.value||'',document.getElementById('diaDiem')?.value||'',
+      document.getElementById('khoaInput')?.value||'',document.getElementById('diaDiem')?.value||'',
       document.getElementById('thoiGian')?.value||'',
       ...[...document.querySelectorAll('.tv')].map(i=>i.value||''),
       document.getElementById('gioKT')?.value||'',document.getElementById('phutKT')?.value||'',
@@ -939,6 +999,7 @@ function resetForm(){
   if(!confirm('Tạo biên bản mới sẽ xoá toàn bộ nội dung. Tiếp tục?'))return;
   document.getElementById('tbody').innerHTML='';rowCount=0;
   document.getElementById('khoaInput').value='';document.getElementById('khoaInput').classList.remove('hv');
+  syncKhoaP2();
   document.querySelectorAll('.form-wrap input[type=text]:not(#khoaInput)').forEach(el=>{el.value='';el.classList.remove('hv');});
   document.getElementById('diaDiem').value='Khoa Dược';document.getElementById('diaDiem').classList.add('hv');
   document.getElementById('formWrap').classList.remove('form-locked');
@@ -971,8 +1032,14 @@ async function loadOutSheet(silent){
   }catch(e){if(!silent)setSt('outStatus','err','🔴 '+e.message);}
 }
 
-function buildReport(){
-  if(!OUT_DATA.length){alert('Chưa tải dữ liệu Sheet kết quả.');return;}
+async function buildReport(){
+  const btn=document.getElementById('btnBuildReport');
+  const origText=btn.textContent;
+  btn.disabled=true;btn.textContent='⏳ Đang tải lại dữ liệu…';
+  await loadOutSheet(true);
+  btn.disabled=false;btn.textContent=origText;
+
+  if(!OUT_DATA.length){alert('Chưa tải được dữ liệu Sheet kết quả.');return;}
   const khoa=document.getElementById('fKhoa').value;
   const fromVal=document.getElementById('fFromDate').value; // yyyy-mm-dd
   const toVal=document.getElementById('fToDate').value;
@@ -1115,10 +1182,16 @@ function khoaSSRender(q){
       e.preventDefault();
       const inp = document.getElementById('khoaInput');
       inp.value = d; inp.classList.add('hv');
+      syncKhoaP2();
       khoaSSClose();
     });
     list.appendChild(div);
   });
+}
+function syncKhoaP2(){
+  const v=document.getElementById('khoaInput')?.value||'';
+  const el=document.getElementById('khoaP2Display');
+  if(el){ el.textContent=v; el.classList.toggle('hv',!!v); }
 }
 function khoaSSFilter(q){ khoaSSRender(q); khoaSSOpen(); }
 function khoaSSOpen(){
