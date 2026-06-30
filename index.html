@@ -103,7 +103,7 @@ table.rpt td input{width:100%;border:none;background:transparent;text-align:cent
 .title{text-align:center;font-weight:bold;text-transform:uppercase;font-size:13px;margin:12px 0 9px;white-space:nowrap;}
 .khoa-line{display:flex;gap:0;align-items:baseline;margin-bottom:10px;}
 .khoa-line label{margin-right:4px;flex-shrink:0;}
-.khoa-input{border:none;border-bottom:1px dotted var(--hi);width:220px;flex-shrink:0;font-family:inherit;font-size:inherit;}
+.khoa-input{border:none;border-bottom:1px dotted var(--hi);width:220px;flex-shrink:0;font-family:inherit;font-size:inherit;padding-right:12px;}
 .khoa-input.hv{border-bottom:none;}
 .khoa-sfx{flex-shrink:0;margin-left:4px;}
 table.main{width:100%;border-collapse:collapse;margin-top:5px;}
@@ -128,15 +128,17 @@ td input:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .ss-list{position:fixed;z-index:9999;background:#fff;border:1px solid #aaa;box-shadow:0 4px 12px rgba(0,0,0,.18);max-height:210px;overflow-y:auto;display:none;font-family:Arial,sans-serif;font-size:12px;text-align:left;border-radius:4px;}
 .ss-opt{padding:5px 10px;cursor:pointer;white-space:nowrap;}
 .ss-opt:hover{background:#e8f0fe;}
-/* plain selects in table */
-td select{width:100%;border:none;border-bottom:1px dotted var(--hi);background:transparent;text-align:center;font-family:inherit;font-size:11px;padding:1px;}
+/* plain selects in table — unified arrow (▾ 9px #555) matching searchable selects */
+.selwrap{position:relative;display:block;}
+.selwrap::after,.ndc::after,.khoa-ss-wrap::after{content:'▾';position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:9px;color:#555;pointer-events:none;line-height:1;}
+td select{width:100%;border:none;border-bottom:1px dotted var(--hi);background:transparent;text-align:center;font-family:inherit;font-size:11px;padding:1px 11px 1px 1px;-webkit-appearance:none;-moz-appearance:none;appearance:none;}
 td select.hv{border-bottom:none;}
 td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .psr{display:none;width:100%;text-align:center;font-family:inherit;font-size:11px;padding:1px;}
 /* nongdo cell */
 .ndc{display:flex;align-items:center;gap:1px;position:relative;}
 .ndc input{width:55%;text-align:right;}
-.ndc select{width:45%;font-size:10px;}
+.ndc select{width:45%;font-size:10px;padding-right:10px;}
 .numwrap{position:relative;}
 .numwrap input{width:100%;text-align:center;}
 .tyle-result{background:#f4f8ee!important;color:#2f5a1f;font-weight:600;cursor:default;}
@@ -205,7 +207,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   body[data-ps=s-form] .page:last-child{page-break-after:auto;}
   body[data-ps=s-form] input,body[data-ps=s-form] select,body[data-ps=s-form] td input,body[data-ps=s-form] td select,body[data-ps=s-form] .khoa-input,body[data-ps=s-form] .sign-inp,body[data-ps=s-form] .method-r input,body[data-ps=s-form] .tl input{border-bottom:none!important;}
   body[data-ps=s-form] select,body[data-ps=s-form] .ss-inp{display:none!important;}
-  body[data-ps=s-form] .ss::after{display:none!important;}
+  body[data-ps=s-form] .ss::after,body[data-ps=s-form] .selwrap::after,body[data-ps=s-form] .ndc::after,body[data-ps=s-form] .khoa-ss-wrap::after{display:none!important;}
   body[data-ps=s-form] .tyle-result{background:transparent!important;color:#111!important;}
   body[data-ps=s-form] .ss .psr,body[data-ps=s-form] .psr{display:inline-block!important;}
   body[data-ps=s-form] .iw{display:none!important;}
@@ -532,7 +534,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
     <!-- PAGE 2 -->
     <div class="page">
       <div class="section-title">2. Tiến hành tiêu hủy</div>
-      <p class="para">Căn cứ theo đề xuất hủy của khoa <span id="khoaP2Display" class="khoa-input" style="display:inline-block;min-width:130px;"></span>, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất:</p>
+      <p class="para">Căn cứ đề xuất hủy của <span id="khoaP2Display" class="khoa-input" style="display:inline-block;min-width:130px;"></span>, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất:</p>
       <div class="khoa-line">
         <label class="bold" style="white-space:nowrap;">Địa điểm:</label>
         <input type="text" id="diaDiem" class="khoa-input hv" value="Khoa Dược" style="font-style:italic;width:140px;" oninput="this.classList.toggle('hv',!!this.value)">
@@ -577,7 +579,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 </div><!-- /s-form -->
 
 <script>
-const HARDCODED_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvCxR-7JPx-DakwsRf4Bwoc1PN8JXh9Dn3V7hQZXFmbMins9XwEXwHcPPmssVf8lH4vSyl3bO9bdNp/pub?output=csv';
+const HARDCODED_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqFN6NpkyhqGjmUYv9e_9r_zkydZtNw-FGHI3Sr2fDT2W5uVtXbzderRq6f-uhN8mRmeL2THjPD3BX/pub?output=csv';
 
 /* ── ROUTER ── */
 const SCREENS=['s-home','s-drug','s-script','s-khoa','s-theo','s-form'];
@@ -847,8 +849,8 @@ function addRow(){
     <td><div class="ss" data-f="sl"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td class="dvt-cell"></td>
     <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
-    <td><select class="bbdp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['Ống','Lọ','Bơm tiêm','Chai','Túi'])}</select><span class="psr"></span></td>
-    <td><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select><span class="psr"></span></td>
+    <td><div class="selwrap"><select class="bbdp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['Ống','Lọ','Bơm tiêm','Chai','Túi'])}</select></div><span class="psr"></span></td>
+    <td><div class="selwrap"><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select></div><span class="psr"></span></td>
     <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><select class="nu" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['mg/ml','mcg/ml'])}</select><span class="psr"></span><span class="iw"></span></div></td>
     <td><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
     <td><input type="text" class="tyle-result" readonly tabindex="-1" title="Tự động tính: Nồng độ × Thể tích / Hàm lượng trong ĐVT"></td>
