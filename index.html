@@ -121,7 +121,7 @@ td input:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .ss{position:relative;display:block;}
 .ss::after{content:'▾';position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:9px;color:#555;pointer-events:none;line-height:1;}
 .ss:has(.ss-inp:disabled)::after{color:#ccc;}
-.ss-inp{width:100%;border:none;border-bottom:1px dotted var(--hi);background:transparent;text-align:center;font-family:inherit;font-size:11px;padding:1px 12px 1px 1px;cursor:text;}
+.ss-inp{width:100%;border:none;border-bottom:1px dotted var(--hi);background:transparent;text-align:left;font-family:inherit;font-size:11px;padding:1px 12px 1px 2px;cursor:text;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ss-inp.hv{border-bottom:none;}
 .ss-inp:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .ss-inp:disabled{color:#aaa;cursor:default;}
@@ -212,8 +212,10 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   body[data-ps=s-form] .tyle-result{background:transparent!important;color:#111!important;}
   body[data-ps=s-form] .ss .psr,body[data-ps=s-form] .psr{display:inline-block!important;}
   body[data-ps=s-form] .iw{display:none!important;}
-  body[data-ps=s-form] .ndc input{width:55%!important;}
-  body[data-ps=s-form] .ndc .psr{width:45%!important;font-size:10px!important;}
+  body[data-ps=s-form] .ndc{flex-direction:row!important;align-items:center;justify-content:center;gap:3px;}
+  body[data-ps=s-form] .ndc .selwrap{display:none!important;}
+  body[data-ps=s-form] .ndc input{width:auto!important;flex:0 0 auto;text-align:right;}
+  body[data-ps=s-form] .ndc .psr{display:inline-block!important;width:auto!important;flex:0 0 auto;font-size:10px!important;text-align:left;}
   body[data-ps=s-form] .para{margin:5px 0!important;}
   body[data-ps=s-form] .section-title{margin-top:8px!important;margin-bottom:4px!important;}
   body[data-ps=s-form] .method-row{margin-bottom:4px!important;}
@@ -580,7 +582,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 </div><!-- /s-form -->
 
 <script>
-const HARDCODED_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvCxR-7JPx-DakwsRf4Bwoc1PN8JXh9Dn3V7hQZXFmbMins9XwEXwHcPPmssVf8lH4vSyl3bO9bdNp/pub?output=csv';
+const HARDCODED_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqFN6NpkyhqGjmUYv9e_9r_zkydZtNw-FGHI3Sr2fDT2W5uVtXbzderRq6f-uhN8mRmeL2THjPD3BX/pub?output=csv';
 
 /* ── ROUTER ── */
 const SCREENS=['s-home','s-drug','s-script','s-khoa','s-theo','s-form'];
@@ -811,8 +813,8 @@ class SS{
     this.inp.disabled=!enabled||!this.opts.length;
     if(!enabled){this.value='';this.inp.value='';}
   }
-  pick(v){this.value=v;this.inp.value=v;this.inp.classList.toggle('hv',!!v);this._close();if(this.cb)this.cb(v);}
-  reset(){this.value='';this.inp.value='';this.inp.classList.remove('hv');this.inp.disabled=true;}
+  pick(v){this.value=v;this.inp.value=v;this.inp.title=v;this.inp.classList.toggle('hv',!!v);this._close();if(this.cb)this.cb(v);}
+  reset(){this.value='';this.inp.value='';this.inp.title='';this.inp.classList.remove('hv');this.inp.disabled=true;}
   _filt(q){return q?this.opts.filter(o=>o.toLowerCase().includes(q.toLowerCase())):this.opts;}
   _render(q){
     this.lst.innerHTML='';
@@ -837,7 +839,10 @@ class SS{
   }
 }
 /* close all dropdowns on scroll */
-document.addEventListener('scroll',()=>document.querySelectorAll('.ss-list').forEach(l=>l.style.display='none'),true);
+document.addEventListener('scroll',e=>{
+  if(e.target && e.target.closest && e.target.closest('.ss-list')) return; // cuộn bên trong danh sách — giữ mở
+  document.querySelectorAll('.ss-list').forEach(l=>l.style.display='none');
+},true);
 
 function rebuildSS(){
   const list=[...new Set(DRUG_DB.map(d=>d.tenThuoc))];
@@ -942,7 +947,7 @@ function computeTyLe(tr){
     else if(nuRaw==='mcg' && hlUnit==='mg') nvConverted=nv/1000;
   }
   const ratioPercent=(nvConverted*vol/hamLuong)*100;
-  out.value=ratioPercent.toLocaleString('vi-VN',{maximumFractionDigits:2})+'%';
+  out.value=ratioPercent.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
   out.classList.add('hv');
 }
 
