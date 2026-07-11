@@ -145,6 +145,9 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .iw{display:none;position:absolute;background:#d9534f;color:#fff;font-size:10px;padding:2px 5px;border-radius:3px;white-space:nowrap;z-index:80;top:22px;font-family:Arial,sans-serif;}
 .ndc .iw{top:32px;}
 .dvt-cell{font-size:11px;}
+/* Columns that need word-wrap (Điều dưỡng, Bác sĩ, Dược sĩ) */
+td.wrap-cell{white-space:normal;word-break:break-word;}
+td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-height:18px;overflow:visible;}
 .add-bar{margin:7px 0 12px;font-family:Arial,sans-serif;}
 .add-bar button{background:#2e8b57;color:#fff;border:none;padding:5px 11px;border-radius:5px;cursor:pointer;font-size:11.5px;}
 /* locked form */
@@ -205,6 +208,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   body[data-ps=s-form] .form-bar,body[data-ps=s-form] .add-bar,body[data-ps=s-form] .row-act{display:none!important;}
   body[data-ps=s-form] .form-wrap{background:#fff;padding:0;min-height:unset;}
   body[data-ps=s-form] .page{box-shadow:none;margin:0;padding:6mm 10mm 4mm;width:auto;min-height:190mm;page-break-after:always;}
+  body[data-ps=s-form] input::placeholder{color:transparent!important;}
   body[data-ps=s-form] .page:last-child{page-break-after:auto;}
   body[data-ps=s-form] input,body[data-ps=s-form] select,body[data-ps=s-form] td input,body[data-ps=s-form] td select,body[data-ps=s-form] .khoa-input,body[data-ps=s-form] .sign-inp,body[data-ps=s-form] .method-r input,body[data-ps=s-form] .tl input{border-bottom:none!important;}
   body[data-ps=s-form] select,body[data-ps=s-form] .ss-inp{display:none!important;}
@@ -541,7 +545,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
     <!-- PAGE 2 -->
     <div class="page">
       <div class="section-title">2. Tiến hành tiêu hủy</div>
-      <p class="para">Căn cứ đề xuất hủy của <span id="khoaP2Display" class="khoa-input" style="display:inline-block;min-width:130px;"></span>, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất:</p>
+      <p class="para">Căn cứ đề xuất hủy của <span id="khoaP2Display" class="khoa-input" style="display:inline-block;min-width:130px;"></span>, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và thuốc gây nghiện, thuốc hướng thần, tiền chất dạng dung dịch chưa sử dụng hết đơn vị đóng gói nhỏ nhất với các nội dung như sau:</p>
       <div class="khoa-line">
         <label class="bold" style="white-space:nowrap;">Địa điểm:</label>
         <input type="text" id="diaDiem" class="khoa-input hv" value="Khoa Dược" style="font-style:italic;width:140px;" oninput="this.classList.toggle('hv',!!this.value)">
@@ -553,15 +557,15 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
       <div class="method-row" style="margin-top:16px;">
         <div class="method-l">
           <p class="bold" style="margin-bottom:9px;">Phương pháp hủy:</p>
-          <p style="margin:4px 0;">- Với bao bì TXTT: Phá hủy bằng cách cắt/ đập vỡ/nghiền biến dạng rồi xử lý rác thải theo qui định của Bệnh viện</p>
-          <p style="margin:4px 0;">- Với dư phẩm thuốc: Đổ dư phẩm thuốc vào xô nước để hòa loãng rồi đổ vào đường nước thải chung</p>
+          <p style="margin:4px 0;">- Với bao bì TXTT: cho vào máy nghiền để nghiền nát bao bì TXTT thành chất thải rắn, rồi xử lý rác thải theo quy định của Bệnh viện</p>
+          <p style="margin:4px 0;">- Với thuốc GN-HT-TC không sử dụng hết: Đổ dư phẩm thuốc vào xô nước để hòa loãng rồi đổ vào đường nước thải chung</p>
         </div>
         <div class="method-r">
           <p class="bold" style="margin-bottom:5px;">Thành phần tham gia:</p>
-          <div class="nl"><span class="idx">1.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược, TV Hội đồng hủy</span></div>
-          <div class="nl"><span class="idx">2.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Phòng TCKT, TV Hội đồng hủy</span></div>
-          <div class="nl"><span class="idx">3.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa DP&amp;KSNK</span></div>
-          <div class="nl"><span class="idx">4.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược</span></div>
+          <div class="nl"><span class="idx">1.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược, Thành viên Hội đồng hủy</span></div>
+          <div class="nl"><span class="idx">2.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Phòng TCKT, Thành viên Hội đồng hủy; Khoa DP&amp;KSNK, Thành viên Hội đồng hủy</span></div>
+          <div class="nl"><span class="idx">3.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược, Nhân viên thu hồi bao bì TXTT</span></div>
+          <div class="nl"><span class="idx">4.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa DP&amp;KSNK</span></div>
         </div>
       </div>
       <p class="para">Chúng tôi cùng chứng kiến và thực hiện hủy hết lượng bao bì TXTT và dư phẩm thuốc gây nghiện, hướng thần và tiền chất đúng như trên Mục 1.</p>
@@ -862,61 +866,70 @@ function makeOpts(arr,ph=''){let h=`<option value="">${ph}</option>`;arr.forEach
 function addRow(){
   rowCount++;
   const tr=document.createElement('tr');
+  const DVT_DEFAULTS=['Ống','Lọ','Chai','Túi','Viên'];
+  const dvtList=[...new Set([...DVT_DEFAULTS,...DRUG_DB.map(d=>d.dvt).filter(Boolean)])];
   tr.innerHTML=`
     <td class="stt-col"></td>
     <td><div class="ss" data-f="tt"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false"><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="ss" data-f="hc"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="ss" data-f="nd"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="ss" data-f="sl"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
-    <td class="dvt-cell"></td>
+    <td><div class="ss" data-f="dvt"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
     <td><div class="selwrap"><select class="bbdp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['Ống','Lọ','Bơm tiêm','Chai','Túi'])}</select></div><span class="psr"></span></td>
     <td><div class="selwrap"><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select></div><span class="psr"></span></td>
     <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['mg/ml','mcg/ml'])}</select></div><span class="psr"></span><span class="iw"></span></div></td>
     <td><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
     <td><input type="text" class="tyle-result" readonly tabindex="-1" title="Tự động tính: Nồng độ × Thể tích / Hàm lượng trong ĐVT"></td>
-    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
-    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
-    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
+    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value)" style="white-space:normal;word-break:break-word;"></td>
+    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value)" style="white-space:normal;word-break:break-word;"></td>
+    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value)" style="white-space:normal;word-break:break-word;"></td>
     <td class="row-act"><button onclick="this.closest('tr').remove();renumber();">✕</button></td>`;
   document.getElementById('tbody').appendChild(tr);
 
   const tlist=[...new Set(DRUG_DB.map(d=>d.tenThuoc))];
-  const dvtCell=tr.querySelector('.dvt-cell');
 
   const ttSS=new SS(tr.querySelector('[data-f=tt]'),tlist,v=>{
     const m=DRUG_DB.filter(d=>d.tenThuoc===v);
     const l=[...new Set(m.map(d=>d.hoatChat))];
-    hcSS.setOpts(l,true);ndSS.reset();slSS.reset();dvtCell.textContent='';
+    hcSS.setOpts(l,true);ndSS.reset();slSS.reset();
+    dvtSS.setOpts(dvtList,true); // dvt enabled with defaults when drug chosen
     tr._drugRecord=null;computeTyLe(tr);
     if(l.length===1)hcSS.pick(l[0]);
   });
   const hcSS=new SS(tr.querySelector('[data-f=hc],[data-f="hc"]'),[],(v)=>{
     const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===v);
     const l=[...new Set(m.map(d=>d.nongDo))];
-    ndSS.setOpts(l,true);slSS.reset();dvtCell.textContent='';
+    ndSS.setOpts(l,true);slSS.reset();
+    dvtSS.setOpts(dvtList,true);
     tr._drugRecord=null;computeTyLe(tr);
     if(l.length===1)ndSS.pick(l[0]);
   });
   const ndSS=new SS(tr.querySelector('[data-f=nd]'),[],(v)=>{
     const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===hcSS.value&&d.nongDo===v);
     const l=[...new Set(m.map(d=>d.soLo))];
-    slSS.setOpts(l,true);dvtCell.textContent='';
-    tr._drugRecord=null;computeTyLe(tr);
-    if(l.length===1)slSS.pick(l[0]);
+    // số lô: optional — show DB options but allow leaving blank
+    slSS.setOpts(l,true);
+    dvtSS.setOpts(dvtList,true);
+    // Auto-fill dvt from DB if not yet set
+    const dbDvt=m[0]?.dvt||'';
+    if(dbDvt&&!dvtSS.value) dvtSS.pick(dbDvt);
+    tr._drugRecord=m[0]||null;computeTyLe(tr);
   });
   const slSS=new SS(tr.querySelector('[data-f=sl]'),[],(v)=>{
     const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===hcSS.value&&d.nongDo===ndSS.value&&d.soLo===v);
-    dvtCell.textContent=m[0]?.dvt||'';
+    if(m[0]?.dvt) dvtSS.pick(m[0].dvt);
     tr._drugRecord=m[0]||null;
     computeTyLe(tr);
   });
+  const dvtSS=new SS(tr.querySelector('[data-f=dvt]'),dvtList,()=>{});
+  dvtSS.setOpts(dvtList,false); // starts disabled until drug name chosen
 
-  // Store refs for rebuildSS
-  tr._ss={tt:ttSS,hc:hcSS,nd:ndSS,sl:slSS};
+  // Store refs
+  tr._ss={tt:ttSS,hc:hcSS,nd:ndSS,sl:slSS,dvt:dvtSS};
 
   // Print replacement spans
-  [ttSS,hcSS,ndSS,slSS].forEach(ss=>{
+  [ttSS,hcSS,ndSS,slSS,dvtSS].forEach(ss=>{
     const psr=ss.el.nextElementSibling;
     const origCb=ss.cb;
     ss.cb=v=>{if(psr)psr.textContent=v||'';if(origCb)origCb(v);};
