@@ -204,7 +204,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   body[data-ps=s-form] #s-form{display:block!important;}
   body[data-ps=s-form] .form-bar,body[data-ps=s-form] .add-bar,body[data-ps=s-form] .row-act{display:none!important;}
   body[data-ps=s-form] .form-wrap{background:#fff;padding:0;min-height:unset;}
-  body[data-ps=s-form] .page{box-shadow:none;margin:0;padding:8mm 11mm 6mm;width:auto;min-height:194mm;page-break-after:always;}
+  body[data-ps=s-form] .page{box-shadow:none;margin:0;padding:6mm 10mm 4mm;width:auto;min-height:190mm;page-break-after:always;}
   body[data-ps=s-form] .page:last-child{page-break-after:auto;}
   body[data-ps=s-form] input,body[data-ps=s-form] select,body[data-ps=s-form] td input,body[data-ps=s-form] td select,body[data-ps=s-form] .khoa-input,body[data-ps=s-form] .sign-inp,body[data-ps=s-form] .method-r input,body[data-ps=s-form] .tl input{border-bottom:none!important;}
   body[data-ps=s-form] select,body[data-ps=s-form] .ss-inp{display:none!important;}
@@ -212,20 +212,24 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
   body[data-ps=s-form] .tyle-result{background:transparent!important;color:#111!important;}
   body[data-ps=s-form] .ss .psr,body[data-ps=s-form] .psr{display:inline-block!important;}
   body[data-ps=s-form] .iw{display:none!important;}
-  body[data-ps=s-form] .ndc{flex-direction:row!important;align-items:center;justify-content:center;gap:3px;}
+  body[data-ps=s-form] .ndc{flex-direction:row!important;align-items:baseline;justify-content:center;gap:2px;}
   body[data-ps=s-form] .ndc .selwrap{display:none!important;}
-  body[data-ps=s-form] .ndc input{width:auto!important;flex:0 0 auto;text-align:right;}
-  body[data-ps=s-form] .ndc .psr{display:inline-block!important;width:auto!important;flex:0 0 auto;font-size:10px!important;text-align:left;}
+  body[data-ps=s-form] .ndc input{width:auto!important;max-width:46px;flex:0 0 auto;text-align:right;}
+  body[data-ps=s-form] .ndc .psr{display:inline!important;width:auto!important;flex:0 0 auto;font-size:9.5px!important;text-align:left;white-space:nowrap;}
   body[data-ps=s-form] .para{margin:5px 0!important;}
   body[data-ps=s-form] .section-title{margin-top:8px!important;margin-bottom:4px!important;}
   body[data-ps=s-form] .method-row{margin-bottom:4px!important;}
   body[data-ps=s-form] .method-r .nl{margin-bottom:2px!important;}
   body[data-ps=s-form] .tl{margin:5px 0!important;}
   body[data-ps=s-form] .sign-row2{margin-top:12px!important;}
-  body[data-ps=s-form] .sb2 div[style*="height"]{height:28px!important;}
-  body[data-ps=s-form] .fnrow div[style*="height"]{height:28px!important;}
-  body[data-ps=s-form] .fnrow{margin-top:14px!important;}
-  body[data-ps=s-form] .pg-foot{padding-top:6px!important;}
+  body[data-ps=s-form] .sb2 div[style*="height"]{height:26px!important;}
+  body[data-ps=s-form] .fnrow div[style*="height"]{height:26px!important;}
+  body[data-ps=s-form] .fnrow{margin-top:8px!important;}
+  body[data-ps=s-form] .pg-foot{padding-top:4px!important;}
+  body[data-ps=s-form] .fn{font-size:9.5px!important;line-height:1.4!important;}
+  body[data-ps=s-form] table.main th{font-size:10px!important;}
+  body[data-ps=s-form] table.main td{font-size:10px!important;}
+  body[data-ps=s-form] .title{font-size:12px!important;margin:8px 0 7px!important;}
 
   /* ── Print BÁO CÁO THEO DÕI ── */
   body[data-ps=s-theo] #s-theo{display:block!important;}
@@ -495,7 +499,7 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
           <tr>
             <th style="width:76px;">Bao bì chứa dư phẩm</th>
             <th style="width:82px;">Dịch truyền pha 1 ĐVT thuốc (*)</th>
-            <th style="width:82px;">Nồng độ thuốc trong dư phẩm</th>
+            <th style="width:96px;">Nồng độ thuốc trong dư phẩm</th>
             <th style="width:65px;">Thể tích dư phẩm cần hủy (ml)</th>
             <th style="width:70px;">Tỷ lệ dư phẩm trên đơn vị tính (**)</th>
             <th style="width:70px;">Điều dưỡng thực hiện y lệnh</th>
@@ -959,6 +963,7 @@ function attachDotGuard(inp){
 }
 
 /* ── PRINT SELECT REPLACEMENT ── */
+let _origTitle = document.title;
 function prepPrint(){
   renumber();upPnums();
   document.querySelectorAll('td select').forEach(sel=>{
@@ -966,18 +971,38 @@ function prepPrint(){
     if(!sp) return;
     sp.textContent=(sel.value&&sel.value.trim())?sel.options[sel.selectedIndex].text:'';
   });
+  // Set PDF filename: "BB hủy dư phẩm - [Khoa] - [Ngày]"
+  const active=SCREENS.find(s=>document.getElementById(s).classList.contains('active'));
+  if(active==='s-form'){
+    const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
+    const d=document.getElementById('curDay')?.textContent||'';
+    const m=document.getElementById('curMonth')?.textContent||'';
+    const y=document.getElementById('curYear')?.textContent||'';
+    document.title=`BB hủy dư phẩm${khoa?' - '+khoa:''} - ${d}-${m}-${y}`;
+  }
 }
-function afterPrint(){/* psr spans stay — they're in DOM, CSS hides on screen */}
+function afterPrint(){
+  document.title=_origTitle;
+}
 /* prepPrint is called from the main beforeprint handler above */
 
 /* ── SAVE FORM ── */
 async function saveForm(){
   const rows=document.querySelectorAll('#tbody tr');
-  if(!rows.length){alert('Chưa có dòng thuốc nào.');return;}
+  const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
+  // ── Validation
+  if(!khoa){
+    alert('⚠️ Chưa điền tên Khoa/Trung tâm.\nVui lòng nhập tên khoa trước khi lưu.');
+    document.getElementById('khoaInput').focus();
+    return;
+  }
+  if(!rows.length){
+    alert('⚠️ Chưa có dòng thuốc nào.\nVui lòng thêm ít nhất một dòng thuốc trước khi lưu.');
+    return;
+  }
   const su=localStorage.getItem('scriptUrl');
   if(!su){alert('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
   const ngay=`${document.getElementById('curDay').textContent}/${document.getElementById('curMonth').textContent}/${document.getElementById('curYear').textContent}`;
-  const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
   const HEADER=['Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Dược sĩ xác nhận','Khoa (trang 2)','Địa điểm','Thời gian','TV1','TV2','TV3','TV4','Giờ KT','Phút KT','Báo cáo lên'];
   const now=new Date().toLocaleString('vi-VN');
   const dr=[];
