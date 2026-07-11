@@ -474,7 +474,6 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
         <div class="head-col head-right">
           <p class="bold upper">Cộng hoà xã hội chủ nghĩa Việt Nam</p>
           <p class="bold line2 underline">Độc lập - Tự do - Hạnh phúc</p>
-          <p class="line3">Hà Nội, ngày <span class="static-date" id="curDay"></span> tháng <span class="static-date" id="curMonth"></span> năm <span class="static-date" id="curYear"></span></p>
         </div>
       </div>
       <div class="title">Biên bản hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất</div>
@@ -521,14 +520,14 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
           (***) Nhân viên khoa dược kiểm tra và nhận bàn giao danh mục, số lượng bao bì TXTT và đúng tình trạng thực tế của dư phẩm thuốc, ký &amp; ghi rõ họ tên
         </div>
         <div class="sgn">
-          <p class="sdt" style="visibility:hidden;" aria-hidden="true">Hà Nội, ngày .... tháng .... năm ....</p>
+          <p class="sdt" style="visibility:hidden;" aria-hidden="true">Hà Nội, ngày <span class="static-date"></span> tháng <span class="static-date"></span> năm <span class="static-date"></span></p>
           <p class="role">Điều dưỡng hành chính</p>
           <p class="hint">(Ký, ghi rõ họ tên)</p>
           <div style="height:46px;"></div>
           <input type="text" class="sign-inp" placeholder="Họ và tên" oninput="this.classList.toggle('hv',!!this.value)">
         </div>
         <div class="sgn">
-          <p class="sdt">Hà Nội, ngày .... tháng .... năm ....</p>
+          <p class="sdt">Hà Nội, ngày <span class="static-date" id="curDay"></span> tháng <span class="static-date" id="curMonth"></span> năm <span class="static-date" id="curYear"></span></p>
           <p class="role">Lãnh đạo khoa/Trung tâm</p>
           <p class="hint">(Ký, ghi rõ họ tên)</p>
           <div style="height:46px;"></div>
@@ -538,7 +537,7 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
       <div class="pg-foot">
         <span>BM7/QTQL.D.22.1</span>
         <span>Trang <span class="pnum"></span> / <span class="ptotal"></span></span>
-        <span>22/06/2026</span>
+        <span>16/07/2026</span>
       </div>
     </div>
 
@@ -563,19 +562,19 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
         <div class="method-r">
           <p class="bold" style="margin-bottom:5px;">Thành phần tham gia:</p>
           <div class="nl"><span class="idx">1.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược, Thành viên Hội đồng hủy</span></div>
-          <div class="nl"><span class="idx">2.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Phòng TCKT, Thành viên Hội đồng hủy; Khoa DP&amp;KSNK, Thành viên Hội đồng hủy</span></div>
+          <div class="nl"><span class="idx">2.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre" style="text-align:right;">Phòng TCKT, Thành viên Hội đồng hủy<br>Khoa DP&amp;KSNK, Thành viên Hội đồng hủy</span></div>
           <div class="nl"><span class="idx">3.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược, Nhân viên thu hồi bao bì TXTT</span></div>
           <div class="nl"><span class="idx">4.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa DP&amp;KSNK</span></div>
         </div>
       </div>
-      <p class="para">Chúng tôi cùng chứng kiến và thực hiện hủy hết lượng bao bì TXTT và dư phẩm thuốc gây nghiện, hướng thần và tiền chất đúng như trên Mục 1.</p>
-      <div class="tl">
+      <p style="margin:4px 0;line-height:1.4;">Chúng tôi cùng chứng kiến và thực hiện hủy hết lượng bao bì TXTT và dư phẩm thuốc gây nghiện, hướng thần và tiền chất đúng như trên Mục 1.</p>
+      <div class="tl" style="margin:4px 0;">
         <span>Việc tiêu hủy kết thúc vào lúc</span>
         <input id="gioKT" oninput="this.classList.toggle('hv',!!this.value)"><span>giờ</span>
         <input id="phutKT" oninput="this.classList.toggle('hv',!!this.value)"><span>phút cùng ngày.</span>
       </div>
-      <p class="para">Biên bản hủy thuốc được báo cáo lên <input id="baoCao" style="border:none;border-bottom:1px dotted var(--hi);width:240px;" oninput="this.classList.toggle('hv',!!this.value)"></p>
-      <p class="para">Biên bản này được lập thành 01 bản, Hội đồng hủy thuốc lưu bản chính.</p>
+      <p style="margin:4px 0;line-height:1.4;">Biên bản hủy thuốc được báo cáo lên <input id="baoCao" style="border:none;border-bottom:1px dotted var(--hi);width:240px;" oninput="this.classList.toggle('hv',!!this.value)"></p>
+      <p style="margin:4px 0;line-height:1.4;">Biên bản này được lập thành 01 bản, Hội đồng hủy thuốc lưu bản chính.</p>
       <div class="sign-row2" style="margin-top:36px;">
         <div class="sb2"><p class="role">THÀNH VIÊN THAM GIA HỦY</p><p class="hint">(Ký và ghi rõ họ tên)</p><div style="height:65px;"></div></div>
         <div class="sb2"><p class="role">CHỦ TỊCH HỘI ĐỒNG</p><p class="hint">(Ký tên và đóng dấu)</p><div style="height:65px;"></div></div>
@@ -583,7 +582,7 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
       <div class="pg-foot">
         <span>BM7/QTQL.D.22.1</span>
         <span>Trang <span class="pnum"></span> / <span class="ptotal"></span></span>
-        <span>22/06/2026</span>
+        <span>16/07/2026</span>
       </div>
     </div>
   </div>
@@ -597,9 +596,11 @@ const SCREENS=['s-home','s-drug','s-script','s-khoa','s-theo','s-form'];
 function go(id){
   SCREENS.forEach(s=>document.getElementById(s).classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(id==='s-form') window.history.replaceState(null,'','#form');
-  else if(id==='s-home') window.history.replaceState(null,'','#');
-  else window.history.replaceState(null,'','#'+id.replace('s-',''));
+  try{
+    if(id==='s-form') window.history.replaceState(null,'','#form');
+    else if(id==='s-home') window.history.replaceState(null,'','#');
+    else window.history.replaceState(null,'','#'+id.replace('s-',''));
+  }catch(e){/* iframe/preview context — history API blocked, safe to ignore */}
   // Auto-refresh connections when navigating
   if(id==='s-home'||id==='s-form') silentRefreshAll();
   else if(id==='s-drug') { if(localStorage.getItem('sheetUrl')) connectSheet(true); }
@@ -690,7 +691,17 @@ window.addEventListener('hashchange',checkRoute);
 (function(){const el=document.getElementById('formLink');if(el)el.textContent=location.origin+location.pathname+'#form';})();
 
 /* ── DATE ── */
-(function(){const n=new Date();document.getElementById('curDay').textContent=n.getDate();document.getElementById('curMonth').textContent=n.getMonth()+1;document.getElementById('curYear').textContent=n.getFullYear();})();
+(function setDate(){
+  const n=new Date();
+  const d=n.getDate(), m=n.getMonth()+1, y=n.getFullYear();
+  document.getElementById('curDay').textContent=d;
+  document.getElementById('curMonth').textContent=m;
+  document.getElementById('curYear').textContent=y;
+  // Also fill the invisible spacer spans (no id) inside the hidden sdt row
+  document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,i)=>{
+    s.textContent=[d,m,y][i]??'';
+  });
+})();
 
 /* ── PAGE NUMBERS ── */
 function upPnums(){const pp=document.querySelectorAll('.form-wrap .page');pp.forEach((p,i)=>{const a=p.querySelector('.pnum'),b=p.querySelector('.ptotal');if(a)a.textContent=i+1;if(b)b.textContent=pp.length;});}
@@ -823,9 +834,15 @@ class SS{
   }
   pick(v){this.value=v;this.inp.value=v;this.inp.title=v;this.inp.classList.toggle('hv',!!v);this._close();if(this.cb)this.cb(v);}
   reset(){this.value='';this.inp.value='';this.inp.title='';this.inp.classList.remove('hv');this.inp.disabled=true;}
+  clear(){this.value='';this.inp.value='';this.inp.title='';this.inp.classList.remove('hv');/* stays enabled */if(this.cb)this.cb('');}
   _filt(q){return q?this.opts.filter(o=>o.toLowerCase().includes(q.toLowerCase())):this.opts;}
   _render(q){
     this.lst.innerHTML='';
+    // Empty/clear option always at the top
+    const empty=document.createElement('div');
+    empty.className='ss-opt ss-opt-empty';empty.textContent='—';empty.style.color='#aaa';
+    empty.addEventListener('mousedown',e=>{e.preventDefault();this.pick('');});
+    this.lst.appendChild(empty);
     const fl=this._filt(q);
     if(!fl.length){const d=document.createElement('div');d.className='ss-opt';d.style.color='#aaa';d.textContent='(không có kết quả)';this.lst.appendChild(d);return;}
     fl.forEach(o=>{const d=document.createElement('div');d.className='ss-opt';d.textContent=o;d.addEventListener('mousedown',e=>{e.preventDefault();this.pick(o);});this.lst.appendChild(d);});
@@ -1063,7 +1080,9 @@ function resetForm(){
   document.getElementById('btnAdd').style.display='';
   document.getElementById('btnNew').classList.remove('show');
   document.querySelectorAll('.add-bar button').forEach(b=>b.disabled=false);
-  const n=new Date();document.getElementById('curDay').textContent=n.getDate();document.getElementById('curMonth').textContent=n.getMonth()+1;document.getElementById('curYear').textContent=n.getFullYear();
+  const n=new Date();const d=n.getDate(),m=n.getMonth()+1,y=n.getFullYear();
+  document.getElementById('curDay').textContent=d;document.getElementById('curMonth').textContent=m;document.getElementById('curYear').textContent=y;
+  document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,i)=>{s.textContent=[d,m,y][i]??'';});
   addRow();addRow();addRow();
   silentRefreshAll();
 }
