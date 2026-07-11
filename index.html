@@ -593,8 +593,8 @@ function go(id){
   else if(id==='s-home') window.history.replaceState(null,'','#');
   else window.history.replaceState(null,'','#'+id.replace('s-',''));
   // Auto-refresh connections when navigating
-  if(id==='s-home')    silentRefreshAll();
-  else if(id==='s-drug'||id==='s-form') { if(localStorage.getItem('sheetUrl')) connectSheet(true); }
+  if(id==='s-home'||id==='s-form') silentRefreshAll();
+  else if(id==='s-drug') { if(localStorage.getItem('sheetUrl')) connectSheet(true); }
   else if(id==='s-khoa') { if(localStorage.getItem('deptSheetUrl')) loadDeptsFromSheet(true); }
   else if(id==='s-theo') { if(localStorage.getItem('outSheetUrl')) loadOutSheet(true); }
 }
@@ -1027,6 +1027,7 @@ function resetForm(){
   document.querySelectorAll('.add-bar button').forEach(b=>b.disabled=false);
   const n=new Date();document.getElementById('curDay').textContent=n.getDate();document.getElementById('curMonth').textContent=n.getMonth()+1;document.getElementById('curYear').textContent=n.getFullYear();
   addRow();addRow();addRow();
+  silentRefreshAll();
 }
 
 /* ── THEO DÕI ── */
