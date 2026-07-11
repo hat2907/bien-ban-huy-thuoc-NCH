@@ -567,7 +567,7 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
           <div class="nl"><span class="idx">4.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa DP&amp;KSNK</span></div>
         </div>
       </div>
-      <p style="margin:4px 0;line-height:1.4;">Chúng tôi cùng chứng kiến và thực hiện hủy hết lượng bao bì TXTT và dư phẩm thuốc gây nghiện, hướng thần và tiền chất đúng như trên Mục 1.</p>
+      <p style="margin:4px 0;line-height:1.4;">Chúng tôi cùng chứng kiến và thực hiện hủy hết lượng bao bì tiếp xúc trực tiếp và thuốc gây nghiện, thuốc hướng thần, tiền chất dạng dung dịch chưa sử dụng hết đơn vị đóng gói nhỏ nhất đúng như trên Mục 1.</p>
       <div class="tl" style="margin:4px 0;">
         <span>Việc tiêu hủy kết thúc vào lúc</span>
         <input id="gioKT" oninput="this.classList.toggle('hv',!!this.value)"><span>giờ</span>
@@ -619,7 +619,8 @@ async function refreshConnections(){
 
 /* silentRefreshAll: reload config first (syncs URLs), then refresh connections */
 async function silentRefreshAll(){
-  if(localStorage.getItem('configUrl')) await applyConfig(true);
+  // Always apply config if hardcoded URL exists OR if user has saved one locally
+  if(HARDCODED_CONFIG_URL || localStorage.getItem('configUrl')) await applyConfig(true);
   else await refreshConnections();
 }
 
