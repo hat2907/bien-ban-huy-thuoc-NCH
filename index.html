@@ -908,8 +908,24 @@ class SS{
   _close(){this.lst.style.display='none';}
   _bind(){
     this.inp.addEventListener('focus',()=>{if(!this.inp.disabled)this._open();});
-    this.inp.addEventListener('input',()=>{this._render(this.inp.value);this._open();});
-    this.inp.addEventListener('blur',()=>setTimeout(()=>this._close(),160));
+    this.inp.addEventListener('input',()=>{
+      // Sync value immediately so saveForm and print always see what user typed
+      this.value=this.inp.value;
+      this.inp.title=this.value;
+      this.inp.classList.toggle('hv',!!this.value);
+      // Sync PSR span (for print)
+      const psr=this.el.nextElementSibling;
+      if(psr&&psr.classList.contains('psr'))psr.textContent=this.value;
+      this._render(this.inp.value);this._open();
+    });
+    this.inp.addEventListener('blur',()=>{
+      // Final sync on blur (captures any remaining value)
+      this.value=this.inp.value;
+      this.inp.title=this.value;
+      const psr=this.el.nextElementSibling;
+      if(psr&&psr.classList.contains('psr'))psr.textContent=this.value;
+      setTimeout(()=>this._close(),160);
+    });
   }
 }
 /* close all dropdowns on scroll */
