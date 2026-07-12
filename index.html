@@ -960,8 +960,8 @@ function addRow(){
     <td><div class="numwrap" style="position:relative;"><input type="text" class="bb-qty" inputmode="numeric" placeholder="0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
     <td><div class="selwrap"><select class="bbdp"><option value=""></option><option value="Ống">Ống</option><option value="Lọ">Lọ</option><option value="Bơm tiêm">Bơm tiêm</option><option value="Chai">Chai</option><option value="Túi">Túi</option></select></div><span class="psr"></span></td>
     <td><div class="selwrap"><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select></div><span class="psr"></span></td>
-    <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['mg/ml','mcg/ml'])}</select></div><span class="psr"></span><span class="iw"></span></div></td>
-    <td><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
+    <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));">${makeOpts(['mg/ml','mcg/ml'])}</select></div><span class="psr"></span><span class="iw"></span></div></td>
+    <td><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><span class="iw"></span></div></td>
     <td><input type="text" class="tyle-result" readonly tabindex="-1" title="Tự động tính: Nồng độ × Thể tích / Hàm lượng trong ĐVT"></td>
     <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
     <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
@@ -1058,21 +1058,53 @@ function renumber(){document.querySelectorAll('#tbody tr').forEach((r,i)=>r.quer
    Quy ước đơn vị: 1mg = 1000mcg — quy đổi nồng độ về cùng đơn vị với hàm lượng trước khi tính. */
 function computeTyLe(tr){
   const out=tr.querySelector('.tyle-result');
-  if(!out) return;
-  const rec=tr._drugRecord;
-  const hamLuong=parseFloat((rec?.hamLuongDVT||'').toString().replace(',','.'));
-  if(!rec || isNaN(hamLuong) || hamLuong===0){ out.value=''; out.classList.remove('hv'); return; }
-  const nv=parseFloat((tr.querySelector('.nv')?.value||'').trim().replace(',','.'));
-  const vol=parseFloat((tr.querySelector('.vol-input')?.value||'').trim().replace(',','.'));
-  if(isNaN(nv)||isNaN(vol)){ out.value=''; out.classList.remove('hv'); return; }
-  const nuRaw=(tr.querySelector('.nu')?.value||'').split('/')[0].trim().toLowerCase(); // 'mg' | 'mcg' | ''
-  const hlUnit=(rec.donViHamLuong||'').trim().toLowerCase(); // 'mg' | 'mcg' | ''
-  let nvConverted=nv;
-  if(nuRaw && hlUnit && nuRaw!==hlUnit){
-    if(nuRaw==='mg' && hlUnit==='mcg') nvConverted=nv*1000;
-    else if(nuRaw==='mcg' && hlUnit==='mg') nvConverted=nv/1000;
+  if(!out)return;
+
+  // Read SS values from both the SS.value property AND directly from DOM input
+  // (covers all scenarios: pick from list, type without picking, programmatic set)
+  const hcV=tr._ss?.hc?.value||tr.querySelector('[data-f=hc] .ss-inp')?.value||'';
+  const ttV=tr._ss?.tt?.value||tr.querySelector('[data-f=tt] .ss-inp')?.value||'';
+  const ndV=tr._ss?.nd?.value||tr.querySelector('[data-f=nd] .ss-inp')?.value||'';
+
+  // Step 1: drug record (from cascade pick, or live DB lookup, or skip if DB empty)
+  let rec=tr._drugRecord;
+  if(!rec&&hcV&&ttV&&ndV){
+    const m=DRUG_DB.filter(d=>d.hoatChat===hcV&&d.tenThuoc===ttV&&d.nongDo===ndV);
+    if(m[0])rec=m[0];
   }
-  const ratio=nvConverted*vol/hamLuong; // decimal fraction (not %)
+
+  // Step 2: hamLuong + unit
+  // Priority: explicit hamLuongDVT column in DB
+  // Fallback: parse from nongDo string e.g. "10mg/2ml" → 10 mg
+  //   (works even when DB has no extra columns, or rec is null but ndV is filled)
+  let hamLuong=parseFloat((rec?.hamLuongDVT||'').replace(',','.'));
+  let hlUnit=(rec?.donViHamLuong||'').trim().toLowerCase();
+  if(isNaN(hamLuong)||hamLuong===0){
+    const nStr=rec?.nongDo||ndV||'';
+    const pm=nStr.match(/^([\d.,]+)\s*(mg|mcg|g)\s*[\/\s]/i);
+    if(pm){hamLuong=parseFloat(pm[1].replace(',','.'));hlUnit=pm[2].toLowerCase();}
+  }
+  if(isNaN(hamLuong)||hamLuong===0){out.value='';out.classList.remove('hv');return;}
+
+  // Step 3: nv + vol (skip if not yet filled)
+  const nvEl=tr.querySelector('.nv');
+  const volEl=tr.querySelector('.vol-input');
+  const nv=parseFloat((nvEl?.value||'').trim().replace(',','.'));
+  const vol=parseFloat((volEl?.value||'').trim().replace(',','.'));
+  if(isNaN(nv)||isNaN(vol)||nvEl?.disabled||volEl?.disabled){
+    out.value='';out.classList.remove('hv');return;
+  }
+
+  // Step 4: unit conversion (mg ↔ mcg)
+  const nuRaw=(tr.querySelector('.nu')?.value||'').split('/')[0].trim().toLowerCase();
+  let nvConverted=nv;
+  if(nuRaw&&hlUnit&&nuRaw!==hlUnit){
+    if(nuRaw==='mg'&&hlUnit==='mcg')nvConverted=nv*1000;
+    else if(nuRaw==='mcg'&&hlUnit==='mg')nvConverted=nv/1000;
+  }
+
+  // Step 5: ratio = nv×vol / hamLuong  (4 decimal places)
+  const ratio=nvConverted*vol/hamLuong;
   out.value=ratio.toLocaleString('vi-VN',{minimumFractionDigits:4,maximumFractionDigits:4});
   out.classList.add('hv');
 }
