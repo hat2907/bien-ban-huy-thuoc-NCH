@@ -851,7 +851,7 @@ async function connectSheet(silent){
     if(!db.length)throw new Error('Không đọc được dữ liệu. Kiểm tra tiêu đề cột.');
     DRUG_DB=db;localStorage.setItem('sheetUrl',raw);
     setSt('dbStatus','ok',`✅ ${db.length} thuốc — ${new Date().toLocaleTimeString('vi-VN')}`);
-    updateSyncBadge('ok',`${db.length} thuốc — ${new Date().toLocaleTimeString('vi-VN')}`);
+    updateSyncBadge('ok',`Đã đồng bộ thành công — ${new Date().toLocaleTimeString('vi-VN')}`);
     document.getElementById('refreshBtn').style.display='';
     rebuildSS();
     if(!silent)alert(`Đã tải ${db.length} dòng.`);
@@ -937,7 +937,7 @@ function addRow(){
     <td><div class="ss" data-f="nd"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="ss" data-f="sl"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="ss" data-f="dvt"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
-    <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
+    <td><div class="numwrap" style="position:relative;"><input type="text" class="bb-qty" inputmode="numeric" placeholder="0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
     <td><div class="selwrap"><select class="bbdp"><option value="Sử dụng hết">Sử dụng hết</option><option value="Ống">Ống</option><option value="Lọ">Lọ</option><option value="Bơm tiêm">Bơm tiêm</option><option value="Chai">Chai</option><option value="Túi">Túi</option></select></div><span class="psr"></span></td>
     <td><div class="selwrap"><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select></div><span class="psr"></span></td>
     <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['mg/ml','mcg/ml'])}</select></div><span class="psr"></span><span class="iw"></span></div></td>
@@ -1016,6 +1016,7 @@ function addRow(){
     ss.cb=v=>{if(psr)psr.textContent=v||'';if(origCb)origCb(v);};
   });
 
+  attachIntGuard(tr.querySelector('.bb-qty'));
   attachDotGuard(tr.querySelector('.nv'));
   attachDotGuard(tr.querySelector('.vol-input'));
   tr.querySelector('.nv').addEventListener('input',()=>computeTyLe(tr));
@@ -1054,6 +1055,20 @@ function computeTyLe(tr){
   const ratio=nvConverted*vol/hamLuong; // decimal fraction (not %)
   out.value=ratio.toLocaleString('vi-VN',{minimumFractionDigits:4,maximumFractionDigits:4});
   out.classList.add('hv');
+}
+
+/* Integer-only guard for TXTT quantity: only digits 0-9, no decimals */
+function attachIntGuard(inp){
+  const w=inp.closest('.numwrap')?.querySelector('.iw');let t;
+  function warn(m){if(!w)return;w.textContent=m;w.style.display='block';clearTimeout(t);t=setTimeout(()=>w.style.display='none',2200);}
+  inp.addEventListener('beforeinput',e=>{
+    if(e.data==null)return;
+    if(!/^[0-9]+$/.test(e.data)){e.preventDefault();warn('Chỉ nhập số nguyên (không có dấu phẩy/chấm)');}
+  });
+  inp.addEventListener('paste',e=>{
+    const txt=(e.clipboardData||window.clipboardData).getData('text');
+    if(!/^\d+$/.test(txt.trim())){e.preventDefault();warn('Chỉ nhập số nguyên');}
+  });
 }
 
 function attachDotGuard(inp){
@@ -1105,6 +1120,12 @@ async function saveForm(){
   const missingBaoBi=[...rows].filter(tr=>!tr.querySelector('.bbdp')?.value);
   if(missingBaoBi.length){
     alert(`⚠️ Còn ${missingBaoBi.length} dòng chưa chọn "Bao bì chứa thuốc".\nVui lòng điền đầy đủ trước khi lưu.`);
+    return;
+  }
+  // Check all rows have TXTT quantity (integer, non-empty)
+  const missingQty=[...rows].filter(tr=>!tr.querySelector('.bb-qty')?.value?.trim());
+  if(missingQty.length){
+    alert(`⚠️ Còn ${missingQty.length} dòng chưa nhập "Số lượng bao bì TXTT cần hủy".\nVui lòng nhập giá trị số nguyên trước khi lưu.`);
     return;
   }
   const su=localStorage.getItem('scriptUrl');
