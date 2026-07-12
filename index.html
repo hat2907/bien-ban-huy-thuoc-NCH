@@ -247,7 +247,6 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
   body[data-ps=s-theo] #rptArea{display:block!important;}
   body[data-ps=s-theo] .rpt-wrap{box-shadow:none;padding:0;}
   body[data-ps=s-theo] table.rpt input{border:none!important;}
-  body[data-ps=s-theo] .rpt-page-footer{position:fixed;bottom:8mm;left:10mm;right:10mm;}
   @page{size:A4 landscape;margin:10mm;}
 }
 </style>
@@ -422,7 +421,6 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
           <div class="rpt-hr">
             <p class="bold">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
             <p class="bold underline">Độc lập - Tự do - Hạnh phúc</p>
-            <p class="rpt-slogan">Hà Nội, <span id="rptDate"></span></p>
           </div>
         </div>
         <!-- Tiêu đề -->
@@ -470,12 +468,6 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
         <div class="rpt-sign">
           <div class="s-block"><p class="role">Điều dưỡng HC khoa lâm sàng</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
           <div class="s-block"><p class="role">Người tổng kết</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
-        </div>
-        <!-- Chân trang -->
-        <div class="rpt-page-footer">
-          <span><i>BM8/QTQL.D.22.1</i></span>
-          <span class="rpt-pn"><i>Trang 1/1</i></span>
-          <span><i>16/07/2026</i></span>
         </div>
       </div>
     </div>
@@ -736,12 +728,27 @@ function upPnums(){const pp=document.querySelectorAll('.form-wrap .page');pp.for
 upPnums();
 
 /* ── PRINT — set body[data-ps] so CSS knows which screen to show ── */
+let _theoPageStyle = null;
 window.addEventListener('beforeprint',()=>{
   const active=SCREENS.find(s=>document.getElementById(s).classList.contains('active'))||'s-form';
   document.body.dataset.ps=active;
   if(active==='s-form') prepPrint();
+  if(active==='s-theo'){
+    // Inject @page margin boxes: only reliable way to get Trang X/Y across multiple pages
+    _theoPageStyle=document.createElement('style');
+    _theoPageStyle.textContent=`@page{
+      size:A4 landscape;margin:10mm 10mm 18mm 10mm;
+      @bottom-left{content:"BM8/QTQL.D.22.1";font-style:italic;font-size:9.5pt;font-family:"Times New Roman",Times,serif;}
+      @bottom-center{content:"Trang " counter(page) " / " counter(pages);font-style:italic;font-size:9.5pt;font-family:"Times New Roman",Times,serif;}
+      @bottom-right{content:"16/07/2026";font-style:italic;font-size:9.5pt;font-family:"Times New Roman",Times,serif;}
+    }`;
+    document.head.appendChild(_theoPageStyle);
+  }
 });
-window.addEventListener('afterprint',()=>{ delete document.body.dataset.ps; });
+window.addEventListener('afterprint',()=>{
+  delete document.body.dataset.ps;
+  if(_theoPageStyle){_theoPageStyle.remove();_theoPageStyle=null;}
+});
 
 /* ── URL PARSER ── */
 function buildCsvUrl(u){
@@ -1183,8 +1190,7 @@ async function buildReport(){
   document.getElementById('rptPeriod').textContent=periodText;
   // Fill header date
   const now=new Date();
-  const rptDateEl=document.getElementById('rptDate');
-  if(rptDateEl) rptDateEl.textContent=`ngày ${now.getDate()} tháng ${now.getMonth()+1} năm ${now.getFullYear()}`;
+  // date element removed per user request
 
   const tbody=document.getElementById('rptBody');
   tbody.innerHTML='';
