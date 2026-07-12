@@ -1267,29 +1267,65 @@ function exportRptXLSX(){
   if(typeof XLSX==='undefined'){alert('Thư viện XLSX chưa tải. Vui lòng kiểm tra kết nối mạng.');return;}
   const khoa=document.getElementById('rptKhoa')?.textContent||'';
   const period=document.getElementById('rptPeriod')?.textContent||'';
-  // Collect all header text (2 header rows)
-  const hdrRows=[];
-  document.querySelectorAll('#rptTable thead tr').forEach(row=>{
-    hdrRows.push([...row.querySelectorAll('th')].map(th=>th.innerText.replace(/\n/g,' ')));
-  });
-  // Body rows
+
+  // 20 columns — hardcoded to match exact data column order
+  // Cols: 0=STT 1=Tên thuốc/ND 2=HC 3=ĐVT 4=Số lô
+  //       5=Chênh lệch BBTX tháng trước
+  //       6-8=Lĩnh thuốc  9-11=Hoàn trả thuốc
+  //       12=Bao bì TXTT 13=BB TXTT không SĐH 14=BB TXTT cần hủy 15=BB khác
+  //       16=Chênh lệch BBTXTT trong tháng 17=Chênh lệch BBTXTT cuối
+  //       18=Hoàn trả thuốc không SĐH 19=Ghi chú
+  const HDR1=['STT','Tên thuốc/\nNồng độ/Hàm lượng','Hoạt chất','Đơn vị tính','Số lô',
+    'Chênh lệch BBTX tháng trước',
+    'Lĩnh thuốc','','',
+    'Hoàn trả thuốc','','',
+    'Hoàn trả bao bì TXTT','','','',
+    'Chênh lệch Bao bì TXTT trong tháng','Chênh lệch Bao bì TXTT cuối',
+    'Hoàn trả thuốc không sử dụng hết','Ghi chú'];
+  const HDR2=['','','','','','',
+    'Tăng từ trực','Bù từ trực','Lĩnh khác',
+    'Theo người bệnh','Tích lũy khoa phòng','Hoàn trả khác',
+    'Bao bì TXTT','Bao bì TXTT đựng thuốc không sử dụng hết','Bao bì TXTT đựng thuốc cần hủy','Bao bì khác',
+    '','','',''];
+
+  // Body rows — read directly from rptBody (matches exact cell order in buildReport)
   const bodyRows=[];
   document.querySelectorAll('#rptBody tr').forEach(row=>{
     bodyRows.push([...row.querySelectorAll('td')].map(td=>{
       const inp=td.querySelector('input');
-      const raw=inp?inp.value:td.innerText.trim();
+      const raw=(inp?inp.value:td.innerText).trim();
       const n=parseFloat(raw.replace(',','.'));
       return raw===''?'':isNaN(n)?raw:n;
     }));
   });
-  const ws=XLSX.utils.aoa_to_sheet([
+
+  const aoa=[
     ['BÁO CÁO THEO DÕI CẤP PHÁT, THU HỒI THUỐC GN-HT-TC'],
     [`Khoa: ${khoa}   ${period}`],
     [],
-    ...hdrRows,
+    HDR1, HDR2,
     ...bodyRows
-  ]);
-  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:19}},{s:{r:1,c:0},e:{r:1,c:19}}];
+  ];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+
+  // Column widths
+  ws['!cols']=[{wch:5},{wch:22},{wch:14},{wch:9},{wch:10},
+    {wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},
+    {wch:12},{wch:18},{wch:14},{wch:10},
+    {wch:12},{wch:12},{wch:14},{wch:12}];
+
+  // Merges — row indices offset by 3 (title + khoa + blank row)
+  ws['!merges']=[
+    {s:{r:0,c:0},e:{r:0,c:19}},   // title
+    {s:{r:1,c:0},e:{r:1,c:19}},   // khoa/period
+    // Row 3 (HDR1 idx=3): rowspan-2 columns
+    ...[0,1,2,3,4,5,16,17,18,19].map(c=>({s:{r:3,c},e:{r:4,c}})),
+    // colspan groups
+    {s:{r:3,c:6},e:{r:3,c:8}},    // Lĩnh thuốc
+    {s:{r:3,c:9},e:{r:3,c:11}},   // Hoàn trả thuốc
+    {s:{r:3,c:12},e:{r:3,c:15}},  // Hoàn trả bao bì TXTT
+  ];
+
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'BM8');
   XLSX.writeFile(wb,`BM8_${khoa.replace(/[^\w\-]/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
