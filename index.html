@@ -942,7 +942,7 @@ function addRow(){
     <td><div class="ss" data-f="sl"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="ss" data-f="dvt"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="numwrap" style="position:relative;"><input type="text" class="bb-qty" inputmode="numeric" placeholder="0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
-    <td><div class="selwrap"><select class="bbdp"><option value="Sử dụng hết">Sử dụng hết</option><option value="Ống">Ống</option><option value="Lọ">Lọ</option><option value="Bơm tiêm">Bơm tiêm</option><option value="Chai">Chai</option><option value="Túi">Túi</option></select></div><span class="psr"></span></td>
+    <td><div class="selwrap"><select class="bbdp"><option value=""></option><option value="Ống">Ống</option><option value="Lọ">Lọ</option><option value="Bơm tiêm">Bơm tiêm</option><option value="Chai">Chai</option><option value="Túi">Túi</option></select></div><span class="psr"></span></td>
     <td><div class="selwrap"><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select></div><span class="psr"></span></td>
     <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['mg/ml','mcg/ml'])}</select></div><span class="psr"></span><span class="iw"></span></div></td>
     <td><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
@@ -992,11 +992,11 @@ function addRow(){
   // Store refs
   tr._ss={tt:ttSS,hc:hcSS,nd:ndSS,sl:slSS,dvt:dvtSS};
 
-  // bbdp: Sử dụng hết → disable dtp/nv/nu/vol; also mark hv on default
+  // bbdp: empty value (blank = Sử dụng hết) → disable dtp/nv/nu/vol
   const bbdpSel=tr.querySelector('.bbdp');
-  bbdpSel.classList.add('hv'); // default is Sử dụng hết, treat as filled
+  bbdpSel.classList.add('hv'); // blank is a valid choice, no underline needed
   function applyBBDP(){
-    const noDP=bbdpSel.value==='Sử dụng hết';
+    const noDP=bbdpSel.value===''; // empty = Sử dụng hết logic
     const dtp=tr.querySelector('.dtp');
     const nv=tr.querySelector('.nv');
     const nu=tr.querySelector('.nu');
@@ -1008,7 +1008,7 @@ function addRow(){
       if(noDP){el.value='';el.classList.remove('hv');}
     });
     if(noDP&&tyle){tyle.value='';tyle.classList.remove('hv');}
-    bbdpSel.classList.toggle('hv',!!bbdpSel.value);
+    bbdpSel.classList.add('hv'); // always filled (empty = valid choice)
   }
   bbdpSel.addEventListener('change',()=>{ applyBBDP(); if(tr.querySelector('.nu')&&!tr.querySelector('.nu').disabled) computeTyLe(tr); });
   applyBBDP(); // apply initial state (Sử dụng hết by default)
@@ -1118,12 +1118,6 @@ async function saveForm(){
   }
   if(!rows.length){
     alert('⚠️ Chưa có dòng thuốc nào.\nVui lòng thêm ít nhất một dòng thuốc trước khi lưu.');
-    return;
-  }
-  // Check all rows have bbdp value
-  const missingBaoBi=[...rows].filter(tr=>!tr.querySelector('.bbdp')?.value);
-  if(missingBaoBi.length){
-    alert(`⚠️ Còn ${missingBaoBi.length} dòng chưa chọn "Bao bì chứa thuốc".\nVui lòng điền đầy đủ trước khi lưu.`);
     return;
   }
   // Check all rows have TXTT quantity (integer, non-empty)
@@ -1250,8 +1244,8 @@ async function buildReport(){
     if(!groups[key]){groups[key]={tenThuoc:r[4],hoatChat:r[5],nongDo:r[6],soLo:r[7],dvt:r[8],baoBiTXTT:0,baoBiKhong:0};}
     const qty=parseFloat((r[9]||'0').replace(',','.'))||0;
     const bb=(r[10]||'').trim();
-    if(bb==='Sử dụng hết') groups[key].baoBiTXTT+=qty;
-    else if(bb) groups[key].baoBiKhong+=qty;
+    if(bb==='') groups[key].baoBiTXTT+=qty;     // empty = sử dụng hết → Bao bì TXTT
+    else if(bb) groups[key].baoBiKhong+=qty;    // container type → không sử dụng hết
   });
 
   // Format date for display
