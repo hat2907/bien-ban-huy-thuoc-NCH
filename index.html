@@ -107,11 +107,13 @@ table.rpt td input{width:100%;border:none;background:transparent;text-align:cent
 .head-right .line2{font-weight:bold;}
 .head-right .line3{font-style:italic;margin-top:16px;}
 .title{text-align:center;font-weight:bold;text-transform:uppercase;font-size:13px;margin:12px 0 9px;white-space:nowrap;}
-.khoa-line{display:flex;gap:0;align-items:baseline;margin-bottom:10px;}
+.khoa-line{display:flex;gap:0;align-items:baseline;margin-bottom:10px;font-weight:bold;}
 .khoa-line label{margin-right:4px;flex-shrink:0;}
-.khoa-input{border:none;border-bottom:1px dotted var(--hi);width:220px;flex-shrink:0;font-family:inherit;font-size:inherit;padding-right:12px;}
+.khoa-input{border:none;border-bottom:1px dotted var(--hi);flex:1;min-width:60px;font-family:inherit;font-size:inherit;font-weight:inherit;padding-right:12px;}
 .khoa-input.hv{border-bottom:none;}
 .khoa-sfx{flex-shrink:0;margin-left:4px;}
+/* Mirror span: hidden on screen, shown on print to avoid input truncation */
+.khoa-pv{display:none;white-space:nowrap;font-weight:bold;}
 table.main{width:100%;border-collapse:collapse;margin-top:5px;}
 table.main th,table.main td{border:1px solid var(--li);padding:3px;vertical-align:middle;text-align:center;}
 table.main th{font-weight:bold;background:#fafafa;font-size:11px;}
@@ -217,6 +219,8 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
   body[data-ps=s-form] input::placeholder{color:transparent!important;}
   body[data-ps=s-form] .page:last-child{page-break-after:auto;}
   body[data-ps=s-form] input,body[data-ps=s-form] select,body[data-ps=s-form] td input,body[data-ps=s-form] td select,body[data-ps=s-form] .khoa-input,body[data-ps=s-form] .sign-inp,body[data-ps=s-form] .method-r input,body[data-ps=s-form] .tl input{border-bottom:none!important;}
+  body[data-ps=s-form] #khoaInput{display:none!important;}
+  body[data-ps=s-form] .khoa-pv{display:inline!important;}
   body[data-ps=s-form] select,body[data-ps=s-form] .ss-inp{display:none!important;}
   body[data-ps=s-form] .ss::after,body[data-ps=s-form] .selwrap::after,body[data-ps=s-form] .khoa-ss-wrap::after{display:none!important;}
   body[data-ps=s-form] .tyle-result{background:transparent!important;color:#111!important;}
@@ -497,12 +501,13 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
       </div>
       <div class="title">Biên bản hủy bao bì tiếp xúc trực tiếp và thuốc GN-HT-TC không sử dụng hết đơn vị đóng gói nhỏ nhất</div>
       <div class="khoa-line">
-        <label class="bold" style="white-space:nowrap;">1. Khoa/Trung tâm</label>
-        <div class="khoa-ss-wrap" id="khoaSSWrap">
-          <input type="text" class="khoa-input" id="khoaInput" autocomplete="off" spellcheck="false" placeholder=".........................................." oninput="this.classList.toggle('hv',!!this.value);khoaSSFilter(this.value);syncKhoaP2();" onfocus="khoaSSOpen();" onblur="setTimeout(khoaSSClose,160);">
+        <label style="white-space:nowrap;">1.</label>
+        <div class="khoa-ss-wrap" id="khoaSSWrap" style="flex:1;min-width:60px;">
+          <input type="text" class="khoa-input" id="khoaInput" autocomplete="off" spellcheck="false" placeholder=".........................................." oninput="this.classList.toggle('hv',!!this.value);khoaSSFilter(this.value);syncKhoaP2();document.getElementById('khoaPrintVal').textContent=this.value;" onfocus="khoaSSOpen();" onblur="setTimeout(khoaSSClose,160);">
           <div class="ss-list" id="khoaSSList"></div>
         </div>
-        <span class="khoa-sfx">thực hiện thu hồi và đề xuất hủy các thuốc sau:</span>
+        <span class="khoa-pv" id="khoaPrintVal"></span>
+        <span class="khoa-sfx"> thực hiện thu hồi và đề xuất hủy các thuốc sau:</span>
       </div>
       <table class="main" id="mainTable">
         <thead>
@@ -1105,6 +1110,7 @@ function resetForm(){
   if(!confirm('Tạo biên bản mới sẽ xoá toàn bộ nội dung. Tiếp tục?'))return;
   document.getElementById('tbody').innerHTML='';rowCount=0;
   document.getElementById('khoaInput').value='';document.getElementById('khoaInput').classList.remove('hv');
+  const pv=document.getElementById('khoaPrintVal');if(pv)pv.textContent='';
   syncKhoaP2();
   document.querySelectorAll('.form-wrap input[type=text]:not(#khoaInput)').forEach(el=>{el.value='';el.classList.remove('hv');});
   document.getElementById('diaDiem').value='Khoa Dược';document.getElementById('diaDiem').classList.add('hv');
@@ -1295,6 +1301,7 @@ function khoaSSRender(q){
       e.preventDefault();
       const inp = document.getElementById('khoaInput');
       inp.value = d; inp.classList.add('hv');
+      const pv=document.getElementById('khoaPrintVal');if(pv)pv.textContent=d;
       syncKhoaP2();
       khoaSSClose();
     });
