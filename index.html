@@ -63,18 +63,24 @@ body{font-family:"Times New Roman",Times,serif;font-size:13px;background:var(--b
 .theo-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end;}
 .theo-filters label{font-size:12px;color:#555;display:flex;flex-direction:column;gap:4px;}
 .theo-filters select,.theo-filters input{padding:7px 10px;border:1.5px solid #d0d5dd;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;}
-.rpt-wrap{background:#fff;padding:24px 28px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.10);}
-.rpt-title{text-align:center;font-weight:bold;text-transform:uppercase;font-size:13px;margin-bottom:6px;}
-.rpt-khoa{text-align:center;margin-bottom:14px;font-size:13px;}
-table.rpt{width:100%;border-collapse:collapse;font-size:11px;}
+.rpt-wrap{background:#fff;padding:24px 28px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.10);font-family:"Times New Roman",Times,serif;}
+.rpt-header{display:flex;justify-content:space-between;margin-bottom:8px;}
+.rpt-header .rpt-hl{width:45%;text-align:center;font-size:12px;line-height:1.5;}
+.rpt-header .rpt-hr{width:45%;text-align:center;font-size:12px;line-height:1.5;}
+.rpt-header .rpt-hr .rpt-slogan{font-style:italic;font-size:11px;}
+.rpt-title{text-align:center;font-weight:bold;text-transform:uppercase;font-size:12px;margin:10px 0 6px;line-height:1.45;}
+.rpt-khoa{text-align:center;margin-bottom:10px;font-size:12px;font-style:italic;}
+table.rpt{width:100%;border-collapse:collapse;font-size:10.5px;font-family:"Times New Roman",Times,serif;}
 table.rpt th,table.rpt td{border:1px solid #000;padding:3px 4px;text-align:center;vertical-align:middle;}
-table.rpt th{background:#f0f0f0;font-weight:bold;}
-table.rpt td input{width:100%;border:none;background:transparent;text-align:center;font-size:11px;font-family:inherit;}
-.rpt-note{font-size:11px;margin-top:10px;line-height:1.7;}
-.rpt-sign{display:flex;justify-content:space-between;margin-top:30px;}
+table.rpt th{background:#f0f0f0;font-weight:bold;font-size:10px;}
+table.rpt td input{width:100%;border:none;background:transparent;text-align:center;font-size:10.5px;font-family:inherit;}
+.rpt-note{font-size:11px;margin-top:10px;line-height:1.7;font-family:"Times New Roman",Times,serif;}
+.rpt-sign{display:flex;justify-content:space-between;margin-top:30px;font-family:"Times New Roman",Times,serif;}
 .rpt-sign .s-block{width:45%;text-align:center;font-size:12px;}
 .rpt-sign .s-block .role{font-weight:bold;}
 .rpt-sign .s-block .hint{font-style:italic;font-size:11px;}
+.rpt-page-footer{display:flex;justify-content:space-between;font-size:10.5px;font-style:italic;margin-top:20px;padding-top:6px;font-family:"Times New Roman",Times,serif;}
+.rpt-page-footer .rpt-pn{text-align:center;flex:1;}
 
 /* ── FORM BAR ── */
 .form-bar{position:sticky;top:0;z-index:50;background:#1a1a2e;color:#fff;padding:8px 18px;display:flex;align-items:center;gap:9px;font-family:Arial,sans-serif;}
@@ -241,6 +247,7 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
   body[data-ps=s-theo] #rptArea{display:block!important;}
   body[data-ps=s-theo] .rpt-wrap{box-shadow:none;padding:0;}
   body[data-ps=s-theo] table.rpt input{border:none!important;}
+  body[data-ps=s-theo] .rpt-page-footer{position:fixed;bottom:8mm;left:10mm;right:10mm;}
   @page{size:A4 landscape;margin:10mm;}
 }
 </style>
@@ -406,36 +413,50 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
     </div>
     <div id="rptArea" style="display:none;">
       <div class="rpt-wrap">
-        <div class="rpt-title">Báo cáo theo dõi cấp phát, thu hồi dư phẩm và bao bì tiếp xúc trực tiếp<br>của các thuốc GN-HT-TC</div>
-        <div class="rpt-khoa">KHOA: <span id="rptKhoa" style="font-weight:bold;"></span> &nbsp;&nbsp; <span id="rptPeriod"></span></div>
+        <!-- Tiêu ngữ -->
+        <div class="rpt-header">
+          <div class="rpt-hl">
+            <p class="bold">BỘ Y TẾ</p>
+            <p class="bold underline">BỆNH VIỆN NHI TRUNG ƯƠNG</p>
+          </div>
+          <div class="rpt-hr">
+            <p class="bold">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+            <p class="bold underline">Độc lập - Tự do - Hạnh phúc</p>
+            <p class="rpt-slogan">Hà Nội, <span id="rptDate"></span></p>
+          </div>
+        </div>
+        <!-- Tiêu đề -->
+        <div class="rpt-title">Báo cáo theo dõi cấp phát, thu hồi thuốc GN-HT-TC dạng dung dịch<br>không sử dụng hết đơn vị đóng gói nhỏ nhất và bao bì tiếp xúc trực tiếp của các thuốc GN-HT-TC</div>
+        <div class="rpt-khoa">Khoa: <span id="rptKhoa" style="font-weight:bold;"></span> &nbsp;&nbsp; <span id="rptPeriod"></span></div>
         <div style="overflow-x:auto;">
           <table class="rpt" id="rptTable">
             <thead>
               <tr>
-                <th rowspan="2" style="width:22px;">STT</th>
-                <th rowspan="2" style="width:120px;">Tên thuốc/<br>Hàm lượng</th>
-                <th rowspan="2" style="width:80px;">Hoạt chất</th>
-                <th rowspan="2" style="width:36px;">ĐVT</th>
-                <th rowspan="2" style="width:70px;">Số lô</th>
-                <th rowspan="2" style="width:55px;">Chênh lệch vỏ lọ tháng trước</th>
+                <th rowspan="2" style="width:20px;">S T T</th>
+                <th rowspan="2" style="width:110px;">Tên thuốc/<br>Nồng độ/<br>Hàm lượng</th>
+                <th rowspan="2" style="width:60px;">Hoạt chất</th>
+                <th rowspan="2" style="width:34px;">Đơn vị tính</th>
+                <th rowspan="2" style="width:60px;">Số lô</th>
+                <th rowspan="2" style="width:50px;">Chênh lệch BBTX tháng trước</th>
                 <th colspan="3">Lĩnh thuốc</th>
                 <th colspan="3">Hoàn trả thuốc</th>
-                <th colspan="3">Hoàn trả vỏ lọ</th>
-                <th rowspan="2" style="width:52px;">Chênh lệch vỏ lọ trong tháng</th>
-                <th rowspan="2" style="width:52px;">Chênh vỏ lọ cuối</th>
-                <th rowspan="2" style="width:52px;">Hoàn trả thuốc dư phẩm</th>
-                <th rowspan="2" style="width:60px;">Ghi chú</th>
+                <th colspan="4">Hoàn trả bao bì TXTT</th>
+                <th rowspan="2" style="width:46px;">Chênh lệch Bao bì TXTT trong tháng</th>
+                <th rowspan="2" style="width:46px;">Chênh lệch Bao bì TXTT cuối</th>
+                <th rowspan="2" style="width:46px;">Hoàn trả thuốc không sử dụng hết</th>
+                <th rowspan="2" style="width:46px;">Ghi chú</th>
               </tr>
               <tr>
-                <th style="width:46px;">Tăng từ trực</th>
-                <th style="width:46px;">Bù từ trực</th>
-                <th style="width:46px;">Lĩnh khác</th>
-                <th style="width:46px;">Theo người bệnh</th>
-                <th style="width:46px;">Tích lũy khoa phòng</th>
-                <th style="width:46px;">Trả khác</th>
-                <th style="width:52px;">Thu hồi vỏ lọ</th>
-                <th style="width:52px;">Vỏ lọ dùng dư phẩm</th>
-                <th style="width:52px;">Vỏ lọ đựng thuốc hủy</th>
+                <th style="width:40px;">Tăng từ trực</th>
+                <th style="width:40px;">Bù từ trực</th>
+                <th style="width:40px;">Lĩnh khác</th>
+                <th style="width:40px;">Theo người bệnh</th>
+                <th style="width:40px;">Tích lũy khoa phòng</th>
+                <th style="width:40px;">Hoàn trả khác</th>
+                <th style="width:44px;">Bao bì TXTT</th>
+                <th style="width:44px;">Bao bì TXTT đựng thuốc không sử dụng hết</th>
+                <th style="width:44px;">Bao bì TXTT đựng thuốc cần hủy</th>
+                <th style="width:44px;">Bao bì khác</th>
               </tr>
             </thead>
             <tbody id="rptBody"></tbody>
@@ -444,11 +465,17 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
         <div class="rpt-note">
           <b>• Ghi chú:</b><br>
           &nbsp;&nbsp;Các số liệu tính đến hết tháng.<br>
-          &nbsp;&nbsp;Số lượng thu hồi vỏ lọ, vỏ lọ đựng dư phẩm theo số liệu trong các biên bản thu hồi và hủy.
+          &nbsp;&nbsp;Số lượng thu hồi bao bì TXTT, bao bì TXTT đựng thuốc GN-HT-TC không sử dụng hết theo số liệu trong các biên bản thu hồi và hủy.
         </div>
         <div class="rpt-sign">
           <div class="s-block"><p class="role">Điều dưỡng HC khoa lâm sàng</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
           <div class="s-block"><p class="role">Người tổng kết</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
+        </div>
+        <!-- Chân trang -->
+        <div class="rpt-page-footer">
+          <span><i>BM8/QTQL.D.22.1</i></span>
+          <span class="rpt-pn"><i>Trang 1/1</i></span>
+          <span><i>16/07/2026</i></span>
         </div>
       </div>
     </div>
@@ -470,13 +497,13 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
     <!-- PAGE 1 -->
     <div class="page">
       <div class="head-row">
-        <div class="head-col"><p class="bold upper">Bệnh viện Nhi Trung ương</p><p class="bold upper underline">Hội đồng hủy thuốc</p></div>
+        <div class="head-col"><p class="bold upper">Bộ Y tế</p><p class="bold upper underline">Bệnh viện Nhi Trung ương</p></div>
         <div class="head-col head-right">
           <p class="bold upper">Cộng hoà xã hội chủ nghĩa Việt Nam</p>
           <p class="bold line2 underline">Độc lập - Tự do - Hạnh phúc</p>
         </div>
       </div>
-      <div class="title">Biên bản hủy bao bì tiếp xúc trực tiếp và dư phẩm thuốc gây nghiện, thuốc hướng thần và tiền chất</div>
+      <div class="title">Biên bản hủy bao bì tiếp xúc trực tiếp và thuốc GN-HT-TC không sử dụng hết đơn vị đóng gói nhỏ nhất</div>
       <div class="khoa-line">
         <label class="bold" style="white-space:nowrap;">1. Khoa/Trung tâm</label>
         <div class="khoa-ss-wrap" id="khoaSSWrap">
@@ -517,7 +544,7 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
           <span class="fn-t">Chú thích:</span><br>
           (*) DW (Nước cất pha tiêm), NS (NaCl 0,9%), G5 (Glucose 5%)<br>
           (**) Lượng thuốc trong dư phẩm/hàm lượng thuốc của 1 ĐVT<br>
-          (***) Nhân viên khoa dược kiểm tra và nhận bàn giao danh mục, số lượng bao bì TXTT và đúng tình trạng thực tế của dư phẩm thuốc, ký &amp; ghi rõ họ tên
+          (***) Nhân viên khoa Dược kiểm tra và nhận bàn giao danh mục, số lượng bao bì TXTT, tình trạng thực tế của thuốc không sử dụng hết, ký &amp; ghi rõ họ tên.
         </div>
         <div class="sgn">
           <p class="sdt" style="visibility:hidden;" aria-hidden="true">Hà Nội, ngày <span class="static-date"></span> tháng <span class="static-date"></span> năm <span class="static-date"></span></p>
@@ -544,7 +571,7 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
     <!-- PAGE 2 -->
     <div class="page">
       <div class="section-title">2. Tiến hành tiêu hủy</div>
-      <p class="para">Căn cứ đề xuất hủy của <span id="khoaP2Display" class="khoa-input" style="display:inline-block;min-width:130px;"></span>, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và thuốc gây nghiện, thuốc hướng thần, tiền chất dạng dung dịch chưa sử dụng hết đơn vị đóng gói nhỏ nhất với các nội dung như sau:</p>
+      <p class="para">Căn cứ đề xuất hủy của <span id="khoaP2Display" class="khoa-input" style="display:inline;white-space:nowrap;border-bottom:1px dotted var(--hi);min-width:0;"></span>, Bệnh viện tiến hành hủy bao bì tiếp xúc trực tiếp và thuốc gây nghiện, thuốc hướng thần, tiền chất dạng dung dịch chưa sử dụng hết đơn vị đóng gói nhỏ nhất với các nội dung như sau:</p>
       <div class="khoa-line">
         <label class="bold" style="white-space:nowrap;">Địa điểm:</label>
         <input type="text" id="diaDiem" class="khoa-input hv" value="Khoa Dược" style="font-style:italic;width:140px;" oninput="this.classList.toggle('hv',!!this.value)">
@@ -981,8 +1008,8 @@ function computeTyLe(tr){
     if(nuRaw==='mg' && hlUnit==='mcg') nvConverted=nv*1000;
     else if(nuRaw==='mcg' && hlUnit==='mg') nvConverted=nv/1000;
   }
-  const ratioPercent=(nvConverted*vol/hamLuong)*100;
-  out.value=ratioPercent.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  const ratio=nvConverted*vol/hamLuong; // decimal fraction (not %)
+  out.value=ratio.toLocaleString('vi-VN',{minimumFractionDigits:4,maximumFractionDigits:4});
   out.classList.add('hv');
 }
 
@@ -1154,6 +1181,10 @@ async function buildReport(){
 
   document.getElementById('rptKhoa').textContent=khoa||'Tất cả';
   document.getElementById('rptPeriod').textContent=periodText;
+  // Fill header date
+  const now=new Date();
+  const rptDateEl=document.getElementById('rptDate');
+  if(rptDateEl) rptDateEl.textContent=`ngày ${now.getDate()} tháng ${now.getMonth()+1} năm ${now.getFullYear()}`;
 
   const tbody=document.getElementById('rptBody');
   tbody.innerHTML='';
@@ -1170,7 +1201,8 @@ async function buildReport(){
       <td><input></td><td><input></td><td><input></td>
       <td style="font-weight:bold;">${g.thuHoi||''}</td>
       <td>${g.vloDP||''}</td>
-      <td><input></td><td><input></td><td><input></td><td><input></td><td><input></td>`;
+      <td><input></td><td><input></td>
+      <td><input></td><td><input></td><td><input></td><td><input></td>`;
     tbody.appendChild(tr);
   });
   document.getElementById('rptArea').style.display='';
