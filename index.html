@@ -154,8 +154,10 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .ndc .iw{top:32px;}
 .dvt-cell{font-size:11px;}
 /* Columns that need word-wrap (Điều dưỡng, Bác sĩ, Dược sĩ) */
-td.wrap-cell{white-space:normal;word-break:break-word;}
-td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-height:18px;overflow:visible;}
+td.wrap-cell{white-space:normal;word-break:break-word;vertical-align:top;}
+td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-height:18px;overflow:visible;resize:none;}
+/* Print: hide input, show mirror div */
+td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:11px;text-align:center;}
 .add-bar{margin:7px 0 12px;font-family:Arial,sans-serif;}
 .add-bar button{background:#2e8b57;color:#fff;border:none;padding:5px 11px;border-radius:5px;cursor:pointer;font-size:11.5px;}
 /* locked form */
@@ -228,7 +230,9 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
   body[data-ps=s-form] .iw{display:none!important;}
   body[data-ps=s-form] .ndc{flex-direction:row!important;align-items:baseline;justify-content:center;gap:2px;}
   body[data-ps=s-form] .ndc .selwrap{display:none!important;}
-  body[data-ps=s-form] .ndc input{width:auto!important;max-width:46px;flex:0 0 auto;text-align:right;}
+  body[data-ps=s-form] .ndc input{width:auto!important;max-width:46px;flex:0 0 auto;text-align:center;}
+  body[data-ps=s-form] td.wrap-cell input{display:none!important;}
+  body[data-ps=s-form] td.wrap-cell .wrap-pv{display:block!important;}
   body[data-ps=s-form] .ndc .psr{display:inline!important;width:auto!important;flex:0 0 auto;font-size:9.5px!important;text-align:left;white-space:nowrap;}
   body[data-ps=s-form] .para{margin:5px 0!important;}
   body[data-ps=s-form] .section-title{margin-top:8px!important;margin-bottom:4px!important;}
@@ -943,9 +947,9 @@ function addRow(){
     <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['mg/ml','mcg/ml'])}</select></div><span class="psr"></span><span class="iw"></span></div></td>
     <td><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
     <td><input type="text" class="tyle-result" readonly tabindex="-1" title="Tự động tính: Nồng độ × Thể tích / Hàm lượng trong ĐVT"></td>
-    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value)" style="white-space:normal;word-break:break-word;"></td>
-    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value)" style="white-space:normal;word-break:break-word;"></td>
-    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value)" style="white-space:normal;word-break:break-word;"></td>
+    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
+    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
+    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
     <td class="row-act"><button onclick="this.closest('tr').remove();renumber();">✕</button></td>`;
   document.getElementById('tbody').appendChild(tr);
 
