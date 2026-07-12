@@ -109,7 +109,7 @@ table.rpt td input{width:100%;border:none;background:transparent;text-align:cent
 .title{text-align:center;font-weight:bold;text-transform:uppercase;font-size:13px;margin:12px 0 9px;white-space:nowrap;}
 .khoa-line{display:flex;gap:0;align-items:baseline;margin-bottom:10px;font-weight:bold;}
 .khoa-line label{margin-right:4px;flex-shrink:0;}
-.khoa-input{border:none;border-bottom:1px dotted var(--hi);flex:1;min-width:60px;font-family:inherit;font-size:inherit;font-weight:inherit;padding-right:12px;}
+.khoa-input{border:none;border-bottom:1px dotted var(--hi);width:240px;font-family:inherit;font-size:inherit;font-weight:inherit;padding-right:14px;}
 .khoa-input.hv{border-bottom:none;}
 .khoa-sfx{flex-shrink:0;margin-left:4px;}
 /* Mirror span: hidden on screen, shown on print to avoid input truncation */
@@ -254,6 +254,7 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
   @page{size:A4 landscape;margin:10mm;}
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -386,6 +387,7 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
     <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
     <span class="pg-title">📊 Theo dõi cấp phát</span>
     <button class="btn btn-p" style="margin-left:auto;" onclick="window.print()">🖨️ In báo cáo</button>
+    <button class="btn" style="background:#1e7d52;color:#fff;" onclick="exportRptXLSX()">📊 Xuất Excel</button>
   </div>
   <div class="adm-body" style="max-width:1100px;">
     <div class="acard">
@@ -481,7 +483,8 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
 <!-- ══════════ S-FORM ══════════ -->
 <div class="scr" id="s-form">
   <div class="form-bar">
-    <span class="fbt-title">Biên bản hủy bao bì TXTT &amp; dư phẩm thuốc — BM7/QTQL.D.22.1</span>
+    <span class="fbt-title">Biên bản hủy bao bì TXTT &amp; thuốc GN-HT-TC không sử dụng hết đơn vị nhỏ nhất — BM7/QTQL.D.22.1</span>
+    <span id="syncBadge" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:Arial,sans-serif;padding:3px 8px;border-radius:4px;background:#2a2a4a;color:#9ab;">⚪ Đang tải…</span>
     <button class="fbt add" id="btnAdd" onclick="addRow()">+ Thêm dòng</button>
     <button class="fbt save" id="btnSave" onclick="saveForm()">💾 Lưu biên bản</button>
     <span class="sbdg" id="sbdg">✅ Đã lưu lúc <span id="savedTime"></span></span>
@@ -502,8 +505,9 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
       <div class="title">Biên bản hủy bao bì tiếp xúc trực tiếp và thuốc GN-HT-TC không sử dụng hết đơn vị đóng gói nhỏ nhất</div>
       <div class="khoa-line">
         <label style="white-space:nowrap;">1.</label>
-        <div class="khoa-ss-wrap" id="khoaSSWrap" style="flex:1;min-width:60px;">
-          <input type="text" class="khoa-input" id="khoaInput" autocomplete="off" spellcheck="false" placeholder=".........................................." oninput="this.classList.toggle('hv',!!this.value);khoaSSFilter(this.value);syncKhoaP2();document.getElementById('khoaPrintVal').textContent=this.value;" onfocus="khoaSSOpen();" onblur="setTimeout(khoaSSClose,160);">
+        <span id="khoaSizer" style="position:fixed;visibility:hidden;white-space:nowrap;font-family:'Times New Roman',Times,serif;font-size:13px;font-weight:bold;pointer-events:none;"></span>
+        <div class="khoa-ss-wrap" id="khoaSSWrap">
+          <input type="text" class="khoa-input" id="khoaInput" autocomplete="off" spellcheck="false" placeholder=".........................................." oninput="this.classList.toggle('hv',!!this.value);khoaSSFilter(this.value);syncKhoaP2();document.getElementById('khoaPrintVal').textContent=this.value;resizeKhoaInput();" onfocus="khoaSSOpen();" onblur="setTimeout(khoaSSClose,160);">
           <div class="ss-list" id="khoaSSList"></div>
         </div>
         <span class="khoa-pv" id="khoaPrintVal"></span>
@@ -513,23 +517,23 @@ td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-heig
         <thead>
           <tr>
             <th rowspan="2" class="stt-col">STT</th>
-            <th rowspan="2" style="width:110px;">Tên thuốc</th>
             <th rowspan="2" style="width:100px;">Tên hoạt chất</th>
+            <th rowspan="2" style="width:110px;">Tên thuốc</th>
             <th rowspan="2" style="width:88px;">Nồng độ/hàm lượng</th>
             <th rowspan="2" style="width:76px;">Số lô</th>
-            <th rowspan="2" style="width:50px;">ĐVT</th>
+            <th rowspan="2" style="width:70px;">Đơn vị tính (ĐVT)</th>
             <th rowspan="2" style="width:65px;">Số lượng bao bì TXTT cần hủy</th>
-            <th colspan="7">Tình trạng dư phẩm thuốc cần hủy</th>
+            <th colspan="7">Tình trạng thuốc GN-HT-TC không sử dụng hết</th>
             <th rowspan="2" style="width:58px;">Dược sĩ xác nhận (***)</th>
             <th rowspan="2" class="row-act"></th>
           </tr>
           <tr>
-            <th style="width:76px;">Bao bì chứa dư phẩm</th>
+            <th style="width:76px;">Bao bì chứa thuốc</th>
             <th style="width:82px;">Dịch truyền pha 1 ĐVT thuốc (*)</th>
-            <th style="width:96px;">Nồng độ thuốc trong dư phẩm</th>
-            <th style="width:65px;">Thể tích dư phẩm cần hủy (ml)</th>
-            <th style="width:70px;">Tỷ lệ dư phẩm trên đơn vị tính (**)</th>
-            <th style="width:70px;">Điều dưỡng thực hiện y lệnh</th>
+            <th style="width:96px;">Nồng độ thuốc GN-HT-TC không sử dụng hết</th>
+            <th style="width:65px;">Thể tích cần hủy (ml)</th>
+            <th style="width:70px;">Tỷ lệ thuốc còn lại trên đơn vị tính (**)</th>
+            <th style="width:70px;">Điều dưỡng thực hiện y lệnh cuối</th>
             <th style="width:70px;">Bác sĩ điều trị</th>
           </tr>
         </thead>
@@ -847,6 +851,7 @@ async function connectSheet(silent){
     if(!db.length)throw new Error('Không đọc được dữ liệu. Kiểm tra tiêu đề cột.');
     DRUG_DB=db;localStorage.setItem('sheetUrl',raw);
     setSt('dbStatus','ok',`✅ ${db.length} thuốc — ${new Date().toLocaleTimeString('vi-VN')}`);
+    updateSyncBadge('ok',`${db.length} thuốc — ${new Date().toLocaleTimeString('vi-VN')}`);
     document.getElementById('refreshBtn').style.display='';
     rebuildSS();
     if(!silent)alert(`Đã tải ${db.length} dòng.`);
@@ -910,9 +915,9 @@ document.addEventListener('scroll',e=>{
 },true);
 
 function rebuildSS(){
-  const list=[...new Set(DRUG_DB.map(d=>d.tenThuoc))];
+  const list=[...new Set(DRUG_DB.map(d=>d.hoatChat))];
   document.querySelectorAll('#tbody tr').forEach(tr=>{
-    const tt=tr._ss?.tt;if(tt){tt.setOpts(list,true);}
+    const hc=tr._ss?.hc;if(hc){hc.setOpts(list,true);}
   });
 }
 
@@ -927,13 +932,13 @@ function addRow(){
   const dvtList=[...new Set([...DVT_DEFAULTS,...DRUG_DB.map(d=>d.dvt).filter(Boolean)])];
   tr.innerHTML=`
     <td class="stt-col"></td>
-    <td><div class="ss" data-f="tt"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false"><div class="ss-list"></div></div><span class="psr"></span></td>
-    <td><div class="ss" data-f="hc"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
+    <td><div class="ss" data-f="hc"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false"><div class="ss-list"></div></div><span class="psr"></span></td>
+    <td><div class="ss" data-f="tt"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="ss" data-f="nd"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="ss" data-f="sl"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><div class="ss" data-f="dvt"><input type="text" class="ss-inp" autocomplete="off" spellcheck="false" disabled><div class="ss-list"></div></div><span class="psr"></span></td>
     <td><input type="text" oninput="this.classList.toggle('hv',!!this.value)"></td>
-    <td><div class="selwrap"><select class="bbdp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['Ống','Lọ','Bơm tiêm','Chai','Túi'])}</select></div><span class="psr"></span></td>
+    <td><div class="selwrap"><select class="bbdp"><option value="Sử dụng hết">Sử dụng hết</option><option value="Ống">Ống</option><option value="Lọ">Lọ</option><option value="Bơm tiêm">Bơm tiêm</option><option value="Chai">Chai</option><option value="Túi">Túi</option></select></div><span class="psr"></span></td>
     <td><div class="selwrap"><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select></div><span class="psr"></span></td>
     <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['mg/ml','mcg/ml'])}</select></div><span class="psr"></span><span class="iw"></span></div></td>
     <td><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
@@ -944,18 +949,18 @@ function addRow(){
     <td class="row-act"><button onclick="this.closest('tr').remove();renumber();">✕</button></td>`;
   document.getElementById('tbody').appendChild(tr);
 
-  const tlist=[...new Set(DRUG_DB.map(d=>d.tenThuoc))];
+  const hcList=[...new Set(DRUG_DB.map(d=>d.hoatChat))];
 
-  const ttSS=new SS(tr.querySelector('[data-f=tt]'),tlist,v=>{
-    const m=DRUG_DB.filter(d=>d.tenThuoc===v);
-    const l=[...new Set(m.map(d=>d.hoatChat))];
-    hcSS.setOpts(l,true);ndSS.reset();slSS.reset();
-    dvtSS.setOpts(dvtList,true); // dvt enabled with defaults when drug chosen
+  const hcSS=new SS(tr.querySelector('[data-f=hc]'),hcList,v=>{
+    const m=DRUG_DB.filter(d=>d.hoatChat===v);
+    const l=[...new Set(m.map(d=>d.tenThuoc))];
+    ttSS.setOpts(l,true);ndSS.reset();slSS.reset();
+    dvtSS.setOpts(dvtList,true);
     tr._drugRecord=null;computeTyLe(tr);
-    if(l.length===1)hcSS.pick(l[0]);
+    if(l.length===1)ttSS.pick(l[0]);
   });
-  const hcSS=new SS(tr.querySelector('[data-f=hc],[data-f="hc"]'),[],(v)=>{
-    const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===v);
+  const ttSS=new SS(tr.querySelector('[data-f=tt]'),[],(v)=>{
+    const m=DRUG_DB.filter(d=>d.hoatChat===hcSS.value&&d.tenThuoc===v);
     const l=[...new Set(m.map(d=>d.nongDo))];
     ndSS.setOpts(l,true);slSS.reset();
     dvtSS.setOpts(dvtList,true);
@@ -963,18 +968,16 @@ function addRow(){
     if(l.length===1)ndSS.pick(l[0]);
   });
   const ndSS=new SS(tr.querySelector('[data-f=nd]'),[],(v)=>{
-    const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===hcSS.value&&d.nongDo===v);
+    const m=DRUG_DB.filter(d=>d.hoatChat===hcSS.value&&d.tenThuoc===ttSS.value&&d.nongDo===v);
     const l=[...new Set(m.map(d=>d.soLo))];
-    // số lô: optional — show DB options but allow leaving blank
     slSS.setOpts(l,true);
     dvtSS.setOpts(dvtList,true);
-    // Auto-fill dvt from DB if not yet set
     const dbDvt=m[0]?.dvt||'';
     if(dbDvt&&!dvtSS.value) dvtSS.pick(dbDvt);
     tr._drugRecord=m[0]||null;computeTyLe(tr);
   });
   const slSS=new SS(tr.querySelector('[data-f=sl]'),[],(v)=>{
-    const m=DRUG_DB.filter(d=>d.tenThuoc===ttSS.value&&d.hoatChat===hcSS.value&&d.nongDo===ndSS.value&&d.soLo===v);
+    const m=DRUG_DB.filter(d=>d.hoatChat===hcSS.value&&d.tenThuoc===ttSS.value&&d.nongDo===ndSS.value&&d.soLo===v);
     if(m[0]?.dvt) dvtSS.pick(m[0].dvt);
     tr._drugRecord=m[0]||null;
     computeTyLe(tr);
@@ -984,6 +987,27 @@ function addRow(){
 
   // Store refs
   tr._ss={tt:ttSS,hc:hcSS,nd:ndSS,sl:slSS,dvt:dvtSS};
+
+  // bbdp: Sử dụng hết → disable dtp/nv/nu/vol; also mark hv on default
+  const bbdpSel=tr.querySelector('.bbdp');
+  bbdpSel.classList.add('hv'); // default is Sử dụng hết, treat as filled
+  function applyBBDP(){
+    const noDP=bbdpSel.value==='Sử dụng hết';
+    const dtp=tr.querySelector('.dtp');
+    const nv=tr.querySelector('.nv');
+    const nu=tr.querySelector('.nu');
+    const vol=tr.querySelector('.vol-input');
+    const tyle=tr.querySelector('.tyle-result');
+    [dtp,nv,nu,vol].forEach(el=>{
+      if(!el)return;
+      el.disabled=noDP;
+      if(noDP){el.value='';el.classList.remove('hv');}
+    });
+    if(noDP&&tyle){tyle.value='';tyle.classList.remove('hv');}
+    bbdpSel.classList.toggle('hv',!!bbdpSel.value);
+  }
+  bbdpSel.addEventListener('change',()=>{ applyBBDP(); if(tr.querySelector('.nu')&&!tr.querySelector('.nu').disabled) computeTyLe(tr); });
+  applyBBDP(); // apply initial state (Sử dụng hết by default)
 
   // Print replacement spans
   [ttSS,hcSS,ndSS,slSS,dvtSS].forEach(ss=>{
@@ -998,6 +1022,13 @@ function addRow(){
   tr.querySelector('.nu').addEventListener('change',()=>computeTyLe(tr));
   tr.querySelector('.vol-input').addEventListener('input',()=>computeTyLe(tr));
   renumber();
+}
+function updateSyncBadge(state,msg){
+  const el=document.getElementById('syncBadge');
+  if(!el)return;
+  const map={ok:'✅',ld:'⏳',err:'🔴'};
+  el.textContent=(map[state]||'⚪')+' '+msg;
+  el.style.color=state==='ok'?'#7ddfaa':state==='err'?'#f88':state==='ld'?'#ffd580':'#9ab';
 }
 function renumber(){document.querySelectorAll('#tbody tr').forEach((r,i)=>r.querySelector('.stt-col').textContent=i+1);}
 
@@ -1070,6 +1101,12 @@ async function saveForm(){
     alert('⚠️ Chưa có dòng thuốc nào.\nVui lòng thêm ít nhất một dòng thuốc trước khi lưu.');
     return;
   }
+  // Check all rows have bbdp value
+  const missingBaoBi=[...rows].filter(tr=>!tr.querySelector('.bbdp')?.value);
+  if(missingBaoBi.length){
+    alert(`⚠️ Còn ${missingBaoBi.length} dòng chưa chọn "Bao bì chứa thuốc".\nVui lòng điền đầy đủ trước khi lưu.`);
+    return;
+  }
   const su=localStorage.getItem('scriptUrl');
   if(!su){alert('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
   const ngay=`${document.getElementById('curDay').textContent}/${document.getElementById('curMonth').textContent}/${document.getElementById('curYear').textContent}`;
@@ -1110,6 +1147,7 @@ function resetForm(){
   if(!confirm('Tạo biên bản mới sẽ xoá toàn bộ nội dung. Tiếp tục?'))return;
   document.getElementById('tbody').innerHTML='';rowCount=0;
   document.getElementById('khoaInput').value='';document.getElementById('khoaInput').classList.remove('hv');
+  document.getElementById('khoaInput').style.width='240px';
   const pv=document.getElementById('khoaPrintVal');if(pv)pv.textContent='';
   syncKhoaP2();
   document.querySelectorAll('.form-wrap input[type=text]:not(#khoaInput)').forEach(el=>{el.value='';el.classList.remove('hv');});
@@ -1177,15 +1215,18 @@ async function buildReport(){
 
   if(!filtered.length){alert('Không có dữ liệu phù hợp với bộ lọc.');return;}
 
-  // Group by (Tên thuốc, Nồng độ/HL, Hoạt chất, ĐVT, Số lô)
+  // Group by (Hoạt chất, Tên thuốc, Nồng độ/HL, ĐVT, Số lô)
+  // Col 9 = Số lượng bao bì TXTT cần hủy, Col 10 = Bao bì chứa thuốc
+  // Logic: bb='Sử dụng hết' → cộng vào baoBiTXTT (Bao bì TXTT cột BM8)
+  //        bb = các loại khác → cộng vào baoBiKhong (Bao bì TXTT đựng thuốc không SĐH)
   const groups={};
   filtered.forEach(r=>{
     const key=[r[4],r[5],r[6],r[7],r[8]].join('||');
-    if(!groups[key]){groups[key]={tenThuoc:r[4],hoatChat:r[5],nongDo:r[6],soLo:r[7],dvt:r[8],thuHoi:0,vloDP:0};}
+    if(!groups[key]){groups[key]={tenThuoc:r[4],hoatChat:r[5],nongDo:r[6],soLo:r[7],dvt:r[8],baoBiTXTT:0,baoBiKhong:0};}
     const qty=parseFloat((r[9]||'0').replace(',','.'))||0;
     const bb=(r[10]||'').trim();
-    groups[key].thuHoi+=qty;
-    if(bb==='Lọ'||bb==='Lo') groups[key].vloDP+=qty;
+    if(bb==='Sử dụng hết') groups[key].baoBiTXTT+=qty;
+    else if(bb) groups[key].baoBiKhong+=qty;
   });
 
   // Format date for display
@@ -1211,13 +1252,47 @@ async function buildReport(){
       <td><input></td>
       <td><input></td><td><input></td><td><input></td>
       <td><input></td><td><input></td><td><input></td>
-      <td style="font-weight:bold;">${g.thuHoi||''}</td>
-      <td>${g.vloDP||''}</td>
+      <td style="font-weight:bold;">${g.baoBiTXTT||''}</td>
+      <td style="font-weight:bold;">${g.baoBiKhong||''}</td>
       <td><input></td><td><input></td>
       <td><input></td><td><input></td><td><input></td><td><input></td>`;
     tbody.appendChild(tr);
   });
   document.getElementById('rptArea').style.display='';
+}
+
+function exportRptXLSX(){
+  const rptArea=document.getElementById('rptArea');
+  if(!rptArea||rptArea.style.display==='none'){alert('Hãy tạo báo cáo trước khi xuất Excel.');return;}
+  if(typeof XLSX==='undefined'){alert('Thư viện XLSX chưa tải. Vui lòng kiểm tra kết nối mạng.');return;}
+  const khoa=document.getElementById('rptKhoa')?.textContent||'';
+  const period=document.getElementById('rptPeriod')?.textContent||'';
+  // Collect all header text (2 header rows)
+  const hdrRows=[];
+  document.querySelectorAll('#rptTable thead tr').forEach(row=>{
+    hdrRows.push([...row.querySelectorAll('th')].map(th=>th.innerText.replace(/\n/g,' ')));
+  });
+  // Body rows
+  const bodyRows=[];
+  document.querySelectorAll('#rptBody tr').forEach(row=>{
+    bodyRows.push([...row.querySelectorAll('td')].map(td=>{
+      const inp=td.querySelector('input');
+      const raw=inp?inp.value:td.innerText.trim();
+      const n=parseFloat(raw.replace(',','.'));
+      return raw===''?'':isNaN(n)?raw:n;
+    }));
+  });
+  const ws=XLSX.utils.aoa_to_sheet([
+    ['BÁO CÁO THEO DÕI CẤP PHÁT, THU HỒI THUỐC GN-HT-TC'],
+    [`Khoa: ${khoa}   ${period}`],
+    [],
+    ...hdrRows,
+    ...bodyRows
+  ]);
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:19}},{s:{r:1,c:0},e:{r:1,c:19}}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'BM8');
+  XLSX.writeFile(wb,`BM8_${khoa.replace(/[^\w\-]/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 /* ── DEPT MANAGEMENT ── */
@@ -1302,11 +1377,19 @@ function khoaSSRender(q){
       const inp = document.getElementById('khoaInput');
       inp.value = d; inp.classList.add('hv');
       const pv=document.getElementById('khoaPrintVal');if(pv)pv.textContent=d;
-      syncKhoaP2();
+      syncKhoaP2();resizeKhoaInput();
       khoaSSClose();
     });
     list.appendChild(div);
   });
+}
+function resizeKhoaInput(){
+  const inp=document.getElementById('khoaInput');
+  const sizer=document.getElementById('khoaSizer');
+  if(!inp||!sizer)return;
+  sizer.textContent=inp.value||(inp.placeholder||'');
+  const w=Math.max(80,sizer.offsetWidth+18);
+  inp.style.width=w+'px';
 }
 function syncKhoaP2(){
   const v=document.getElementById('khoaInput')?.value||'';
