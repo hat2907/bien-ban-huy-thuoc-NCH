@@ -154,10 +154,15 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .ndc .iw{top:32px;}
 .dvt-cell{font-size:11px;}
 /* Columns that need word-wrap (Điều dưỡng, Bác sĩ, Dược sĩ) */
-td.wrap-cell{white-space:normal;word-break:break-word;vertical-align:top;}
-td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-height:18px;overflow:visible;resize:none;}
-/* Print: hide input, show mirror div */
-td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:11px;text-align:center;}
+td.wrap-cell{white-space:normal;word-break:break-word;vertical-align:top;font-size:10px;}
+td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-height:16px;overflow:visible;resize:none;font-size:10px;}
+/* Print: hide input, show mirror div; padding-top = blank signing line above name */
+td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:10px;text-align:center;}
+/* Note row */
+tr.note-row{background:#fafde7;}
+tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
+.note-input{flex:1;border:1px solid #d0d5dd;border-radius:5px;padding:4px 8px;font-family:"Times New Roman",Times,serif;font-size:12px;min-width:0;}
+.btn-note{border:none;background:#f0a500;color:#fff;border-radius:3px;width:20px;height:20px;cursor:pointer;font-size:10px;line-height:1;margin-top:2px;}
 .add-bar{margin:7px 0 12px;font-family:Arial,sans-serif;}
 .add-bar button{background:#2e8b57;color:#fff;border:none;padding:5px 11px;border-radius:5px;cursor:pointer;font-size:11.5px;}
 /* locked form */
@@ -232,7 +237,8 @@ td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;fo
   body[data-ps=s-form] .ndc .selwrap{display:none!important;}
   body[data-ps=s-form] .ndc input{width:auto!important;max-width:46px;flex:0 0 auto;text-align:center;}
   body[data-ps=s-form] td.wrap-cell input{display:none!important;}
-  body[data-ps=s-form] td.wrap-cell .wrap-pv{display:block!important;}
+  body[data-ps=s-form] td.wrap-cell .wrap-pv{display:block!important;padding-top:12px;}
+  body[data-ps=s-form] tr.note-row{display:none!important;}
   body[data-ps=s-form] .ndc .psr{display:inline!important;width:auto!important;flex:0 0 auto;font-size:9.5px!important;text-align:left;white-space:nowrap;}
   body[data-ps=s-form] .para{margin:5px 0!important;}
   body[data-ps=s-form] .section-title{margin-top:8px!important;margin-bottom:4px!important;}
@@ -534,7 +540,7 @@ td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;fo
             <th rowspan="2" style="width:70px;">Đơn vị tính (ĐVT)</th>
             <th rowspan="2" style="width:65px;">Số lượng bao bì TXTT cần hủy</th>
             <th colspan="7">Tình trạng thuốc GN-HT-TC không sử dụng hết</th>
-            <th rowspan="2" style="width:58px;">Dược sĩ xác nhận (***)</th>
+            <th rowspan="2" style="width:58px;">Dược sĩ xác nhận (***)<br><i style="font-weight:normal;">(ký và ghi rõ họ tên)</i></th>
             <th rowspan="2" class="row-act"></th>
           </tr>
           <tr>
@@ -543,8 +549,8 @@ td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;fo
             <th style="width:96px;">Nồng độ thuốc GN-HT-TC không sử dụng hết</th>
             <th style="width:65px;">Thể tích cần hủy (ml)</th>
             <th style="width:70px;">Tỷ lệ thuốc còn lại trên đơn vị tính (**)</th>
-            <th style="width:70px;">Điều dưỡng thực hiện y lệnh cuối</th>
-            <th style="width:70px;">Bác sĩ điều trị</th>
+            <th style="width:70px;">Điều dưỡng thực hiện y lệnh cuối<br><i style="font-weight:normal;">(ký và ghi rõ họ tên)</i></th>
+            <th style="width:70px;">Bác sĩ điều trị<br><i style="font-weight:normal;">(ký và ghi rõ họ tên)</i></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -969,11 +975,25 @@ function addRow(){
     <td><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));">${makeOpts(['mg/ml','mcg/ml'])}</select></div><span class="psr"></span><span class="iw"></span></div></td>
     <td><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><span class="iw"></span></div></td>
     <td><input type="text" class="tyle-result" readonly tabindex="-1" title="Tự động tính: Nồng độ × Thể tích / Hàm lượng trong ĐVT"></td>
-    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
-    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
-    <td class="wrap-cell"><input type="text" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
-    <td class="row-act"><button onclick="this.closest('tr').remove();renumber();">✕</button></td>`;
+    <td class="wrap-cell dd-cell"><input type="text" class="dd-inp" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
+    <td class="wrap-cell bs-cell"><input type="text" class="bs-inp" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
+    <td class="wrap-cell ds-cell"><input type="text" class="ds-inp" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
+    <td class="row-act" style="white-space:nowrap;">
+      <button onclick="this.closest('tr').remove();this.closest('tr')?._noteRow?.remove();renumber();">✕</button>
+      <button class="btn-note" title="Ghi chú" onclick="toggleNoteRow(this)">📝</button>
+    </td>`;
   document.getElementById('tbody').appendChild(tr);
+
+  // Note row (hidden by default, never printed)
+  const noteRow=document.createElement('tr');
+  noteRow.className='note-row';
+  noteRow.style.display='none';
+  noteRow.innerHTML=`<td colspan="16"><div style="display:flex;align-items:center;gap:8px;"><label style="font-size:11px;white-space:nowrap;font-family:Arial,sans-serif;color:#666;">📝 Ghi chú:</label><input type="text" class="note-input" placeholder="Nhập ghi chú cho dòng này…"></div></td>`;
+  document.getElementById('tbody').appendChild(noteRow);
+  tr._noteRow=noteRow;
+
+  // Fix delete button to also remove note-row
+  tr.querySelector('.row-act button').onclick=()=>{ tr.remove(); noteRow.remove(); renumber(); };
 
   const hcList=[...new Set(DRUG_DB.map(d=>d.hoatChat))];
 
@@ -1057,7 +1077,16 @@ function updateSyncBadge(state,msg){
   el.textContent=(map[state]||'⚪')+' '+msg;
   el.style.color=state==='ok'?'#7ddfaa':state==='err'?'#f88':state==='ld'?'#ffd580':'#9ab';
 }
-function renumber(){document.querySelectorAll('#tbody tr').forEach((r,i)=>r.querySelector('.stt-col').textContent=i+1);}
+function renumber(){document.querySelectorAll('#tbody tr:not(.note-row)').forEach((r,i)=>r.querySelector('.stt-col').textContent=i+1);}
+function toggleNoteRow(btn){
+  const tr=btn.closest('tr');
+  const nr=tr._noteRow;
+  if(!nr)return;
+  const show=nr.style.display==='none';
+  nr.style.display=show?'':'none';
+  btn.style.background=show?'#c07800':'#f0a500';
+  if(show) nr.querySelector('.note-input')?.focus();
+}
 
 /* ── AUTO-CALCULATE Tỷ lệ dư phẩm trên ĐVT ──
    Công thức: [Nồng độ thuốc trong dư phẩm] × [Thể tích dư phẩm cần hủy] / [Hàm lượng trong ĐVT]
@@ -1162,7 +1191,7 @@ function afterPrint(){
 
 /* ── SAVE FORM ── */
 async function saveForm(){
-  const rows=document.querySelectorAll('#tbody tr');
+  const rows=document.querySelectorAll('#tbody tr:not(.note-row)');
   const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
   // ── Validation
   if(!khoa){
@@ -1180,10 +1209,16 @@ async function saveForm(){
     alert(`⚠️ Còn ${missingQty.length} dòng chưa nhập "Số lượng bao bì TXTT cần hủy".\nVui lòng nhập giá trị số nguyên trước khi lưu.`);
     return;
   }
+  // Mandatory: Điều dưỡng và Bác sĩ
+  const missingSign=[...rows].filter(tr=>!tr.querySelector('.dd-inp')?.value?.trim()||!tr.querySelector('.bs-inp')?.value?.trim());
+  if(missingSign.length){
+    alert(`⚠️ Còn ${missingSign.length} dòng chưa điền "Điều dưỡng thực hiện y lệnh cuối" và/hoặc "Bác sĩ điều trị".\nVui lòng điền đầy đủ trước khi lưu.`);
+    return;
+  }
   const su=localStorage.getItem('scriptUrl');
   if(!su){alert('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
   const ngay=`${document.getElementById('curDay').textContent}/${document.getElementById('curMonth').textContent}/${document.getElementById('curYear').textContent}`;
-  const HEADER=['Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Dược sĩ xác nhận','Khoa (trang 2)','Địa điểm','Thời gian','TV1','TV2','TV3','TV4','Giờ KT','Phút KT','Báo cáo lên'];
+  const HEADER=['Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Dược sĩ xác nhận','Ghi chú','Khoa (trang 2)','Địa điểm','Thời gian','TV1','TV2','TV3','TV4','Giờ KT','Phút KT','Báo cáo lên'];
   const now=new Date().toLocaleString('vi-VN');
   const dr=[];
   rows.forEach((tr,i)=>{
@@ -1194,6 +1229,7 @@ async function saveForm(){
       txt(tds[6]),tr.querySelector('.bbdp')?.value||'',tr.querySelector('.dtp')?.value||'',
       tr.querySelector('.nv')?.value?.trim()||'',tr.querySelector('.nu')?.value?.trim()||'',
       txt(tds[10]),txt(tds[11]),txt(tds[12]),txt(tds[13]),txt(tds[14]),
+      tr._noteRow?.querySelector('.note-input')?.value?.trim()||'',
       document.getElementById('khoaInput')?.value||'',document.getElementById('diaDiem')?.value||'',
       document.getElementById('thoiGian')?.value||'',
       ...[...document.querySelectorAll('.tv')].map(i=>i.value||''),
@@ -1210,6 +1246,7 @@ async function saveForm(){
     bs.style.display='none';document.getElementById('btnAdd').style.display='none';
     document.getElementById('btnNew').classList.add('show');
     document.getElementById('formWrap').classList.add('form-locked');
+    document.querySelectorAll('.note-input').forEach(i=>i.disabled=true);
     document.querySelectorAll('.add-bar button').forEach(b=>b.disabled=true);
   }catch(e){
     bs.textContent='💾 Lưu biên bản';bs.disabled=false;
