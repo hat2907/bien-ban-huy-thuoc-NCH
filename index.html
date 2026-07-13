@@ -184,7 +184,7 @@ td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;fo
 .method-r{width:40%;}
 .method-r .nl{display:flex;gap:5px;margin-bottom:5px;align-items:baseline;}
 .method-r .nl .idx{width:16px;flex-shrink:0;}
-.method-r .nl input{flex:1;border:none;border-bottom:1px dotted var(--hi);font-family:inherit;font-style:italic;font-size:12px;}
+.method-r .nl input{flex:1;border:none;border-bottom:1px dotted var(--hi);font-family:inherit;font-style:normal;font-size:12px;}
 .method-r .nl input.hv{border-bottom:none;}
 .method-r .nl .pre{font-style:italic;font-size:12px;}
 .para{margin:12px 0;line-height:1.6;}
@@ -407,7 +407,13 @@ td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;fo
       <h2>Bộ lọc báo cáo</h2>
       <div class="theo-filters">
         <label>Khoa/Trung tâm
-          <select id="fKhoa" style="min-width:160px;"><option value="">-- Tất cả --</option></select>
+          <div class="khoa-ss-wrap" id="fKhoaWrap" style="display:inline-block;min-width:160px;vertical-align:middle;">
+            <input type="text" id="fKhoa" class="khoa-input" autocomplete="off" spellcheck="false"
+              placeholder="-- Tất cả --"
+              style="width:100%;padding:7px 22px 7px 10px;border:1.5px solid #d0d5dd;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;background:#fff;"
+              oninput="fKhoaFilter(this.value);" onfocus="fKhoaOpen();" onblur="setTimeout(fKhoaClose,160);">
+            <div class="ss-list" id="fKhoaList"></div>
+          </div>
         </label>
         <label>Từ ngày
           <input type="date" id="fFromDate">
@@ -605,7 +611,7 @@ td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;fo
         <input id="gioKT" oninput="this.classList.toggle('hv',!!this.value)"><span>giờ</span>
         <input id="phutKT" oninput="this.classList.toggle('hv',!!this.value)"><span>phút cùng ngày.</span>
       </div>
-      <p style="margin:4px 0;line-height:1.4;">Biên bản hủy thuốc được báo cáo lên <input id="baoCao" style="border:none;border-bottom:1px dotted var(--hi);width:240px;" oninput="this.classList.toggle('hv',!!this.value)"></p>
+      <p style="margin:4px 0;line-height:1.4;">Biên bản hủy thuốc được báo cáo lên <input id="baoCao" style="border:none;border-bottom:1px dotted var(--hi);width:240px;font-family:inherit;font-size:inherit;font-style:inherit;" oninput="this.classList.toggle('hv',!!this.value)"></p>
       <p style="margin:4px 0;line-height:1.4;">Biên bản này được lập thành 01 bản, Hội đồng hủy thuốc lưu bản chính.</p>
       <div class="sign-row2" style="margin-top:36px;">
         <div class="sb2"><p class="role">THÀNH VIÊN THAM GIA HỦY</p><p class="hint">(Ký và ghi rõ họ tên)</p><div style="height:65px;"></div></div>
@@ -1260,7 +1266,8 @@ async function buildReport(){
   btn.disabled=false;btn.textContent=origText;
 
   if(!OUT_DATA.length){alert('Chưa tải được dữ liệu Sheet kết quả.');return;}
-  const khoa=document.getElementById('fKhoa').value;
+  const fKhoaEl=document.getElementById('fKhoa');
+  const khoa=fKhoaEl?.dataset?.value||fKhoaEl?.value?.trim()||'';
   const fromVal=document.getElementById('fFromDate').value; // yyyy-mm-dd
   const toVal=document.getElementById('fToDate').value;
 
@@ -1515,16 +1522,62 @@ function khoaSSOpen(){
 function khoaSSClose(){ const l=document.getElementById('khoaSSList'); if(l)l.style.display='none'; }
 
 /* ── KHOA FILTER in Theo dõi ── */
+/* ── KHOA FILTER in Theo dõi — searchable dropdown (same pattern as BM7 khoaInput) ── */
+let _fKhoaList = []; // current list of khoa options
+
 function refreshKhoaFilter(){
-  const sel = document.getElementById('fKhoa');
-  if(!sel) return;
-  const cur = sel.value;
-  // merge DEPTS + unique values from OUT_DATA col 2
   const fromData = OUT_DATA.map(r=>r[2]).filter(Boolean);
-  const allKhoa = [...new Set([...DEPTS, ...fromData])].sort();
-  sel.innerHTML = '<option value="">-- Tất cả --</option>';
-  allKhoa.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;if(k===cur)o.selected=true;sel.appendChild(o);});
+  _fKhoaList = [...new Set([...DEPTS, ...fromData])].sort();
+  fKhoaRender('');
 }
+
+function fKhoaRender(q){
+  const list = document.getElementById('fKhoaList');
+  if(!list) return;
+  const filtered = q ? _fKhoaList.filter(d=>d.toLowerCase().includes(q.toLowerCase())) : _fKhoaList;
+  list.innerHTML = '';
+  // "Tất cả" always first
+  const all = document.createElement('div');
+  all.className='ss-opt'; all.textContent='-- Tất cả --'; all.style.color='#aaa';
+  all.addEventListener('mousedown', e=>{
+    e.preventDefault();
+    const inp=document.getElementById('fKhoa');
+    inp.value=''; inp.dataset.value='';
+    fKhoaClose();
+  });
+  list.appendChild(all);
+  filtered.forEach(d=>{
+    const div=document.createElement('div');
+    div.className='ss-opt'; div.textContent=d;
+    div.addEventListener('mousedown', e=>{
+      e.preventDefault();
+      const inp=document.getElementById('fKhoa');
+      inp.value=d; inp.dataset.value=d;
+      fKhoaClose();
+    });
+    list.appendChild(div);
+  });
+}
+
+function fKhoaFilter(q){ fKhoaRender(q); fKhoaOpen(); }
+
+function fKhoaOpen(){
+  const inp=document.getElementById('fKhoa');
+  const list=document.getElementById('fKhoaList');
+  if(!list||!_fKhoaList.length) return;
+  fKhoaRender(inp.value);
+  const rect=inp.getBoundingClientRect();
+  const mw=Math.max(rect.width*1.2,180);
+  let L=rect.left; if(L+mw>window.innerWidth-6) L=Math.max(0,window.innerWidth-mw-6);
+  Object.assign(list.style,{top:rect.bottom+'px',left:L+'px',maxWidth:mw+'px',minWidth:rect.width+'px',display:'block'});
+}
+
+function fKhoaClose(){ const l=document.getElementById('fKhoaList'); if(l)l.style.display='none'; }
+
+document.addEventListener('scroll', e=>{
+  if(e.target&&e.target.closest&&e.target.closest('#fKhoaList')) return;
+  fKhoaClose();
+},true);
 
 /* ── INIT ── */
 renderDeptList();
