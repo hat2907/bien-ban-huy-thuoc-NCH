@@ -1228,7 +1228,10 @@ async function saveForm(){
       tr._ss?.tt?.value||'',tr._ss?.hc?.value||'',tr._ss?.nd?.value||'',tr._ss?.sl?.value||'',tds[5]?.textContent?.trim()||'',
       txt(tds[6]),tr.querySelector('.bbdp')?.value||'',tr.querySelector('.dtp')?.value||'',
       tr.querySelector('.nv')?.value?.trim()||'',tr.querySelector('.nu')?.value?.trim()||'',
-      txt(tds[10]),txt(tds[11]),txt(tds[12]),txt(tds[13]),txt(tds[14]),
+      txt(tds[10]),
+      // tỷ lệ: convert "0,3000" (vi-VN locale) → number 0.3 so Google Sheets doesn't misread comma as thousands separator
+      (()=>{const v=tds[11]?.querySelector('.tyle-result')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(/\./g,'').replace(',','.'));return isNaN(n)?v:n;})(),
+      txt(tds[12]),txt(tds[13]),txt(tds[14]),
       tr._noteRow?.querySelector('.note-input')?.value?.trim()||'',
       document.getElementById('khoaInput')?.value||'',document.getElementById('diaDiem')?.value||'',
       document.getElementById('thoiGian')?.value||'',
