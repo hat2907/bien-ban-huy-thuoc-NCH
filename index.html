@@ -1226,9 +1226,14 @@ async function saveForm(){
     const txt=td=>td?.querySelector('input[type=text]:not(.ss-inp):not(.nv),select')?.value?.trim()||td?.textContent?.trim()||'';
     dr.push([now,ngay,khoa,i+1,
       tr._ss?.tt?.value||'',tr._ss?.hc?.value||'',tr._ss?.nd?.value||'',tr._ss?.sl?.value||'',tds[5]?.textContent?.trim()||'',
-      txt(tds[6]),tr.querySelector('.bbdp')?.value||'',tr.querySelector('.dtp')?.value||'',
-      tr.querySelector('.nv')?.value?.trim()||'',tr.querySelector('.nu')?.value?.trim()||'',
-      txt(tds[10]),
+      // bb-qty: integer → send as number
+      (()=>{const v=txt(tds[6]);const n=parseInt(v,10);return isNaN(n)?v:n;})(),
+      tr.querySelector('.bbdp')?.value||'',tr.querySelector('.dtp')?.value||'',
+      // nv: convert "0,3" → 0.3 so Sheets doesn't store as text
+      (()=>{const v=tr.querySelector('.nv')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?v:n;})(),
+      tr.querySelector('.nu')?.value?.trim()||'',
+      // vol (thể tích): convert "1,5" → 1.5
+      (()=>{const v=txt(tds[10]);if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?v:n;})(),
       // tỷ lệ: convert "0,3000" (vi-VN locale) → number 0.3 so Google Sheets doesn't misread comma as thousands separator
       (()=>{const v=tds[11]?.querySelector('.tyle-result')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(/\./g,'').replace(',','.'));return isNaN(n)?v:n;})(),
       txt(tds[12]),txt(tds[13]),txt(tds[14]),
