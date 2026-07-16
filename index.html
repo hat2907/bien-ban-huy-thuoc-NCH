@@ -123,8 +123,10 @@ td input[type=text]{width:100%;border:none;background:transparent;text-align:cen
 td input[type=text]{border-bottom:1px dotted var(--hi);}
 td input.hv{border-bottom:none;}
 td input:focus{outline:1px solid var(--ac);background:#eef5fc;}
-.stt-col{width:24px;}.row-act{width:24px;}
+.stt-col{width:24px;}.row-act{width:46px;text-align:center;}
 .row-act button{border:none;background:#d9534f;color:#fff;border-radius:3px;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:1;}
+/* print-only: hidden on screen, visible when printing */
+.print-only{display:none;}
 /* ── Searchable select ── */
 .ss{position:relative;display:block;}
 .ss::after{content:'▾';position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:9px;color:#555;pointer-events:none;line-height:1;}
@@ -220,7 +222,10 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
 
   /* ── Print BIÊN BẢN ── */
   body[data-ps=s-form] #s-form{display:block!important;}
-  body[data-ps=s-form] .form-bar,body[data-ps=s-form] .add-bar,body[data-ps=s-form] .row-act{display:none!important;}
+  body[data-ps=s-form] .form-bar,body[data-ps=s-form] .add-bar{display:none!important;}
+  body[data-ps=s-form] .row-act button{display:none!important;}
+  body[data-ps=s-form] .row-act{width:70px!important;min-width:70px;}
+  body[data-ps=s-form] .print-only{display:inline!important;}
   body[data-ps=s-form] .form-wrap{background:#fff;padding:0;min-height:unset;}
   body[data-ps=s-form] .page{box-shadow:none;margin:0;padding:6mm 10mm 4mm;width:auto;min-height:190mm;page-break-after:always;}
   body[data-ps=s-form] input::placeholder{color:transparent!important;}
@@ -541,7 +546,7 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
             <th rowspan="2" style="width:65px;">Số lượng bao bì TXTT cần hủy</th>
             <th colspan="7">Tình trạng thuốc GN-HT-TC không sử dụng hết</th>
             <th rowspan="2" style="width:58px;">Dược sĩ xác nhận (***)<br><i style="font-weight:normal;">(ký và ghi rõ họ tên)</i></th>
-            <th rowspan="2" class="row-act"></th>
+            <th rowspan="2" class="row-act"><span class="print-only" style="font-size:10px;font-weight:bold;">Ghi chú thực hủy<br>(<i>****</i>)</span></th>
           </tr>
           <tr>
             <th style="width:76px;">Bao bì chứa thuốc</th>
@@ -561,7 +566,8 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
           <span class="fn-t">Chú thích:</span><br>
           (*) DW (Nước cất pha tiêm), NS (NaCl 0,9%), G5 (Glucose 5%)<br>
           (**) Lượng thuốc trong dư phẩm/hàm lượng thuốc của 1 ĐVT<br>
-          (***) Nhân viên khoa Dược kiểm tra và nhận bàn giao danh mục, số lượng bao bì TXTT, tình trạng thực tế của thuốc không sử dụng hết, ký &amp; ghi rõ họ tên.
+          (***) Nhân viên khoa Dược kiểm tra và nhận bàn giao danh mục, số lượng bao bì TXTT, tình trạng thực tế của thuốc không sử dụng hết, ký &amp; ghi rõ họ tên.<br>
+          (****) Nếu thống nhất với sổ sách, đánh dấu "x"; nếu không thống nhất, ghi "lệch" và ghi chú thông tin lệch vào biên bản hủy thuốc.
         </div>
         <div class="sgn">
           <p class="sdt" style="visibility:hidden;" aria-hidden="true">Hà Nội, ngày <span class="static-date"></span> tháng <span class="static-date"></span> năm <span class="static-date"></span></p>
@@ -606,12 +612,14 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
         <div class="method-r">
           <p class="bold" style="margin-bottom:5px;">Thành phần tham gia:</p>
           <div class="nl"><span class="idx">1.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược, Thành viên Hội đồng hủy thuốc</span></div>
-          <div class="nl"><span class="idx">2.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre" style="text-align:right;font-size:11px;"><span style="display:block;white-space:nowrap;">Phòng TCKT, Thành viên Hội đồng hủy thuốc</span><span style="display:block;white-space:nowrap;">Khoa DP&amp;KSNK, Thành viên Hội đồng hủy thuốc</span></span></div>
-          <div class="nl"><span class="idx">3.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược, Nhân viên thu hồi bao bì TXTT</span></div>
-          <div class="nl"><span class="idx">4.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa DP&amp;KSNK</span></div>
+          <div class="nl"><span class="idx">2.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Thành viên Hội đồng hủy thuốc</span></div>
+          <div class="nl"><span class="idx">3.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Thành viên Hội đồng hủy thuốc</span></div>
+          <div class="nl"><span class="idx">4.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa Dược, Nhân viên thu hồi bao bì TXTT</span></div>
+          <div class="nl"><span class="idx">5.</span><input class="tv" oninput="this.classList.toggle('hv',!!this.value)"><span class="pre">Khoa DP&amp;KSNK</span></div>
         </div>
       </div>
       <p style="margin:4px 0;line-height:1.4;">Chúng tôi cùng chứng kiến và thực hiện hủy hết lượng bao bì tiếp xúc trực tiếp và thuốc gây nghiện, thuốc hướng thần, tiền chất dạng dung dịch chưa sử dụng hết đơn vị đóng gói nhỏ nhất đúng như trên Mục 1.</p>
+      <p style="margin:4px 0;line-height:1.4;">Sai lệch so với sổ sách (nếu có): <span style="display:inline-block;width:280px;border-bottom:1px dotted #555;">&nbsp;</span></p>
       <div class="tl" style="margin:4px 0;">
         <span>Việc tiêu hủy kết thúc vào lúc</span>
         <input id="gioKT" oninput="this.classList.toggle('hv',!!this.value)"><span>giờ</span>
@@ -1218,7 +1226,7 @@ async function saveForm(){
   const su=localStorage.getItem('scriptUrl');
   if(!su){alert('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
   const ngay=`${document.getElementById('curDay').textContent}/${document.getElementById('curMonth').textContent}/${document.getElementById('curYear').textContent}`;
-  const HEADER=['Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Dược sĩ xác nhận','Ghi chú','Khoa (trang 2)','Địa điểm','Thời gian','TV1','TV2','TV3','TV4','Giờ KT','Phút KT','Báo cáo lên'];
+  const HEADER=['Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Dược sĩ xác nhận','Ghi chú','Khoa (trang 2)','Địa điểm','Thời gian','TV1','TV2','TV3','TV4','TV5','Giờ KT','Phút KT','Báo cáo lên'];
   const now=new Date().toLocaleString('vi-VN');
   const dr=[];
   rows.forEach((tr,i)=>{
