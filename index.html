@@ -125,8 +125,9 @@ td input.hv{border-bottom:none;}
 td input:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .stt-col{width:24px;}.row-act{width:46px;text-align:center;}
 .row-act button{border:none;background:#d9534f;color:#fff;border-radius:3px;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:1;}
-/* print-only: hidden on screen, visible when printing */
-.print-only{display:none;}
+/* Thực hủy column */
+.thuc-huy-cell{text-align:center;vertical-align:middle;width:60px;}
+.thuc-huy-inp{text-align:center;font-size:11px;}
 /* ── Searchable select ── */
 .ss{position:relative;display:block;}
 .ss::after{content:'▾';position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:9px;color:#555;pointer-events:none;line-height:1;}
@@ -156,8 +157,8 @@ td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .ndc .iw{top:32px;}
 .dvt-cell{font-size:11px;}
 /* Columns that need word-wrap (Điều dưỡng, Bác sĩ, Dược sĩ) */
-td.wrap-cell{white-space:normal;word-break:break-word;vertical-align:top;font-size:10px;}
-td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-height:16px;overflow:visible;resize:none;font-size:10px;}
+td.wrap-cell{white-space:normal;word-break:break-word;vertical-align:bottom;font-size:10px;text-align:center;}
+td.wrap-cell input{white-space:normal;word-break:break-word;height:auto;min-height:16px;overflow:visible;resize:none;font-size:10px;text-align:center;}
 /* Print: hide input, show mirror div; padding-top = blank signing line above name */
 td.wrap-cell .wrap-pv{display:none;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:10px;text-align:center;}
 /* Note row */
@@ -223,9 +224,9 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   /* ── Print BIÊN BẢN ── */
   body[data-ps=s-form] #s-form{display:block!important;}
   body[data-ps=s-form] .form-bar,body[data-ps=s-form] .add-bar{display:none!important;}
-  body[data-ps=s-form] .row-act button{display:none!important;}
-  body[data-ps=s-form] .row-act{display:table-cell!important;width:70px!important;min-width:70px;vertical-align:middle;}
-  body[data-ps=s-form] .print-only{display:inline!important;}
+  body[data-ps=s-form] .row-act{display:none!important;}
+  body[data-ps=s-form] .thuc-huy-inp{border-bottom:none!important;}
+  body[data-ps=s-form] .thuc-huy-cell{vertical-align:middle;}
   body[data-ps=s-form] .form-wrap{background:#fff;padding:0;min-height:unset;}
   body[data-ps=s-form] .page{box-shadow:none;margin:0;padding:6mm 10mm 4mm;width:auto;min-height:190mm;page-break-after:always;}
   body[data-ps=s-form] input::placeholder{color:transparent!important;}
@@ -546,7 +547,8 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
             <th rowspan="2" style="width:65px;">Số lượng bao bì TXTT cần hủy</th>
             <th colspan="7">Tình trạng thuốc GN-HT-TC không sử dụng hết</th>
             <th rowspan="2" style="width:58px;">Dược sĩ xác nhận (***)<br><i style="font-weight:normal;">(ký và ghi rõ họ tên)</i></th>
-            <th rowspan="2" class="row-act"><span class="print-only" style="font-size:10px;font-weight:bold;">Ghi chú thực hủy<br>(<i>****</i>)</span></th>
+            <th rowspan="2" style="width:60px;">Thực hủy<br><i>(****)</i></th>
+            <th rowspan="2" class="row-act"></th>
           </tr>
           <tr>
             <th style="width:76px;">Bao bì chứa thuốc</th>
@@ -567,20 +569,20 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
           (*) DW (Nước cất pha tiêm), NS (NaCl 0,9%), G5 (Glucose 5%)<br>
           (**) Lượng thuốc trong dư phẩm/hàm lượng thuốc của 1 ĐVT<br>
           (***) Nhân viên khoa Dược kiểm tra và nhận bàn giao danh mục, số lượng bao bì TXTT, tình trạng thực tế của thuốc không sử dụng hết, ký &amp; ghi rõ họ tên.<br>
-          (****) Nếu thống nhất với sổ sách, đánh dấu "x"; nếu không thống nhất, ghi "lệch" và ghi chú thông tin lệch vào biên bản hủy thuốc.
+          (****) Nếu số lượng thực tế khớp với sổ sách, đánh dấu "x"; nếu sai, ghi "lệch" và ghi chú thông tin lệch vào biên bản hủy thuốc.
         </div>
         <div class="sgn">
           <p class="sdt" style="visibility:hidden;" aria-hidden="true">Hà Nội, ngày <span class="static-date"></span> tháng <span class="static-date"></span> năm <span class="static-date"></span></p>
           <p class="role">Điều dưỡng hành chính</p>
           <p class="hint">(Ký, ghi rõ họ tên)</p>
-          <div style="height:46px;"></div>
+          <div style="height:62px;"></div>
           <input type="text" class="sign-inp" placeholder="Họ và tên" oninput="this.classList.toggle('hv',!!this.value)">
         </div>
         <div class="sgn">
           <p class="sdt">Hà Nội, ngày <span class="static-date" id="curDay"></span> tháng <span class="static-date" id="curMonth"></span> năm <span class="static-date" id="curYear"></span></p>
           <p class="role">Lãnh đạo khoa/Trung tâm</p>
           <p class="hint">(Ký, ghi rõ họ tên)</p>
-          <div style="height:46px;"></div>
+          <div style="height:62px;"></div>
           <input type="text" class="sign-inp" placeholder="Họ và tên" oninput="this.classList.toggle('hv',!!this.value)">
         </div>
       </div>
@@ -986,6 +988,7 @@ function addRow(){
     <td class="wrap-cell dd-cell"><input type="text" class="dd-inp" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
     <td class="wrap-cell bs-cell"><input type="text" class="bs-inp" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
     <td class="wrap-cell ds-cell"><input type="text" class="ds-inp" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
+    <td class="thuc-huy-cell"><input type="text" class="thuc-huy-inp" oninput="this.classList.toggle('hv',!!this.value)" placeholder="x / lệch"></td>
     <td class="row-act" style="white-space:nowrap;">
       <button onclick="this.closest('tr').remove();this.closest('tr')?._noteRow?.remove();renumber();">✕</button>
       <button class="btn-note" title="Ghi chú" onclick="toggleNoteRow(this)">📝</button>
@@ -996,7 +999,7 @@ function addRow(){
   const noteRow=document.createElement('tr');
   noteRow.className='note-row';
   noteRow.style.display='none';
-  noteRow.innerHTML=`<td colspan="16"><div style="display:flex;align-items:center;gap:8px;"><label style="font-size:11px;white-space:nowrap;font-family:Arial,sans-serif;color:#666;">📝 Ghi chú:</label><input type="text" class="note-input" placeholder="Nhập ghi chú cho dòng này…"></div></td>`;
+  noteRow.innerHTML=`<td colspan="17"><div style="display:flex;align-items:center;gap:8px;"><label style="font-size:11px;white-space:nowrap;font-family:Arial,sans-serif;color:#666;">📝 Ghi chú:</label><input type="text" class="note-input" placeholder="Nhập ghi chú cho dòng trên. Không in kèm biên bản"></div></td>`;
   document.getElementById('tbody').appendChild(noteRow);
   tr._noteRow=noteRow;
 
@@ -1217,12 +1220,7 @@ async function saveForm(){
     alert(`⚠️ Còn ${missingQty.length} dòng chưa nhập "Số lượng bao bì TXTT cần hủy".\nVui lòng nhập giá trị số nguyên trước khi lưu.`);
     return;
   }
-  // Mandatory: Điều dưỡng và Bác sĩ
-  const missingSign=[...rows].filter(tr=>!tr.querySelector('.dd-inp')?.value?.trim()||!tr.querySelector('.bs-inp')?.value?.trim());
-  if(missingSign.length){
-    alert(`⚠️ Còn ${missingSign.length} dòng chưa điền "Điều dưỡng thực hiện y lệnh cuối" và/hoặc "Bác sĩ điều trị".\nVui lòng điền đầy đủ trước khi lưu.`);
-    return;
-  }
+  // Điều dưỡng and Bác sĩ are optional
   const su=localStorage.getItem('scriptUrl');
   if(!su){alert('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
   const ngay=`${document.getElementById('curDay').textContent}/${document.getElementById('curMonth').textContent}/${document.getElementById('curYear').textContent}`;
