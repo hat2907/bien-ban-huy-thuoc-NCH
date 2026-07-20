@@ -263,7 +263,7 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   body[data-ps=s-form] .tl{margin:5px 0!important;}
   body[data-ps=s-form] .sign-row2{margin-top:12px!important;}
   body[data-ps=s-form] .sdt .date-hint{display:none!important;}
-  body[data-ps=s-form] #curDay,body[data-ps=s-form] #curMonth,body[data-ps=s-form] #curYear{border-bottom:none!important;}
+  
   body[data-ps=s-form] .fnrow div[style*="height"]{height:26px!important;}
   body[data-ps=s-form] .fnrow{margin-top:8px!important;}
   body[data-ps=s-form] .pg-foot{padding-top:4px!important;}
@@ -605,14 +605,7 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
           <input type="text" id="signDd" class="sign-inp" placeholder="Họ và tên" oninput="this.classList.toggle('hv',!!this.value)">
         </div>
         <div class="sgn">
-          <p class="sdt">Hà Nội, ngày
-            <input type="number" id="curDay" min="1" max="31" style="width:30px;border:none;border-bottom:1px dotted var(--hi);text-align:center;font-style:italic;font-family:inherit;font-size:inherit;background:transparent;" oninput="this.classList.toggle('hv',true)">
-            tháng
-            <input type="number" id="curMonth" min="1" max="12" style="width:28px;border:none;border-bottom:1px dotted var(--hi);text-align:center;font-style:italic;font-family:inherit;font-size:inherit;background:transparent;" oninput="this.classList.toggle('hv',true)">
-            năm
-            <input type="number" id="curYear" min="2020" max="2099" style="width:46px;border:none;border-bottom:1px dotted var(--hi);text-align:center;font-style:italic;font-family:inherit;font-size:inherit;background:transparent;" oninput="this.classList.toggle('hv',true)">
-            <span class="date-hint" style="font-size:10px;color:#999;margin-left:4px;">(có thể sửa nếu nhập muộn)</span>
-          </p>
+          <p class="sdt">Hà Nội, ngày <span id="curDay" class="static-date"></span> tháng <span id="curMonth" class="static-date"></span> năm <span id="curYear" class="static-date"></span></p>
           <p class="role">Lãnh đạo khoa/Trung tâm</p>
           <p class="hint">(Ký, ghi rõ họ tên)</p>
           <div style="height:62px;"></div>
@@ -803,19 +796,6 @@ window.addEventListener('hashchange',checkRoute);
 (function(){const el=document.getElementById('formLink');if(el)el.textContent=location.origin+location.pathname+'#form';})();
 
 /* ── DATE ── */
-(function setDate(){
-  const n=new Date();
-  const d=n.getDate(), m=n.getMonth()+1, y=n.getFullYear();
-  // curDay/curMonth/curYear are now editable inputs
-  document.getElementById('curDay').value=d;
-  document.getElementById('curMonth').value=m;
-  document.getElementById('curYear').value=y;
-  // Sync the invisible spacer spans for layout alignment
-  document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,i)=>{
-    s.textContent=[d,m,y][i]??'';
-  });
-})();
-
 /* ── PAGE NUMBERS ── */
 function upPnums(){const pp=document.querySelectorAll('.form-wrap .page');pp.forEach((p,i)=>{const a=p.querySelector('.pnum'),b=p.querySelector('.ptotal');if(a)a.textContent=i+1;if(b)b.textContent=pp.length;});}
 upPnums();
@@ -1281,10 +1261,6 @@ async function saveForm(){
   // Điều dưỡng and Bác sĩ are optional
   const su=localStorage.getItem('scriptUrl');
   if(!su){alert('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
-  // ngay is now calculated at save time (see below with saveDate)
-  // Auto-fill members from schedule database before save
-  const saveDateISO=new Date().toISOString().split('T')[0];
-  autoFillMembers(saveDateISO,khoa);
 
   // Build barcode prefix (server assigns counter)
   const HEADER=['Mã biên bản (MSBB)','Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Tổng thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Ghi chú','Dược sĩ XN (họ tên)','Điều dưỡng HC (họ tên)','Lãnh đạo khoa (họ tên)','Thời gian','TV1','TV2','TV3','TV4','TV5','TV6','Giờ KT','Phút KT'];
@@ -1294,6 +1270,13 @@ async function saveForm(){
   const sDay=SD.getDate(),sMon=SD.getMonth()+1,sYr=SD.getFullYear();
   const ngay=`${sDay}/${sMon}/${sYr}`;
   const now=SD.toLocaleString('vi-VN');
+
+  // Điều kiện trích xuất lịch: nếu lưu sau 16:30 → dùng ngày hôm sau
+  const isAfter1630 = SD.getHours()>16 || (SD.getHours()===16 && SD.getMinutes()>=30);
+  const scheduleDate = new Date(SD);
+  if(isAfter1630) scheduleDate.setDate(scheduleDate.getDate()+1);
+  const saveDateISO=`${scheduleDate.getFullYear()}-${String(scheduleDate.getMonth()+1).padStart(2,'0')}-${String(scheduleDate.getDate()).padStart(2,'0')}`;
+  autoFillMembers(saveDateISO,khoa);
 
   // Barcode (local per-device)
   const khoaCode=(DEPT_CODES[khoa]||'00').padStart(2,'0');
