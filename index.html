@@ -262,7 +262,8 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   body[data-ps=s-form] .method-r .nl{margin-bottom:2px!important;}
   body[data-ps=s-form] .tl{margin:5px 0!important;}
   body[data-ps=s-form] .sign-row2{margin-top:12px!important;}
-  body[data-ps=s-form] .sb2 div[style*="height"]{height:26px!important;}
+  body[data-ps=s-form] .sdt .date-hint{display:none!important;}
+  body[data-ps=s-form] #curDay,body[data-ps=s-form] #curMonth,body[data-ps=s-form] #curYear{border-bottom:none!important;}
   body[data-ps=s-form] .fnrow div[style*="height"]{height:26px!important;}
   body[data-ps=s-form] .fnrow{margin-top:8px!important;}
   body[data-ps=s-form] .pg-foot{padding-top:4px!important;}
@@ -397,7 +398,13 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   <div class="adm-body">
     <div class="acard">
       <h2>Apps Script — Lưu biên bản tự động</h2>
-      <div class="desc">Mỗi lần nhân viên bấm <b>"Lưu biên bản"</b>, dữ liệu được ghi tự động vào Google Sheet tổng hợp thông qua Apps Script. URL được tải từ cấu hình trung tâm.</div>
+      <div class="desc">Mỗi lần nhân viên bấm <b>"Lưu biên bản"</b>, dữ liệu được ghi tự động vào Google Sheet tổng hợp. Apps Script cũng đảm nhiệm <b>sinh mã biên bản (MSBB) tập trung</b> — đếm liên tục toàn bộ máy tính trong ngày, không bị trùng. URL được tải từ cấu hình trung tâm.</div>
+      <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:8px 12px;font-size:11.5px;margin:8px 0;">
+        ⚠️ <b>Cần cập nhật Apps Script</b> để hỗ trợ đếm mã biên bản tập trung.<br>
+        Mở <b>Apps Script → Editor</b>, thay toàn bộ code bằng code ở link dưới, rồi Deploy lại (Web App):<br>
+        <code style="font-size:10px;word-break:break-all;">https://gist.github.com/hat2907/appscript_huy_thuoc</code><br>
+        (Hoặc liên hệ quản trị viên để được hỗ trợ cập nhật)
+      </div>
       <div class="rg">
         <input type="text" id="scriptUrl" placeholder="URL tự động tải từ cấu hình trung tâm" readonly style="background:#f8f8f8;color:#666;">
         <button class="btn btn-gh" onclick="testScript()">🧪 Test kết nối</button>
@@ -598,7 +605,14 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
           <input type="text" id="signDd" class="sign-inp" placeholder="Họ và tên" oninput="this.classList.toggle('hv',!!this.value)">
         </div>
         <div class="sgn">
-          <p class="sdt">Hà Nội, ngày <span class="static-date" id="curDay"></span> tháng <span class="static-date" id="curMonth"></span> năm <span class="static-date" id="curYear"></span></p>
+          <p class="sdt">Hà Nội, ngày
+            <input type="number" id="curDay" min="1" max="31" style="width:30px;border:none;border-bottom:1px dotted var(--hi);text-align:center;font-style:italic;font-family:inherit;font-size:inherit;background:transparent;" oninput="this.classList.toggle('hv',true)">
+            tháng
+            <input type="number" id="curMonth" min="1" max="12" style="width:28px;border:none;border-bottom:1px dotted var(--hi);text-align:center;font-style:italic;font-family:inherit;font-size:inherit;background:transparent;" oninput="this.classList.toggle('hv',true)">
+            năm
+            <input type="number" id="curYear" min="2020" max="2099" style="width:46px;border:none;border-bottom:1px dotted var(--hi);text-align:center;font-style:italic;font-family:inherit;font-size:inherit;background:transparent;" oninput="this.classList.toggle('hv',true)">
+            <span class="date-hint" style="font-size:10px;color:#999;margin-left:4px;">(có thể sửa nếu nhập muộn)</span>
+          </p>
           <p class="role">Lãnh đạo khoa/Trung tâm</p>
           <p class="hint">(Ký, ghi rõ họ tên)</p>
           <div style="height:62px;"></div>
@@ -792,10 +806,11 @@ window.addEventListener('hashchange',checkRoute);
 (function setDate(){
   const n=new Date();
   const d=n.getDate(), m=n.getMonth()+1, y=n.getFullYear();
-  document.getElementById('curDay').textContent=d;
-  document.getElementById('curMonth').textContent=m;
-  document.getElementById('curYear').textContent=y;
-  // Also fill the invisible spacer spans (no id) inside the hidden sdt row
+  // curDay/curMonth/curYear are now editable inputs
+  document.getElementById('curDay').value=d;
+  document.getElementById('curMonth').value=m;
+  document.getElementById('curYear').value=y;
+  // Sync the invisible spacer spans for layout alignment
   document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,i)=>{
     s.textContent=[d,m,y][i]??'';
   });
@@ -1232,9 +1247,9 @@ function prepPrint(){
   const active=SCREENS.find(s=>document.getElementById(s).classList.contains('active'));
   if(active==='s-form'){
     const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
-    const d=document.getElementById('curDay')?.textContent||'';
-    const m=document.getElementById('curMonth')?.textContent||'';
-    const y=document.getElementById('curYear')?.textContent||'';
+    const d=document.getElementById('curDay')?.value||'';
+    const m=document.getElementById('curMonth')?.value||'';
+    const y=document.getElementById('curYear')?.value||'';
     document.title=`BB hủy dư phẩm${khoa?' - '+khoa:''} - ${d}-${m}-${y}`;
   }
 }
@@ -1266,20 +1281,24 @@ async function saveForm(){
   // Điều dưỡng and Bác sĩ are optional
   const su=localStorage.getItem('scriptUrl');
   if(!su){alert('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
-  const ngay=`${document.getElementById('curDay').textContent}/${document.getElementById('curMonth').textContent}/${document.getElementById('curYear').textContent}`;
+  // ngay is now calculated at save time (see below with saveDate)
   // Auto-fill members from schedule database before save
   const saveDateISO=new Date().toISOString().split('T')[0];
   autoFillMembers(saveDateISO,khoa);
 
-  // Build barcode code before fetch so it can be included in the sheet data
-  const barcodeCode=buildBarcodeCode(khoa);
+  // Build barcode prefix (server assigns counter)
   const HEADER=['Mã biên bản (MSBB)','Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Tổng thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Ghi chú','Dược sĩ XN (họ tên)','Điều dưỡng HC (họ tên)','Lãnh đạo khoa (họ tên)','Thời gian','TV1','TV2','TV3','TV4','TV5','TV6','Giờ KT','Phút KT'];
   const now=new Date().toLocaleString('vi-VN');
+  // Ngày biên bản đọc từ ô nhập tay — cho phép sửa khi nhập muộn hơn ngày thực tế
+  const saveDay=parseInt(document.getElementById('curDay').value)||new Date().getDate();
+  const saveMon=parseInt(document.getElementById('curMonth').value)||new Date().getMonth()+1;
+  const saveYr=parseInt(document.getElementById('curYear').value)||new Date().getFullYear();
+  const ngay=`${saveDay}/${saveMon}/${saveYr}`;
   const dr=[];
   rows.forEach((tr,i)=>{
     const tds=[...tr.querySelectorAll('td')];
     const txt=td=>td?.querySelector('input[type=text]:not(.ss-inp):not(.nv),select')?.value?.trim()||td?.textContent?.trim()||'';
-    dr.push([barcodeCode,now,ngay,khoa,i+1,
+    dr.push(['',now,ngay,khoa,i+1,
       tr._ss?.tt?.value||'',tr._ss?.hc?.value||'',tr._ss?.nd?.value||'',tr._ss?.sl?.value||'',tr._ss?.dvt?.value||'',
       // bb-qty: integer → send as number
       (()=>{const v=txt(tds[6]);const n=parseInt(v,10);return isNaN(n)?v:n;})(),
@@ -1302,11 +1321,47 @@ async function saveForm(){
       i===0?document.getElementById('gioKT')?.value||'':'',
       i===0?document.getElementById('phutKT')?.value||'':'']);
   });
+  // Build barcode PREFIX only — server (Apps Script) assigns the sequential counter
+  // to ensure uniqueness across all machines/browsers for the same khoa
+  const khoaCode=(DEPT_CODES[khoa]||'00').padStart(2,'0');
+  // Rows start with placeholders; server fills in barcode, ngày lưu, ngày biên bản from server time
+  // This prevents device-clock errors from causing wrong dates in the barcode/records
+
   const bs=document.getElementById('btnSave');
   bs.textContent='⏳ Đang lưu…';bs.disabled=true;
   try{
-    await fetch(su,{method:'POST',mode:'no-cors',body:JSON.stringify([HEADER,...dr])});
-    document.getElementById('savedTime').textContent=new Date().toLocaleTimeString('vi-VN');
+    // Use cors mode so we can READ the response (barcode + server date returned)
+    const resp=await fetch(su,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({khoaCode,rows:[HEADER,...dr]})
+    });
+    // Defaults: local values (fallback if server doesn't respond with dates)
+    const clientDate=new Date();
+    const cDay=clientDate.getDate(),cMon=clientDate.getMonth()+1,cYr=clientDate.getFullYear();
+    let barcodeCode=(()=>{const p=String(cYr).slice(-1)+String(cMon).padStart(2,'0')+String(cDay).padStart(2,'0')+khoaCode;return p+getBarcodeCounter();})();
+    let sDay=cDay,sMon=cMon,sYr=cYr;
+    try{
+      if(resp&&resp.ok){
+        const result=await resp.json();
+        if(result.barcode) barcodeCode=result.barcode;
+        // Use server-returned date to correct any device clock errors
+        if(result.serverDay)  sDay=result.serverDay;
+        if(result.serverMonth)sMon=result.serverMonth;
+        if(result.serverYear) sYr=result.serverYear;
+        if(result.serverDateTime) document.getElementById('savedTime').textContent=result.serverDateTime;
+      }
+    }catch(_){}
+    // Update date spans with SERVER time (corrects device clock if wrong)
+    ['curDay','curMonth','curYear'].forEach((id,j)=>{
+      const el=document.getElementById(id);
+      if(el)el.textContent=[sDay,sMon,sYr][j];
+    });
+    document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,j)=>{
+      s.textContent=[sDay,sMon,sYr][j]??'';
+    });
+    document.getElementById('savedTime').textContent||
+      (document.getElementById('savedTime').textContent=new Date().toLocaleTimeString('vi-VN'));
     document.getElementById('sbdg').classList.add('show');
     document.getElementById('btnPrint').disabled=false;
     bs.style.display='none';document.getElementById('btnAdd').style.display='none';
@@ -1314,7 +1369,6 @@ async function saveForm(){
     document.getElementById('formWrap').classList.add('form-locked');
     document.querySelectorAll('.note-input').forEach(i=>i.disabled=true);
     document.querySelectorAll('.add-bar button').forEach(b=>b.disabled=true);
-    // Generate barcode
     generateBarcodes(barcodeCode);
   }catch(e){
     bs.textContent='💾 Lưu biên bản';bs.disabled=false;
@@ -1323,19 +1377,23 @@ async function saveForm(){
 }
 /* ── BARCODE ── */
 function getBarcodeCounter(){
+  // LOCAL fallback only — used when Apps Script doesn't return a barcode
   const n=new Date();
   const today=`${n.getFullYear()}${String(n.getMonth()+1).padStart(2,'0')}${String(n.getDate()).padStart(2,'0')}`;
-  // Single atomic key — global across all khoa, resets only on date change
   let state;
   try{state=JSON.parse(localStorage.getItem('bcState')||'{}');}catch{state={};}
   let count;
-  if(state.date===today){
-    count=(parseInt(state.count)||0)+1;
-  } else {
-    count=1; // new day → reset to 1
-  }
+  if(state.date===today){count=(parseInt(state.count)||0)+1;}else{count=1;}
   localStorage.setItem('bcState',JSON.stringify({date:today,count}));
   return String(count).padStart(3,'0');
+}
+function buildBarcodePrefix(khoa){
+  const n=new Date();
+  const y=String(n.getFullYear()).slice(-1);
+  const m=String(n.getMonth()+1).padStart(2,'0');
+  const d=String(n.getDate()).padStart(2,'0');
+  const dc=(DEPT_CODES[khoa]||'00').padStart(2,'0');
+  return `${y}${m}${d}${dc}`;
 }
 function buildBarcodeCode(khoa){
   const n=new Date();
@@ -1395,7 +1453,7 @@ function resetForm(){
   document.getElementById('btnNew').classList.remove('show');
   document.querySelectorAll('.add-bar button').forEach(b=>b.disabled=false);
   const n=new Date();const d=n.getDate(),m=n.getMonth()+1,y=n.getFullYear();
-  document.getElementById('curDay').textContent=d;document.getElementById('curMonth').textContent=m;document.getElementById('curYear').textContent=y;
+  document.getElementById('curDay').value=d;document.getElementById('curMonth').value=m;document.getElementById('curYear').value=y;
   document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,i)=>{s.textContent=[d,m,y][i]??'';});
   clearBarcodes();
   addRow();addRow();addRow();
