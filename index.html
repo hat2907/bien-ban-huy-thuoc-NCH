@@ -1288,12 +1288,18 @@ async function saveForm(){
 
   // Build barcode prefix (server assigns counter)
   const HEADER=['Mã biên bản (MSBB)','Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Tổng thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Ghi chú','Dược sĩ XN (họ tên)','Điều dưỡng HC (họ tên)','Lãnh đạo khoa (họ tên)','Thời gian','TV1','TV2','TV3','TV4','TV5','TV6','Giờ KT','Phút KT'];
-  const now=new Date().toLocaleString('vi-VN');
-  // Ngày biên bản đọc từ ô nhập tay — cho phép sửa khi nhập muộn hơn ngày thực tế
-  const saveDay=parseInt(document.getElementById('curDay').value)||new Date().getDate();
-  const saveMon=parseInt(document.getElementById('curMonth').value)||new Date().getMonth()+1;
-  const saveYr=parseInt(document.getElementById('curYear').value)||new Date().getFullYear();
-  const ngay=`${saveDay}/${saveMon}/${saveYr}`;
+
+  // Ngày/giờ cố định theo thời điểm BẤM LƯU (không phải lúc mở trang)
+  const SD=new Date();
+  const sDay=SD.getDate(),sMon=SD.getMonth()+1,sYr=SD.getFullYear();
+  const ngay=`${sDay}/${sMon}/${sYr}`;
+  const now=SD.toLocaleString('vi-VN');
+
+  // Barcode (local per-device)
+  const khoaCode=(DEPT_CODES[khoa]||'00').padStart(2,'0');
+  const pfx=String(sYr).slice(-1)+String(sMon).padStart(2,'0')+String(sDay).padStart(2,'0')+khoaCode;
+  const barcodeCode=pfx+getBarcodeCounter();
+
   const dr=[];
   rows.forEach((tr,i)=>{
     const tds=[...tr.querySelectorAll('td')];
@@ -1321,59 +1327,24 @@ async function saveForm(){
       i===0?document.getElementById('gioKT')?.value||'':'',
       i===0?document.getElementById('phutKT')?.value||'':'']);
   });
-  // Build barcode PREFIX only — server (Apps Script) assigns the sequential counter
-  // to ensure uniqueness across all machines/browsers for the same khoa
-  const khoaCode=(DEPT_CODES[khoa]||'00').padStart(2,'0');
-  // Rows start with placeholders; server fills in barcode, ngày lưu, ngày biên bản from server time
-  // This prevents device-clock errors from causing wrong dates in the barcode/records
+  // Điền barcode vào tất cả các dòng dữ liệu
+  dr.forEach(r=>{r[0]=barcodeCode;});
+
+  // Cập nhật span ngày/giờ hiển thị và bản in theo đúng ngày lưu
+  ['curDay','curMonth','curYear'].forEach((id,j)=>{
+    const el=document.getElementById(id);if(el)el.textContent=[sDay,sMon,sYr][j];
+  });
+  document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,j)=>{
+    s.textContent=[sDay,sMon,sYr][j]??'';
+  });
 
   const bs=document.getElementById('btnSave');
   bs.textContent='⏳ Đang lưu…';bs.disabled=true;
   try{
-    let barcodeCode=null;
-    let sDay=null,sMon=null,sYr=null,savedTimeStr=null;
-
-    // ── Bước 1: thử Apps Script mới (nhận {khoaCode, rows}, trả về barcode + server date) ──
-    try{
-      const resp=await fetch(su,{
-        method:'POST',
-        headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({khoaCode,rows:[HEADER,...dr]})
-      });
-      if(resp&&resp.ok){
-        const result=await resp.json();
-        if(result.status==='ok'&&result.barcode){
-          // Apps Script mới xử lý thành công
-          barcodeCode=result.barcode;
-          if(result.serverDay)  sDay=result.serverDay;
-          if(result.serverMonth)sMon=result.serverMonth;
-          if(result.serverYear) sYr=result.serverYear;
-          if(result.serverDateTime) savedTimeStr=result.serverDateTime;
-        }
-      }
-    }catch(_){}
-
-    // ── Bước 2: fallback — Apps Script cũ (format array thẳng + no-cors) ──
-    if(!barcodeCode){
-      // Sinh barcode local (chỉ dùng khi Apps Script chưa được cập nhật)
-      const clientDate=new Date();
-      const cD=clientDate.getDate(),cM=clientDate.getMonth()+1,cY=clientDate.getFullYear();
-      const pfx=String(cY).slice(-1)+String(cM).padStart(2,'0')+String(cD).padStart(2,'0')+khoaCode;
-      barcodeCode=pfx+getBarcodeCounter();
-      dr.forEach(r=>{r[0]=barcodeCode;}); // điền barcode local vào cột đầu
-      await fetch(su,{method:'POST',mode:'no-cors',body:JSON.stringify([HEADER,...dr])});
-    }
-
-    // ── Bước 3: cập nhật giao diện ──
-    if(sDay&&sMon&&sYr){
-      ['curDay','curMonth','curYear'].forEach((id,j)=>{
-        const el=document.getElementById(id);if(el)el.textContent=[sDay,sMon,sYr][j];
-      });
-      document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,j)=>{
-        s.textContent=[sDay,sMon,sYr][j]??'';
-      });
-    }
-    document.getElementById('savedTime').textContent=savedTimeStr||new Date().toLocaleTimeString('vi-VN');
+    // no-cors: không đọc được response nhưng LUÔN GHI được vào sheet
+    // (không bị chặn bởi CORS preflight, hoạt động trên mọi trình duyệt/máy tính)
+    await fetch(su,{method:'POST',mode:'no-cors',body:JSON.stringify([HEADER,...dr])});
+    document.getElementById('savedTime').textContent=new Date().toLocaleTimeString('vi-VN');
     document.getElementById('sbdg').classList.add('show');
     document.getElementById('btnPrint').disabled=false;
     bs.style.display='none';document.getElementById('btnAdd').style.display='none';
