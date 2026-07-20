@@ -1278,10 +1278,18 @@ async function saveForm(){
   const saveDateISO=`${scheduleDate.getFullYear()}-${String(scheduleDate.getMonth()+1).padStart(2,'0')}-${String(scheduleDate.getDate()).padStart(2,'0')}`;
   autoFillMembers(saveDateISO,khoa);
 
-  // Barcode (local per-device)
+  // Barcode: lấy từ server via GET (CORS tự động cho GET, không cần preflight)
+  // Fallback local nếu server không phản hồi (lỗi mạng, Apps Script chưa cập nhật)
   const khoaCode=(DEPT_CODES[khoa]||'00').padStart(2,'0');
   const pfx=String(sYr).slice(-1)+String(sMon).padStart(2,'0')+String(sDay).padStart(2,'0')+khoaCode;
-  const barcodeCode=pfx+getBarcodeCounter();
+  let barcodeCode=pfx+getBarcodeCounter(); // local fallback mặc định
+  try{
+    const reserveResp=await fetch(su+'?action=reserve&khoaCode='+encodeURIComponent(khoaCode));
+    if(reserveResp.ok){
+      const reserveResult=await reserveResp.json();
+      if(reserveResult.status==='ok'&&reserveResult.barcode) barcodeCode=reserveResult.barcode;
+    }
+  }catch(_){/* mạng lỗi → dùng local fallback */}
 
   const dr=[];
   rows.forEach((tr,i)=>{
