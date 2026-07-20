@@ -1240,73 +1240,54 @@ function afterPrint(){
 
 /* ── SAVE FORM ── */
 async function saveForm(){
+  // ── Vô hiệu hoá nút NGAY LẬP TỨC — tránh lưu đúp khi click nhiều lần ──
+  const bs=document.getElementById('btnSave');
+  bs.textContent='⏳ Đang lưu…';bs.disabled=true;
+
+  // ── Validation ──
   const rows=document.querySelectorAll('#tbody tr:not(.note-row)');
   const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
-  // ── Validation
-  if(!khoa){
-    alert('⚠️ Chưa điền tên Khoa/Trung tâm.\nVui lòng nhập tên khoa trước khi lưu.');
-    document.getElementById('khoaInput').focus();
-    return;
-  }
-  if(!rows.length){
-    alert('⚠️ Chưa có dòng thuốc nào.\nVui lòng thêm ít nhất một dòng thuốc trước khi lưu.');
-    return;
-  }
-  // Check all rows have TXTT quantity (integer, non-empty)
+  const fail=msg=>{bs.textContent='💾 Lưu biên bản';bs.disabled=false;alert(msg);};
+  if(!khoa){fail('⚠️ Chưa điền tên Khoa/Trung tâm.\nVui lòng nhập tên khoa trước khi lưu.');document.getElementById('khoaInput').focus();return;}
+  if(!rows.length){fail('⚠️ Chưa có dòng thuốc nào.\nVui lòng thêm ít nhất một dòng thuốc trước khi lưu.');return;}
   const missingQty=[...rows].filter(tr=>!tr.querySelector('.bb-qty')?.value?.trim());
-  if(missingQty.length){
-    alert(`⚠️ Còn ${missingQty.length} dòng chưa nhập "Số lượng bao bì TXTT cần hủy".\nVui lòng nhập giá trị số nguyên trước khi lưu.`);
-    return;
-  }
-  // Điều dưỡng and Bác sĩ are optional
+  if(missingQty.length){fail(`⚠️ Còn ${missingQty.length} dòng chưa nhập "Số lượng bao bì TXTT cần hủy".`);return;}
   const su=localStorage.getItem('scriptUrl');
-  if(!su){alert('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
+  if(!su){fail('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
+  // Điều dưỡng and Bác sĩ are optional
 
-  // Build barcode prefix (server assigns counter)
-  const HEADER=['Mã biên bản (MSBB)','Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Tổng thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Ghi chú','Dược sĩ XN (họ tên)','Điều dưỡng HC (họ tên)','Lãnh đạo khoa (họ tên)','Thời gian','TV1','TV2','TV3','TV4','TV5','TV6','Giờ KT','Phút KT'];
-
-  // Ngày/giờ cố định theo thời điểm BẤM LƯU (không phải lúc mở trang)
+  // ── Ngày/giờ lưu cố định tại thời điểm này ──
   const SD=new Date();
   const sDay=SD.getDate(),sMon=SD.getMonth()+1,sYr=SD.getFullYear();
   const ngay=`${sDay}/${sMon}/${sYr}`;
   const now=SD.toLocaleString('vi-VN');
+  const khoaCode=(DEPT_CODES[khoa]||'00').padStart(2,'0');
+  const pfx=String(sYr).slice(-1)+String(sMon).padStart(2,'0')+String(sDay).padStart(2,'0')+khoaCode;
 
-  // Điều kiện trích xuất lịch: nếu lưu sau 16:30 → dùng ngày hôm sau
-  const isAfter1630 = SD.getHours()>16 || (SD.getHours()===16 && SD.getMinutes()>=30);
-  const scheduleDate = new Date(SD);
-  if(isAfter1630) scheduleDate.setDate(scheduleDate.getDate()+1);
+  // ── Khởi động GET barcode NGAY (chạy song song trong khi CPU xây dựng data) ──
+  const barcodePromise=fetch(su+'?action=reserve&khoaCode='+encodeURIComponent(khoaCode))
+    .then(r=>r.ok?r.json():{}).catch(()=>({}));
+
+  // ── Lịch trực: sau 16:30 → lấy ngày hôm sau ──
+  const isAfter1630=SD.getHours()>16||(SD.getHours()===16&&SD.getMinutes()>=30);
+  const scheduleDate=new Date(SD);
+  if(isAfter1630)scheduleDate.setDate(scheduleDate.getDate()+1);
   const saveDateISO=`${scheduleDate.getFullYear()}-${String(scheduleDate.getMonth()+1).padStart(2,'0')}-${String(scheduleDate.getDate()).padStart(2,'0')}`;
   autoFillMembers(saveDateISO,khoa);
 
-  // Barcode: lấy từ server via GET (CORS tự động cho GET, không cần preflight)
-  // Fallback local nếu server không phản hồi (lỗi mạng, Apps Script chưa cập nhật)
-  const khoaCode=(DEPT_CODES[khoa]||'00').padStart(2,'0');
-  const pfx=String(sYr).slice(-1)+String(sMon).padStart(2,'0')+String(sDay).padStart(2,'0')+khoaCode;
-  let barcodeCode=pfx+getBarcodeCounter(); // local fallback mặc định
-  try{
-    const reserveResp=await fetch(su+'?action=reserve&khoaCode='+encodeURIComponent(khoaCode));
-    if(reserveResp.ok){
-      const reserveResult=await reserveResp.json();
-      if(reserveResult.status==='ok'&&reserveResult.barcode) barcodeCode=reserveResult.barcode;
-    }
-  }catch(_){/* mạng lỗi → dùng local fallback */}
-
+  // ── Xây dựng data rows (trong khi GET đang chạy) ──
+  const HEADER=['Mã biên bản (MSBB)','Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì TXTT cần hủy','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Tổng thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Ghi chú','Dược sĩ XN (họ tên)','Điều dưỡng HC (họ tên)','Lãnh đạo khoa (họ tên)','Thời gian','TV1','TV2','TV3','TV4','TV5','TV6','Giờ KT','Phút KT'];
   const dr=[];
   rows.forEach((tr,i)=>{
     const tds=[...tr.querySelectorAll('td')];
     const txt=td=>td?.querySelector('input[type=text]:not(.ss-inp):not(.nv),select')?.value?.trim()||td?.textContent?.trim()||'';
     dr.push(['',now,ngay,khoa,i+1,
       tr._ss?.tt?.value||'',tr._ss?.hc?.value||'',tr._ss?.nd?.value||'',tr._ss?.sl?.value||'',tr._ss?.dvt?.value||'',
-      // bb-qty: integer → send as number
       (()=>{const v=txt(tds[6]);const n=parseInt(v,10);return isNaN(n)?v:n;})(),
-      tr.querySelector('.bbdp')?.value||'',
-      tr.querySelector('.dtp')?.value||'',
-      // nv: convert "0,3" → 0.3 so Sheets doesn't store as text
+      tr.querySelector('.bbdp')?.value||'',tr.querySelector('.dtp')?.value||'',
       (()=>{const v=tr.querySelector('.nv')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?v:n;})(),
       tr.querySelector('.nu')?.value?.trim()||'',
-      // vol (thể tích): convert "1,5" → 1.5
       (()=>{const v=txt(tds[10]);if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?v:n;})(),
-      // tỷ lệ: convert "0,3000" (vi-VN locale) → number 0.3 so Google Sheets doesn't misread comma as thousands separator
       (()=>{const v=tds[11]?.querySelector('.tyle-result')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(/\./g,'').replace(',','.'));return isNaN(n)?v:n;})(),
       tr.querySelector('.dd-inp')?.value?.trim()||'',tr.querySelector('.bs-inp')?.value?.trim()||'',
       tr._noteRow?.querySelector('.note-input')?.value?.trim()||'',
@@ -1318,10 +1299,16 @@ async function saveForm(){
       i===0?document.getElementById('gioKT')?.value||'':'',
       i===0?document.getElementById('phutKT')?.value||'':'']);
   });
-  // Điền barcode vào tất cả các dòng dữ liệu
+
+  // ── Đợi barcode từ server (thường đã xong rồi vì chạy song song) ──
+  let barcodeCode=pfx+getBarcodeCounter(); // local fallback
+  try{
+    const reserveResult=await barcodePromise;
+    if(reserveResult.status==='ok'&&reserveResult.barcode) barcodeCode=reserveResult.barcode;
+  }catch(_){}
   dr.forEach(r=>{r[0]=barcodeCode;});
 
-  // Cập nhật span ngày/giờ hiển thị và bản in theo đúng ngày lưu
+  // ── Cập nhật span ngày hiển thị ──
   ['curDay','curMonth','curYear'].forEach((id,j)=>{
     const el=document.getElementById(id);if(el)el.textContent=[sDay,sMon,sYr][j];
   });
@@ -1329,11 +1316,7 @@ async function saveForm(){
     s.textContent=[sDay,sMon,sYr][j]??'';
   });
 
-  const bs=document.getElementById('btnSave');
-  bs.textContent='⏳ Đang lưu…';bs.disabled=true;
   try{
-    // no-cors: không đọc được response nhưng LUÔN GHI được vào sheet
-    // (không bị chặn bởi CORS preflight, hoạt động trên mọi trình duyệt/máy tính)
     await fetch(su,{method:'POST',mode:'no-cors',body:JSON.stringify([HEADER,...dr])});
     document.getElementById('savedTime').textContent=new Date().toLocaleTimeString('vi-VN');
     document.getElementById('sbdg').classList.add('show');
