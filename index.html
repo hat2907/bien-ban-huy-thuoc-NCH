@@ -1333,7 +1333,7 @@ async function saveForm(){
     // Use cors mode so we can READ the response (barcode + server date returned)
     const resp=await fetch(su,{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'text/plain'}, // text/plain = simple CORS request, no preflight → Apps Script handles it
       body:JSON.stringify({khoaCode,rows:[HEADER,...dr]})
     });
     // Defaults: local values (fallback if server doesn't respond with dates)
