@@ -131,7 +131,10 @@ td input:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .barcode-area .bc-svg{display:block;}
 .barcode-area .msbb{font-family:"Courier New",Courier,monospace;font-size:7px;letter-spacing:0;margin-top:1px;white-space:nowrap;}
 .page{position:relative;}
-/* Partial underline: gạch chân 2/3 giữa */
+/* Editable date inputs on page 1 */
+.date-inp{border:none;border-bottom:1px dotted var(--hi);background:transparent;font-family:inherit;font-size:inherit;font-style:italic;text-align:center;padding:0;width:auto;-moz-appearance:textfield;}
+.date-inp::-webkit-outer-spin-button,.date-inp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+#curDay,#curMonth{width:28px;}#curYear{width:46px;}
 .mid-ul{display:inline-block;position:relative;text-decoration:none;}
 .mid-ul::after{content:'';position:absolute;bottom:-1px;left:16.5%;width:67%;border-bottom:1px solid currentColor;}
 /* GN-HT-TC group cells AND headers: hồng nhạt trên màn hình */
@@ -243,6 +246,7 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   body[data-ps=s-form] .thuc-huy-inp{border-bottom:none!important;}
   body[data-ps=s-form] .thuc-huy-cell{vertical-align:middle;}
   body[data-ps=s-form] .sign-nc .snc-inp{border-bottom:none!important;}
+  body[data-ps=s-form] .date-inp{border-bottom:none!important;}
   body[data-ps=s-form] #btnSkipTV{display:none!important;}
   body[data-ps=s-form] .form-wrap{background:#fff;padding:0;min-height:unset;}
   body[data-ps=s-form] .page{box-shadow:none;margin:0;padding:6mm 10mm 4mm;width:auto;min-height:190mm;page-break-after:always;}
@@ -613,7 +617,7 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
           <input type="text" id="signDd" class="sign-inp" placeholder="Họ và tên" oninput="this.classList.toggle('hv',!!this.value)">
         </div>
         <div class="sgn">
-          <p class="sdt">Hà Nội, ngày <span id="curDay" class="static-date"></span> tháng <span id="curMonth" class="static-date"></span> năm <span id="curYear" class="static-date"></span></p>
+          <p class="sdt">Hà Nội, ngày <input type="number" id="curDay" class="date-inp" min="1" max="31" oninput="updateTvPreviews()"> tháng <input type="number" id="curMonth" class="date-inp" min="1" max="12" oninput="updateTvPreviews()"> năm <input type="number" id="curYear" class="date-inp" min="2020" max="2099" oninput="updateTvPreviews()"></p>
           <p class="role">Lãnh đạo khoa/Trung tâm</p>
           <p class="hint">(Ký, ghi rõ họ tên)</p>
           <div style="height:62px;"></div>
@@ -716,6 +720,7 @@ function go(id){
       if(id==='s-form'&&!document.querySelectorAll('#tbody tr:not(.note-row)').length){
         addRow();addRow();addRow();
       }
+      if(id==='s-form') setSyncDate();
     });
   }
   else if(id==='s-drug') { if(localStorage.getItem('sheetUrl')) connectSheet(true); }
@@ -810,6 +815,19 @@ window.addEventListener('hashchange',checkRoute);
 
 /* ── DATE ── */
 /* ── PAGE NUMBERS ── */
+function setSyncDate(){
+  const n=new Date();
+  const d=n.getDate(),m=n.getMonth()+1,y=n.getFullYear();
+  const ed=document.getElementById('curDay');
+  const em=document.getElementById('curMonth');
+  const ey=document.getElementById('curYear');
+  if(ed)ed.value=d; if(em)em.value=m; if(ey)ey.value=y;
+  // Update invisible spacer spans for layout
+  document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,i)=>{
+    s.textContent=[d,m,y][i]??'';
+  });
+  updateTvPreviews();
+}
 function upPnums(){const pp=document.querySelectorAll('.form-wrap .page');pp.forEach((p,i)=>{const a=p.querySelector('.pnum'),b=p.querySelector('.ptotal');if(a)a.textContent=i+1;if(b)b.textContent=pp.length;});}
 upPnums();
 
@@ -1269,23 +1287,24 @@ async function saveForm(){
   if(!su){fail('Chưa cấu hình URL Apps Script (vào Trang chủ → Cấu hình lưu biên bản).');return;}
   // Điều dưỡng and Bác sĩ are optional
 
-  // ── Ngày/giờ lưu cố định tại thời điểm này ──
+  // ── Ngày biên bản = giá trị người dùng điền ở trang 1 ──
+  // Ngày lưu thực tế vẫn dùng new Date() cho timestamp
   const SD=new Date();
-  const sDay=SD.getDate(),sMon=SD.getMonth()+1,sYr=SD.getFullYear();
-  const ngay=`${sDay}/${sMon}/${sYr}`;
   const now=SD.toLocaleString('vi-VN');
+  const sDay=parseInt(document.getElementById('curDay')?.value)||SD.getDate();
+  const sMon=parseInt(document.getElementById('curMonth')?.value)||SD.getMonth()+1;
+  const sYr=parseInt(document.getElementById('curYear')?.value)||SD.getFullYear();
+  const ngay=`${sDay}/${sMon}/${sYr}`;
+  // Barcode prefix dùng ngày lưu thực tế (SD), không phải ngày biên bản
   const khoaCode=(DEPT_CODES[khoa]||'00').padStart(2,'0');
-  const pfx=String(sYr).slice(-1)+String(sMon).padStart(2,'0')+String(sDay).padStart(2,'0')+khoaCode;
+  const pfx=String(SD.getFullYear()).slice(-1)+String(SD.getMonth()+1).padStart(2,'0')+String(SD.getDate()).padStart(2,'0')+khoaCode;
 
   // ── Khởi động GET barcode NGAY (chạy song song trong khi CPU xây dựng data) ──
   const barcodePromise=fetch(su+'?action=reserve&khoaCode='+encodeURIComponent(khoaCode))
     .then(r=>r.ok?r.json():{}).catch(()=>({}));
 
-  // ── Lịch trực: sau 16:30 → lấy ngày hôm sau ──
-  const isAfter1630=SD.getHours()>16||(SD.getHours()===16&&SD.getMinutes()>=30);
-  const scheduleDate=new Date(SD);
-  if(isAfter1630)scheduleDate.setDate(scheduleDate.getDate()+1);
-  const saveDateISO=`${scheduleDate.getFullYear()}-${String(scheduleDate.getMonth()+1).padStart(2,'0')}-${String(scheduleDate.getDate()).padStart(2,'0')}`;
+  // ── Trích xuất thành viên theo ngày TRANG 1 (user-set, không tự advance) ──
+  const saveDateISO=`${sYr}-${String(sMon).padStart(2,'0')}-${String(sDay).padStart(2,'0')}`;
   autoFillMembers(saveDateISO,khoa);
 
   // ── Xây dựng data rows (trong khi GET đang chạy) ──
@@ -1427,6 +1446,7 @@ function resetForm(){
   document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,i)=>{s.textContent=[d,m,y][i]??'';});
   const skipBtn=document.getElementById('btnSkipTV');
   if(skipBtn){skipBtn.dataset.skip='off';skipBtn.textContent='Điền tự động';skipBtn.style.background='#27ae60';skipBtn.style.color='#fff';skipBtn.style.borderColor='#27ae60';}
+  setSyncDate(); // refresh date to current after new biên bản
   clearBarcodes();
   addRow();addRow();addRow();
   silentRefreshAll();
@@ -1664,9 +1684,14 @@ function updateTvPreviews(){
     return;
   }
   if(!SCHEDULE_DATA.length)return;
-  const now=new Date();
-  const isAfter1630=now.getHours()>16||(now.getHours()===16&&now.getMinutes()>=30);
-  const ld=new Date(now);if(isAfter1630)ld.setDate(ld.getDate()+1);
+  // Use the date user has set in page 1 inputs (falls back to today if empty)
+  const ed=document.getElementById('curDay');
+  const em=document.getElementById('curMonth');
+  const ey=document.getElementById('curYear');
+  const n=new Date();
+  const ld=(ed?.value&&em?.value&&ey?.value)
+    ?new Date(+ey.value,+em.value-1,+ed.value)
+    :n;
   const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
   const cosoN=(DEPT_COSO[khoa]||'').trim().toLowerCase();
   [1,2,3,4].forEach(pos=>{
@@ -1904,6 +1929,7 @@ silentRefreshAll().then(()=>{
   if(!document.querySelectorAll('#tbody tr:not(.note-row)').length){
     addRow();addRow();addRow();
   }
+  setSyncDate(); // set date inputs + update TV previews after first-load sync
 });
 </script>
 </body>
