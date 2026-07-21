@@ -1446,6 +1446,18 @@ function resetForm(){
   document.querySelectorAll('.sdt[aria-hidden] .static-date').forEach((s,i)=>{s.textContent=[d,m,y][i]??'';});
   const skipBtn=document.getElementById('btnSkipTV');
   if(skipBtn){skipBtn.dataset.skip='off';skipBtn.textContent='Điền tự động';skipBtn.style.background='#27ae60';skipBtn.style.color='#fff';skipBtn.style.borderColor='#27ae60';}
+  // Clear TV inputs and sign block inputs from previous biên bản
+  [1,2,3,4,5,6].forEach(pos=>{
+    const tv=getTvByPos(pos);if(tv){tv.value='';tv.classList.remove('hv');}
+    const snc=document.querySelector(`#snc${pos} .snc-inp`);if(snc){snc.value='';snc.classList.remove('hv');}
+  });
+  // Reset pre spans for TV1-3 back to default role label
+  [1,2,3].forEach(pos=>{
+    const inp=getTvByPos(pos);
+    if(!inp)return;
+    const pre=inp.closest('.nl')?.querySelector('.pre');
+    if(pre)pre.innerHTML='Thành viên Hội đồng hủy thuốc';
+  });
   setSyncDate(); // refresh date to current after new biên bản
   clearBarcodes();
   addRow();addRow();addRow();
@@ -1635,13 +1647,18 @@ async function loadScheduleSheet(silent){
 }
 function parseShedDate(s){const p=(s||'').split('/');return p.length>=3?new Date(+p[2],+p[1]-1,+p[0]):null;}
 function findMemberForPos(pos, targetDate, cosoN){
-  // For each STT position, independently find the nearest-date entry
-  const candidates=SCHEDULE_DATA.filter(r=>{
+  // Filter by stt + coSo
+  let candidates=SCHEDULE_DATA.filter(r=>{
     if(parseInt(r.stt)!==pos)return false;
     if(!cosoN)return true;
     const rc=r.coSo.trim().toLowerCase();
     return rc===cosoN||rc==='';
   });
+  // Fallback: if coSo filter yields nothing (e.g. position 4 always has a different coSo),
+  // retry without coSo restriction so it's never skipped
+  if(!candidates.length&&cosoN){
+    candidates=SCHEDULE_DATA.filter(r=>parseInt(r.stt)===pos);
+  }
   if(!candidates.length)return null;
   const parsed=candidates
     .map(r=>({...r,_date:parseShedDate(r.ngay)}))
