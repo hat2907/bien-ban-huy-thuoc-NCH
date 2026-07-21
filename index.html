@@ -817,6 +817,9 @@ window.addEventListener('hashchange',checkRoute);
 /* ── PAGE NUMBERS ── */
 function setSyncDate(){
   const n=new Date();
+  // Sau 16:30 → ngày mặc định chuyển sang ngày hôm sau
+  const isAfter1630=n.getHours()>16||(n.getHours()===16&&n.getMinutes()>=30);
+  if(isAfter1630)n.setDate(n.getDate()+1);
   const d=n.getDate(),m=n.getMonth()+1,y=n.getFullYear();
   const ed=document.getElementById('curDay');
   const em=document.getElementById('curMonth');
