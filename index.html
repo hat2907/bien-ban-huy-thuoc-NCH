@@ -159,8 +159,13 @@ td select{width:100%;border:none;border-bottom:1px dotted var(--hi);background:t
 td select.hv{border-bottom:none;}
 td select:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .psr{display:none;width:100%;text-align:center;font-family:inherit;font-size:11px;padding:1px;}
-/* nongdo cell — input and unit stacked vertically so the unit (mg/ml, mcg/ml) is never cramped/cut off */
-.ndc{display:flex;flex-direction:column;gap:1px;position:relative;}
+/* nongdo cell — left: [value][mg/mcg] / right: [vol]ml */
+.ndc{display:flex;align-items:center;gap:2px;white-space:nowrap;}
+.ndc-l,.ndc-r{display:flex;align-items:center;gap:1px;}
+.nv{width:34px;text-align:center;}
+.nv-vol{width:24px;text-align:center;}
+.ndc-sep{font-size:11px;padding:0 2px;flex-shrink:0;color:#555;}
+.ndc-ml{font-size:10px;flex-shrink:0;}
 .ndc input{width:100%;text-align:center;}
 .ndc .selwrap select{font-size:10px;}
 .numwrap{position:relative;}
@@ -262,7 +267,7 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   body[data-ps=s-form] .iw{display:none!important;}
   body[data-ps=s-form] .ndc{flex-direction:row!important;align-items:baseline;justify-content:center;gap:2px;}
   body[data-ps=s-form] .ndc .selwrap{display:none!important;}
-  body[data-ps=s-form] .ndc input{width:auto!important;max-width:46px;flex:0 0 auto;text-align:center;}
+  body[data-ps=s-form] .ndc .nv,.ndc .nv-vol{width:auto!important;max-width:40px;text-align:center;}
   body[data-ps=s-form] td.wrap-cell input{display:none!important;}
   body[data-ps=s-form] td.wrap-cell .wrap-pv{display:block!important;padding-top:20px;}
   body[data-ps=s-form] tr.note-row{display:none!important;}
@@ -1054,7 +1059,7 @@ function addRow(){
     <td><div class="numwrap" style="position:relative;"><input type="text" class="bb-qty" inputmode="numeric" placeholder="0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
     <td class="gn-ht-tc"><div class="selwrap"><select class="bbdp"><option value=""></option><option value="Ống">Ống</option><option value="Lọ">Lọ</option><option value="Bơm tiêm">Bơm tiêm</option><option value="Chai">Chai</option><option value="Túi">Túi</option></select></div><span class="psr"></span></td>
     <td class="gn-ht-tc"><div class="selwrap"><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select></div><span class="psr"></span></td>
-    <td class="gn-ht-tc"><div class="ndc"><input type="text" class="nv" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));">${makeOpts(['mg/ml','mcg/ml'])}</select></div><span class="psr"></span><span class="iw"></span></div></td>
+    <td class="gn-ht-tc"><div class="ndc"><div class="ndc-l"><input type="text" class="nv" inputmode="decimal" placeholder="0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));">${makeOpts(['mg','mcg'])}</select></div></div><span class="ndc-sep">/</span><div class="ndc-r"><input type="text" class="nv-vol" inputmode="decimal" value="1" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><span class="ndc-ml">ml</span></div><span class="psr"></span><span class="iw"></span></div></td>
     <td class="gn-ht-tc"><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><span class="iw"></span></div></td>
     <td class="gn-ht-tc"><input type="text" class="tyle-result" readonly tabindex="-1" title="Tự động tính: Nồng độ × Thể tích / Hàm lượng trong ĐVT"></td>
     <td class="wrap-cell dd-cell gn-ht-tc"><input type="text" class="dd-inp" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
@@ -1125,6 +1130,7 @@ function addRow(){
     const dtp=tr.querySelector('.dtp');
     const nv=tr.querySelector('.nv');
     const nu=tr.querySelector('.nu');
+    const nvVol=tr.querySelector('.nv-vol');
     const vol=tr.querySelector('.vol-input');
     const tyle=tr.querySelector('.tyle-result');
     [dtp,nv,nu,vol].forEach(el=>{
@@ -1132,8 +1138,12 @@ function addRow(){
       el.disabled=noDP;
       if(noDP){el.value='';el.classList.remove('hv');}
     });
+    if(nvVol){
+      nvVol.disabled=noDP;
+      if(noDP){nvVol.value='1';nvVol.classList.remove('hv');}
+    }
     if(noDP&&tyle){tyle.value='';tyle.classList.remove('hv');}
-    bbdpSel.classList.add('hv'); // always filled (empty = valid choice)
+    bbdpSel.classList.add('hv');
   }
   bbdpSel.addEventListener('change',()=>{ applyBBDP(); if(tr.querySelector('.nu')&&!tr.querySelector('.nu').disabled) computeTyLe(tr); });
   applyBBDP(); // apply initial state (Sử dụng hết by default)
@@ -1147,6 +1157,7 @@ function addRow(){
 
   attachIntGuard(tr.querySelector('.bb-qty'));
   attachDotGuard(tr.querySelector('.nv'));
+  attachDotGuard(tr.querySelector('.nv-vol'));
   attachDotGuard(tr.querySelector('.vol-input'));
   tr.querySelector('.nv').addEventListener('input',()=>computeTyLe(tr));
   tr.querySelector('.nu').addEventListener('change',()=>computeTyLe(tr));
@@ -1204,25 +1215,26 @@ function computeTyLe(tr){
   }
   if(isNaN(hamLuong)||hamLuong===0){out.value='';out.classList.remove('hv');return;}
 
-  // Step 3: nv + vol (skip if not yet filled)
+  // Step 3: nv (drug amount), nv-vol (denominator ml, default 1), vol (total volume)
   const nvEl=tr.querySelector('.nv');
   const volEl=tr.querySelector('.vol-input');
   const nv=parseFloat((nvEl?.value||'').trim().replace(',','.'));
+  const nvVol=parseFloat((tr.querySelector('.nv-vol')?.value||'1').replace(',','.'))||1;
   const vol=parseFloat((volEl?.value||'').trim().replace(',','.'));
   if(isNaN(nv)||isNaN(vol)||nvEl?.disabled||volEl?.disabled){
     out.value='';out.classList.remove('hv');return;
   }
 
-  // Step 4: unit conversion (mg ↔ mcg)
-  const nuRaw=(tr.querySelector('.nu')?.value||'').split('/')[0].trim().toLowerCase();
+  // Step 4: unit conversion — nu is now 'mg' or 'mcg' directly
+  const nuRaw=(tr.querySelector('.nu')?.value||'').trim().toLowerCase();
   let nvConverted=nv;
   if(nuRaw&&hlUnit&&nuRaw!==hlUnit){
     if(nuRaw==='mg'&&hlUnit==='mcg')nvConverted=nv*1000;
     else if(nuRaw==='mcg'&&hlUnit==='mg')nvConverted=nv/1000;
   }
 
-  // Step 5: ratio = nv×vol / hamLuong  (4 decimal places)
-  const ratio=nvConverted*vol/hamLuong;
+  // Step 5: total drug = (nvConverted / nvVol) × vol; ratio = total / hamLuong
+  const ratio=(nvConverted/nvVol)*vol/hamLuong;
   out.value=ratio.toLocaleString('vi-VN',{minimumFractionDigits:4,maximumFractionDigits:4});
   out.classList.add('hv');
 }
@@ -1311,7 +1323,7 @@ async function saveForm(){
   autoFillMembers(saveDateISO,khoa);
 
   // ── Xây dựng data rows (trong khi GET đang chạy) ──
-  const HEADER=['Mã biên bản (MSBB)','Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì của nhà cung cấp','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Tổng thể tích dư phẩm (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Ghi chú','Dược sĩ XN (họ tên)','Điều dưỡng HC (họ tên)','Lãnh đạo khoa (họ tên)','Thời gian','TV1','TV2','TV3','TV4','TV5','TV6','Giờ KT','Phút KT'];
+  const HEADER=['Mã biên bản (MSBB)','Ngày lưu','Ngày biên bản','Khoa/Trung tâm','STT','Tên thuốc','Tên hoạt chất','Nồng độ/hàm lượng','Số lô','ĐVT','Số lượng bao bì của nhà cung cấp','Bao bì chứa dư phẩm','Dịch truyền pha 1 ĐVT','Nồng độ trong dư phẩm (số)','Đơn vị nồng độ','Thể tích nồng độ (ml)','Thể tích cần hủy (ml)','Tỷ lệ dư phẩm','Điều dưỡng y lệnh','Bác sĩ điều trị','Ghi chú','Dược sĩ XN (họ tên)','Điều dưỡng HC (họ tên)','Lãnh đạo khoa (họ tên)','Thời gian','TV1','TV2','TV3','TV4','TV5','TV6','Giờ KT','Phút KT'];
   const dr=[];
   rows.forEach((tr,i)=>{
     const tds=[...tr.querySelectorAll('td')];
@@ -1322,6 +1334,7 @@ async function saveForm(){
       tr.querySelector('.bbdp')?.value||'',tr.querySelector('.dtp')?.value||'',
       (()=>{const v=tr.querySelector('.nv')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?v:n;})(),
       tr.querySelector('.nu')?.value?.trim()||'',
+      (()=>{const v=tr.querySelector('.nv-vol')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?'1':n;})(),
       (()=>{const v=txt(tds[10]);if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?v:n;})(),
       (()=>{const v=tds[11]?.querySelector('.tyle-result')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(/\./g,'').replace(',','.'));return isNaN(n)?v:n;})(),
       tr.querySelector('.dd-inp')?.value?.trim()||'',tr.querySelector('.bs-inp')?.value?.trim()||'',
@@ -1724,10 +1737,12 @@ function updateTvPreviews(){
 function autoFillMembers(saveDateStr,khoa){
   const skip=document.getElementById('btnSkipTV')?.dataset?.skip==='on';
   if(skip){
-    // Toggle ON: clear all TV inputs so names stay blank in PDF
+    // Toggle ON: chỉ xóa các ô TRỐNG, giữ nguyên ô đã điền tay
     [1,2,3,4,5,6].forEach(pos=>{
-      const inp=getTvByPos(pos);if(inp){inp.value='';inp.classList.remove('hv');}
-      const sncInp=document.querySelector(`#snc${pos} .snc-inp`);if(sncInp){sncInp.value='';sncInp.classList.remove('hv');}
+      const inp=getTvByPos(pos);
+      if(inp&&!inp.value.trim()){inp.value='';inp.classList.remove('hv');}
+      const sncInp=document.querySelector(`#snc${pos} .snc-inp`);
+      if(sncInp&&!sncInp.value.trim()){sncInp.value='';sncInp.classList.remove('hv');}
     });
     updateSignBlocks([]);return;
   }
@@ -1736,8 +1751,15 @@ function autoFillMembers(saveDateStr,khoa){
   const cosoN=(DEPT_COSO[khoa]||'').trim().toLowerCase();
   const allMembers=[];
   [1,2,3,4].forEach(pos=>{
-    const m=findMemberForPos(pos,targetDate,cosoN);
     const inp=getTvByPos(pos);if(!inp)return;
+    const manualVal=inp.value.trim();
+    if(manualVal){
+      // Điền tay → giữ nguyên, vẫn ghi nhận vào allMembers để sign block dùng
+      allMembers.push({stt:String(pos),ten:manualVal,khoa:'',coSo:'',ngay:''});
+      return;
+    }
+    // Trống → tự động điền từ lịch
+    const m=findMemberForPos(pos,targetDate,cosoN);
     if(m&&m.ten){inp.value=m.ten;inp.classList.toggle('hv',true);}
     if(pos<=3&&m&&m.khoa){
       const pre=inp.closest('.nl')?.querySelector('.pre');
@@ -1750,10 +1772,10 @@ function autoFillMembers(saveDateStr,khoa){
 function updateSignBlocks(members){
   [1,2,3,4,5,6].forEach(pos=>{
     const inp=document.querySelector(`#snc${pos} .snc-inp`);if(!inp)return;
-    if(!members.length){inp.value='';inp.classList.remove('hv');return;} // skip ON → clear
+    if(!members.length){if(!inp.value.trim()){inp.value='';inp.classList.remove('hv');}return;} // skip ON → xóa trống, giữ điền tay
+    if(inp.value.trim())return; // điền tay → giữ nguyên, bỏ qua tự động
     const m=members.find(r=>parseInt(r.stt)===pos);
     if(m&&m.ten){inp.value=m.ten;inp.classList.add('hv');}
-    // positions without a match: keep manual entry intact
   });
 }
 
