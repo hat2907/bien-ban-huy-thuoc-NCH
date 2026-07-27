@@ -137,9 +137,16 @@ td input:focus{outline:1px solid var(--ac);background:#eef5fc;}
 #curDay,#curMonth{width:28px;}#curYear{width:46px;}
 .mid-ul{display:inline-block;position:relative;text-decoration:none;}
 .mid-ul::after{content:'';position:absolute;bottom:-1px;left:16.5%;width:67%;border-bottom:1px solid currentColor;}
-/* GN-HT-TC group cells AND headers: hồng nhạt trên màn hình */
-.gn-ht-tc{background:#fff0f3!important;}
-.thuc-huy-cell{text-align:center;vertical-align:middle;width:90px;}
+/* nu select: compact inline, no custom wrapper */
+.ndc .nu{border:none;border-bottom:1px dotted var(--hi);background:transparent;font-family:inherit;font-size:11px;padding:0 2px;cursor:pointer;width:auto;min-width:30px;flex-shrink:0;}
+.ndc .nu.hv{border-bottom:none;}
+#th-ndc{width:170px!important;}
+/* ndc PSR span: shown in print with correct order, hidden on screen */
+.ndc-psr{display:none;font-size:10px;}
+/* separator visible on screen only */
+
+.gn-ht-tc{background:#fce4ec!important;}
+.thuc-huy-cell{text-align:center;vertical-align:middle;width:58px;}
 .thuc-huy-inp{text-align:center;font-size:11px;}
 /* ── Searchable select ── */
 .ss{position:relative;display:block;}
@@ -267,6 +274,10 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   body[data-ps=s-form] .iw{display:none!important;}
   body[data-ps=s-form] .ndc{flex-direction:row!important;align-items:baseline;justify-content:center;gap:2px;}
   body[data-ps=s-form] .ndc .selwrap{display:none!important;}
+  body[data-ps=s-form] #th-ndc{width:96px!important;}
+  body[data-ps=s-form] .gn-ht-tc{background:transparent!important;}
+  body[data-ps=s-form] .ndc-l,body[data-ps=s-form] .ndc-sep,body[data-ps=s-form] .ndc-r{display:none!important;}
+  body[data-ps=s-form] .ndc-psr{display:inline!important;}
   body[data-ps=s-form] .ndc .nv,.ndc .nv-vol{width:auto!important;max-width:40px;text-align:center;}
   body[data-ps=s-form] td.wrap-cell input{display:none!important;}
   body[data-ps=s-form] td.wrap-cell .wrap-pv{display:block!important;padding-top:20px;}
@@ -589,7 +600,7 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
           <tr>
             <th class="gn-ht-tc" style="width:76px;">Bao bì chứa thuốc</th>
             <th class="gn-ht-tc" style="width:82px;">Dịch truyền pha 1 ĐVT thuốc (*)</th>
-            <th class="gn-ht-tc" style="width:96px;">Nồng độ thuốc GN-HT-TC không sử dụng hết</th>
+            <th class="gn-ht-tc" style="width:96px;" id="th-ndc">Nồng độ thuốc GN-HT-TC không sử dụng hết</th>
             <th class="gn-ht-tc" style="width:65px;">Thể tích cần hủy (ml)</th>
             <th class="gn-ht-tc" style="width:70px;">Tỷ lệ thuốc còn lại trên đơn vị tính (**)</th>
             <th class="gn-ht-tc" style="width:70px;">Điều dưỡng thực hiện y lệnh cuối<br><i style="font-weight:normal;">(ký và ghi rõ họ tên)</i></th>
@@ -1059,7 +1070,7 @@ function addRow(){
     <td><div class="numwrap" style="position:relative;"><input type="text" class="bb-qty" inputmode="numeric" placeholder="0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
     <td class="gn-ht-tc"><div class="selwrap"><select class="bbdp"><option value=""></option><option value="Ống">Ống</option><option value="Lọ">Lọ</option><option value="Bơm tiêm">Bơm tiêm</option><option value="Chai">Chai</option><option value="Túi">Túi</option></select></div><span class="psr"></span></td>
     <td class="gn-ht-tc"><div class="selwrap"><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select></div><span class="psr"></span></td>
-    <td class="gn-ht-tc"><div class="ndc"><div class="ndc-l"><input type="text" class="nv" inputmode="decimal" placeholder="0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><div class="selwrap"><select class="nu" onchange="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));">${makeOpts(['mg','mcg'])}</select></div></div><span class="ndc-sep">/</span><div class="ndc-r"><input type="text" class="nv-vol" inputmode="decimal" value="1" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><span class="ndc-ml">ml</span></div><span class="psr"></span><span class="iw"></span></div></td>
+    <td class="gn-ht-tc"><div class="ndc"><div class="ndc-l"><input type="text" class="nv" inputmode="decimal" placeholder="0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));syncNdcPsr(this.closest('.ndc'));"><select class="nu" onchange="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));syncNdcPsr(this.closest('.ndc'));">${makeOpts(['mg','mcg'])}</select></div><span class="ndc-sep">/</span><div class="ndc-r"><input type="text" class="nv-vol" inputmode="decimal" value="1" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));syncNdcPsr(this.closest('.ndc'));"><span class="ndc-ml">ml</span></div><span class="ndc-psr"></span><span class="iw"></span></div></td>
     <td class="gn-ht-tc"><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><span class="iw"></span></div></td>
     <td class="gn-ht-tc"><input type="text" class="tyle-result" readonly tabindex="-1" title="Tự động tính: Nồng độ × Thể tích / Hàm lượng trong ĐVT"></td>
     <td class="wrap-cell dd-cell gn-ht-tc"><input type="text" class="dd-inp" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
@@ -1237,6 +1248,16 @@ function computeTyLe(tr){
   const ratio=(nvConverted/nvVol)*vol/hamLuong;
   out.value=ratio.toLocaleString('vi-VN',{minimumFractionDigits:4,maximumFractionDigits:4});
   out.classList.add('hv');
+}
+
+// Sync ndc PSR span for print: "X mg / Y ml" in correct order
+function syncNdcPsr(ndc){
+  if(!ndc)return;
+  const psr=ndc.querySelector('.ndc-psr');if(!psr)return;
+  const nv=ndc.querySelector('.nv')?.value||'';
+  const nu=ndc.querySelector('.nu')?.value||'';
+  const vol=ndc.querySelector('.nv-vol')?.value||'1';
+  psr.textContent=(nv||nu)?`${nv} ${nu} / ${vol} ml`:'';
 }
 
 /* Integer-only guard for TXTT quantity: only digits 0-9, no decimals */
