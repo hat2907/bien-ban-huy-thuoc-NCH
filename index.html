@@ -246,10 +246,27 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
 .khoa-ss-wrap .ss-opt{padding:5px 10px;cursor:pointer;white-space:nowrap;}
 .khoa-ss-wrap .ss-opt:hover{background:#e8f0fe;}
 
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--acd),var(--ac));font-family:Arial,sans-serif;padding:20px;}
+.login-card{background:#fff;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.25);padding:34px 34px 28px;width:100%;max-width:360px;}
+.login-card .lg-hosp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#888;text-align:center;margin-bottom:4px;}
+.login-card h1{font-size:16px;font-weight:700;color:var(--ac);text-align:center;margin-bottom:22px;line-height:1.4;}
+.login-card label{display:block;font-size:12.5px;color:#555;margin-bottom:5px;margin-top:14px;}
+.login-card input{width:100%;padding:10px 12px;border:1.5px solid #d0d5dd;border-radius:8px;font-size:14px;font-family:Arial,sans-serif;}
+.login-card input:focus{outline:none;border-color:var(--ac);}
+.login-card .btn{width:100%;justify-content:center;margin-top:22px;padding:11px;font-size:14px;}
+.login-err{display:none;margin-top:14px;background:#fdecea;color:var(--re);border-radius:7px;padding:9px 12px;font-size:12.5px;line-height:1.5;}
+.login-err.show{display:block;}
+.login-lock{text-align:center;margin-bottom:8px;font-size:26px;}
+
 /* ── PRINT ── */
 @media print{
   /* Hide everything by default; JS sets body[data-ps] before print */
   .scr{display:none!important;}
+  /* Fail-safe: if biên bản chưa lưu mà lệnh in vẫn được kích hoạt (menu trình duyệt, phím tắt hệ điều hành…),
+     thay toàn bộ nội dung bằng thông báo chặn thay vì để lộ dữ liệu biên bản chưa lưu */
+  body[data-ps-blocked="1"] .scr{display:none!important;}
+  body[data-ps-blocked="1"] #printBlockNotice{display:flex!important;}
 
   /* ── Print BIÊN BẢN ── */
   body[data-ps=s-form] #s-form{display:block!important;}
@@ -308,18 +325,47 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   body[data-ps=s-theo] table.rpt input{border:none!important;}
   @page{size:A4 landscape;margin:10mm;}
 }
+#printBlockNotice{display:none;}
+@media print{
+  #printBlockNotice{padding:80px 40px;text-align:center;font-family:Arial,sans-serif;flex-direction:column;align-items:center;justify-content:center;}
+  #printBlockNotice .pbn-ic{font-size:44px;margin-bottom:14px;}
+  #printBlockNotice .pbn-t{font-size:18px;font-weight:700;color:#c0392b;margin-bottom:8px;}
+  #printBlockNotice .pbn-s{font-size:13px;color:#444;}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
 </head>
 <body>
 
+<!-- ══════════ S-LOGIN ══════════ -->
+<div class="scr active" id="s-login">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-lock">🔒</div>
+      <div class="lg-hosp">Bệnh viện Nhi Trung ương</div>
+      <h1>Đăng nhập hệ thống<br>biên bản hủy bao bì TXTT</h1>
+      <label for="loginUser">Tên đăng nhập</label>
+      <input type="text" id="loginUser" autocomplete="username" placeholder="Nhập tên đăng nhập" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus();">
+      <label for="loginPass">Mật khẩu</label>
+      <input type="password" id="loginPass" autocomplete="current-password" placeholder="Nhập mật khẩu" onkeydown="if(event.key==='Enter')doLogin();">
+      <button class="btn btn-p" onclick="doLogin()">🔑 Đăng nhập</button>
+      <div id="loginErr" class="login-err"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin:18px 0 4px;color:#bbb;font-size:11px;">
+        <div style="flex:1;height:1px;background:#e5e5e5;"></div>OR<div style="flex:1;height:1px;background:#e5e5e5;"></div>
+      </div>
+      <button class="btn btn-gh" style="width:100%;justify-content:center;margin-top:4px;" onclick="goFormNoAuth()">📋 Nhập biên bản hủy bao bì (không cần đăng nhập)</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════ S-HOME ══════════ -->
 <div class="scr" id="s-home">
-  <div class="adm-hdr">
+  <div class="adm-hdr" style="position:relative;">
     <div class="hosp">Bệnh viện Nhi Trung ương — Hội đồng hủy thuốc</div>
     <h1>Hệ thống biên bản hủy bao bì TXTT</h1>
     <div class="sub">BM7/QTQL.D.22.1</div>
+    <button onclick="doLogout()" style="position:absolute;top:20px;right:30px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:6px;padding:6px 12px;font-size:12px;font-family:Arial,sans-serif;cursor:pointer;">⎋ Đăng xuất</button>
   </div>
   <div class="adm-body">
     <div class="acard" style="border:2px solid var(--ac);background:#f0f6ff;">
@@ -717,13 +763,70 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   </div>
 </div><!-- /s-form -->
 
+<!-- Nội dung thay thế khi có lệnh in trang biên bản mà chưa lưu thành công -->
+<div id="printBlockNotice">
+  <div class="pbn-ic">⚠️</div>
+  <div class="pbn-t">Biên bản chưa được lưu</div>
+  <div class="pbn-s">Vui lòng bấm "Lưu biên bản" trước khi in / xuất PDF.</div>
+</div>
+
 <script>
 const HARDCODED_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvCxR-7JPx-DakwsRf4Bwoc1PN8JXh9Dn3V7hQZXFmbMins9XwEXwHcPPmssVf8lH4vSyl3bO9bdNp/pub?output=csv';
+// Tài khoản đăng nhập mặc định (sẽ bị ghi đè bởi cấu hình trung tâm — khoá login_user / login_pass — nếu có)
+let LOGIN_USER = localStorage.getItem('loginUser') || 'admin';
+let LOGIN_PASS = localStorage.getItem('loginPass') || '123456';
+
+/* ── AUTH / LOGIN ── */
+function isAuthed(){ return sessionStorage.getItem('authOk')==='1'; }
+function showLogin(){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-login').classList.add('active');
+  try{ window.history.replaceState(null,'','#login'); }catch(e){}
+}
+function doLogin(){
+  const u=(document.getElementById('loginUser').value||'').trim();
+  const p=(document.getElementById('loginPass').value||'');
+  const validUser = LOGIN_USER || localStorage.getItem('loginUser') || '';
+  const validPass = LOGIN_PASS || localStorage.getItem('loginPass') || '';
+  const errEl=document.getElementById('loginErr');
+  if(!validUser){
+    errEl.textContent='⏳ Đang tải cấu hình đăng nhập, vui lòng thử lại sau vài giây.';
+    errEl.classList.add('show');
+    return;
+  }
+  if(!u||!p){
+    errEl.textContent='⚠️ Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.';
+    errEl.classList.add('show');
+    return;
+  }
+  if(u===validUser && p===validPass){
+    sessionStorage.setItem('authOk','1');
+    errEl.classList.remove('show');
+    document.getElementById('loginPass').value='';
+    if(location.hash==='#login'||!location.hash) location.hash='';
+    checkRoute();
+  }else{
+    errEl.textContent='🔴 Sai tên đăng nhập hoặc mật khẩu.';
+    errEl.classList.add('show');
+  }
+}
+function doLogout(){
+  sessionStorage.removeItem('authOk');
+  showLogin();
+}
+function goFormNoAuth(){
+  // Nhập biên bản hủy — dành cho khoa/phòng, không yêu cầu đăng nhập
+  location.hash='#form';
+  go('s-form');
+}
 
 /* ── ROUTER ── */
 const SCREENS=['s-home','s-drug','s-script','s-khoa','s-theo','s-form'];
+const PUBLIC_SCREENS=['s-form']; // Màn hình nhập biên bản dành cho khoa/phòng — không cần đăng nhập
 function go(id){
+  if(!isAuthed() && !PUBLIC_SCREENS.includes(id)){ showLogin(); return; }
   SCREENS.forEach(s=>document.getElementById(s).classList.remove('active'));
+  document.getElementById('s-login').classList.remove('active');
   document.getElementById(id).classList.add('active');
   try{
     if(id==='s-form') window.history.replaceState(null,'','#form');
@@ -803,6 +906,9 @@ async function applyConfig(silent){
       if(inp) inp.value=cfg.script_url;
       setSt('scriptStatus','ok','✅ Đã cấu hình từ Config Sheet');
     }
+    // Handle login_user / login_pass — tài khoản đăng nhập, lấy từ cấu hình trung tâm
+    if(cfg.login_user){ LOGIN_USER=cfg.login_user; localStorage.setItem('loginUser',cfg.login_user); }
+    if(cfg.login_pass){ LOGIN_PASS=cfg.login_pass; localStorage.setItem('loginPass',cfg.login_pass); }
     localStorage.setItem('configUrl', raw);
     if(!silent){
       document.getElementById('configUrl').value=raw;
@@ -818,8 +924,9 @@ async function applyConfig(silent){
 }
 function checkRoute(){
   const h=location.hash;
-  if(h==='#form') go('s-form');
-  else if(h==='#drug') go('s-drug');
+  if(h==='#form'){ go('s-form'); return; } // Nhập biên bản — luôn cho phép, không cần đăng nhập
+  if(!isAuthed()){ showLogin(); return; }
+  if(h==='#drug') go('s-drug');
   else if(h==='#script') go('s-script');
   else if(h==='#khoa') go('s-khoa');
   else if(h==='#theo-doi') go('s-theo');
@@ -830,6 +937,44 @@ window.addEventListener('hashchange',checkRoute);
 (function(){const el=document.getElementById('formLink');if(el)el.textContent=location.origin+location.pathname+'#form';})();
 
 /* ── DATE ── */
+/* ── CHẶN IN TRANG BIÊN BẢN TRƯỚC KHI LƯU THÀNH CÔNG ──
+   Biên bản coi là "đã lưu" khi #formWrap có class .form-locked (được thêm trong saveForm() sau khi lưu OK).
+   Áp dụng nhiều lớp chặn vì các trình duyệt/OS có nhiều cách kích hoạt lệnh in khác nhau:
+   1) Ctrl+P / Cmd+P (keydown, chặn ở capture phase)
+   2) Chuột phải → mở menu ngữ cảnh (contextmenu)
+   3) Gọi window.print() theo cách khác (override hàm)
+   4) Lớp bảo hiểm cuối cùng: nếu hộp thoại in vẫn được mở (ví dụ qua menu trình duyệt),
+      sự kiện beforeprint sẽ thay toàn bộ nội dung in bằng thông báo cảnh báo (xem CSS @media print) */
+function isFormUnsaved(){
+  const onForm=document.getElementById('s-form')?.classList.contains('active');
+  const locked=document.getElementById('formWrap')?.classList.contains('form-locked');
+  return !!(onForm && !locked);
+}
+document.addEventListener('keydown',e=>{
+  const key=(e.key||'').toLowerCase();
+  if((e.ctrlKey||e.metaKey)&&key==='p'){
+    if(isFormUnsaved()){
+      e.preventDefault();
+      e.stopPropagation();
+      alert('⚠️ Vui lòng lưu biên bản trước khi in.');
+    }
+  }
+},true);
+document.addEventListener('contextmenu',e=>{
+  if(isFormUnsaved()){
+    e.preventDefault();
+  }
+},true);
+(function(){
+  const _origPrint=window.print.bind(window);
+  window.print=function(){
+    if(isFormUnsaved()){
+      alert('⚠️ Vui lòng lưu biên bản trước khi in.');
+      return;
+    }
+    return _origPrint();
+  };
+})();
 /* ── PAGE NUMBERS ── */
 function setSyncDate(){
   const n=new Date();
@@ -855,7 +1000,15 @@ let _theoPageStyle = null;
 window.addEventListener('beforeprint',()=>{
   const active=SCREENS.find(s=>document.getElementById(s).classList.contains('active'))||'s-form';
   document.body.dataset.ps=active;
-  if(active==='s-form') prepPrint();
+  if(active==='s-form'){
+    const locked=document.getElementById('formWrap')?.classList.contains('form-locked');
+    if(!locked){
+      // Lớp bảo hiểm cuối: nếu lệnh in vẫn lọt qua các chặn ở trên, thay nội dung in bằng cảnh báo
+      document.body.dataset.psBlocked='1';
+    }else{
+      prepPrint();
+    }
+  }
   if(active==='s-theo'){
     // Inject @page margin boxes: only reliable way to get Trang X/Y across multiple pages
     _theoPageStyle=document.createElement('style');
@@ -870,6 +1023,7 @@ window.addEventListener('beforeprint',()=>{
 });
 window.addEventListener('afterprint',()=>{
   delete document.body.dataset.ps;
+  delete document.body.dataset.psBlocked;
   if(_theoPageStyle){_theoPageStyle.remove();_theoPageStyle=null;}
 });
 
@@ -1802,6 +1956,13 @@ function updateSignBlocks(members){
 
 /* ── DEPT MANAGEMENT ── */
 let SCHEDULE_DATA = []; // [{stt,ten,khoa,coSo,ngay}] from lịch hủy sheet
+// Khai báo & khôi phục danh sách khoa/trung tâm từ localStorage (tránh lỗi "DEPTS is not defined")
+let DEPTS = [];
+let DEPT_CODES = {};
+let DEPT_COSO = {};
+try{ DEPTS = JSON.parse(localStorage.getItem('depts')||'[]'); }catch(e){ DEPTS = []; }
+try{ DEPT_CODES = JSON.parse(localStorage.getItem('deptCodes')||'{}'); }catch(e){ DEPT_CODES = {}; }
+try{ DEPT_COSO = JSON.parse(localStorage.getItem('deptCoSo')||'{}'); }catch(e){ DEPT_COSO = {}; }
 
 function renderDeptList(){
   const ul = document.getElementById('deptList');
