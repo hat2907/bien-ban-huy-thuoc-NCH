@@ -317,12 +317,14 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   body[data-ps=s-form] table.main td{font-size:10px!important;}
   body[data-ps=s-form] .title{font-size:12px!important;margin:8px 0 7px!important;}
 
-  /* ── Print BÁO CÁO THEO DÕI ── */
-  body[data-ps=s-theo] #s-theo{display:block!important;}
-  body[data-ps=s-theo] .adm-hdr,body[data-ps=s-theo] .back-bar,body[data-ps=s-theo] .acard,body[data-ps=s-theo] .theo-filters,body[data-ps=s-theo] .btn{display:none!important;}
-  body[data-ps=s-theo] #rptArea{display:block!important;}
-  body[data-ps=s-theo] .rpt-wrap{box-shadow:none;padding:0;}
-  body[data-ps=s-theo] table.rpt input{border:none!important;}
+  /* ── Print BÁO CÁO THEO DÕI (BM8) ── */
+  body[data-ps=s-report] #s-report{display:block!important;}
+  body[data-ps=s-report] .adm-hdr,body[data-ps=s-report] .back-bar{display:none!important;}
+  body[data-ps=s-report] #cardTheoDoi>h2,body[data-ps=s-report] #cardTheoDoi>.desc,body[data-ps=s-report] #cardTheoDoi>.theo-filters,body[data-ps=s-report] #rptSourceBox{display:none!important;}
+  body[data-ps=s-report] #cardTheoDoi{box-shadow:none;padding:0;margin:0;}
+  body[data-ps=s-report] #rptArea{display:block!important;}
+  body[data-ps=s-report] .rpt-wrap{box-shadow:none;padding:0;}
+  body[data-ps=s-report] table.rpt input{border:none!important;}
   @page{size:A4 landscape;margin:10mm;}
 }
 #printBlockNotice{display:none;}
@@ -379,26 +381,16 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
       </div>
       <div id="configStatus" class="sbadge">⚪ Đang tải…</div>
     </div>
-    <div class="tiles">
-      <div class="tile" onclick="go('s-drug')">
-        <div class="icon">🔗</div>
-        <h3>Kết nối danh mục thuốc</h3>
-        <p>Cấu hình Google Sheet chứa danh sách thuốc GN-HT-TC đang có trong kho</p>
-      </div>
-      <div class="tile" onclick="go('s-script')">
+    <div class="tiles" style="grid-template-columns:1fr 1fr;">
+      <div class="tile" onclick="go('s-data')">
         <div class="icon">💾</div>
-        <h3>Cấu hình lưu biên bản</h3>
-        <p>Thiết lập Apps Script để tự động lưu mỗi biên bản vào Google Sheet tổng hợp</p>
+        <h3>Dữ liệu &amp; Cấu hình</h3>
+        <p>Danh mục thuốc · Cấu hình lưu biên bản · Danh sách khoa phòng · Nguồn dữ liệu báo cáo — đồng bộ tự động từ cấu hình trung tâm</p>
       </div>
-      <div class="tile" onclick="go('s-khoa')">
-        <div class="icon">🏥</div>
-        <h3>Danh sách khoa phòng</h3>
-        <p>Quản lý danh sách khoa/trung tâm — dùng làm dropdown trong biên bản và báo cáo</p>
-      </div>
-      <div class="tile" onclick="go('s-theo')">
+      <div class="tile" onclick="go('s-report')">
         <div class="icon">📊</div>
-        <h3>Theo dõi cấp phát</h3>
-        <p>Tạo báo cáo theo dõi cấp phát, thu hồi dư phẩm và bao bì TXTT theo khoa, tháng</p>
+        <h3>Báo cáo theo dõi cấp phát</h3>
+        <p>Tạo báo cáo BM8 từ CSDL thô hoặc CSDL làm sạch, in / xuất Excel</p>
       </div>
     </div><!-- /tiles -->
     <p class="form-hint">Link dành cho khoa/phòng (chỉ nhập liệu): <code id="formLink"></code></p>
@@ -409,106 +401,75 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
   </div>
 </div>
 
-<!-- ══════════ S-KHOA ══════════ -->
-<div class="scr" id="s-khoa">
+<!-- ══════════ S-DATA (hợp nhất: danh mục thuốc + cấu hình lưu biên bản + khoa phòng + theo dõi cấp phát) ══════════ -->
+<div class="scr" id="s-data">
   <div class="adm-hdr"><div class="hosp">Bệnh viện Nhi Trung ương</div><h1>Hệ thống biên bản hủy bao bì TXTT</h1></div>
   <div class="back-bar">
     <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
-    <span class="pg-title">🏥 Danh sách khoa phòng</span>
-  </div>
-  <div class="adm-body">
-    <div class="acard">
-      <h2>Đồng bộ từ Google Sheet</h2>
-      <div class="desc">Danh sách khoa/trung tâm được tải tự động từ cấu hình trung tâm. Bấm "Tải lại" để cập nhật nếu có thay đổi.</div>
-      <div class="rg">
-        <input type="text" id="deptSheetUrl" placeholder="URL tự động tải từ cấu hình trung tâm" readonly style="background:#f8f8f8;color:#666;">
-        <button class="btn btn-p" onclick="loadDeptsFromSheet(false)">📥 Tải lại</button>
-      </div>
-      <div id="deptSheetStatus" class="sbadge" style="display:none;"></div>
-    </div>
-    <div class="acard">
-      <h2>Quản lý danh sách</h2>
-      <div class="desc">Thêm hoặc xóa khoa/trung tâm. Danh sách được lưu ngay trong trình duyệt, có hiệu lực ngay lập tức trên tất cả form đang mở ở thiết bị này.</div>
-      <div class="dept-add">
-        <input type="text" id="newDept" placeholder="Nhập tên khoa/trung tâm…" onkeydown="if(event.key==='Enter')addDept()">
-        <button class="btn btn-g" onclick="addDept()">+ Thêm</button>
-      </div>
-      <div class="dept-list" id="deptList"><div class="dept-empty">Chưa có khoa nào. Thêm mới hoặc tải từ Google Sheet.</div></div>
-      <p style="font-size:11px;color:#999;margin-top:12px;font-family:Arial,sans-serif;">
-        💡 Dữ liệu lưu trong trình duyệt (localStorage). Để dùng trên nhiều thiết bị: duy trì một Google Sheet danh sách khoa và mỗi thiết bị "Tải từ Sheet" một lần.
-      </p>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ S-DRUG ══════════ -->
-<div class="scr" id="s-drug">
-  <div class="adm-hdr"><div class="hosp">Bệnh viện Nhi Trung ương</div><h1>Hệ thống biên bản hủy bao bì TXTT</h1></div>
-  <div class="back-bar">
-    <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
-    <span class="pg-title">🔗 Kết nối danh mục thuốc</span>
-  </div>
-  <div class="adm-body">
-    <div class="acard">
-      <h2>Google Sheet — Danh mục thuốc đầu vào</h2>
-      <div class="desc">Danh sách thuốc GN-HT-TC đang tồn kho, được tải tự động từ cấu hình trung tâm. Ô dưới đây hiển thị trạng thái kết nối hiện tại.</div>
-      <div class="rg">
-        <input type="text" id="sheetUrl" placeholder="URL tự động tải từ cấu hình trung tâm" readonly style="background:#f8f8f8;color:#666;">
-        <button class="btn btn-p" onclick="connectSheet(false)">🔗 Kết nối lại</button>
-        <button class="btn btn-gh" id="refreshBtn" onclick="refreshSheet()" style="display:none;">🔄 Làm mới</button>
-      </div>
-      <div id="dbStatus" class="sbadge">⚪ Chưa kết nối</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ S-SCRIPT ══════════ -->
-<div class="scr" id="s-script">
-  <div class="adm-hdr"><div class="hosp">Bệnh viện Nhi Trung ương</div><h1>Hệ thống biên bản hủy bao bì TXTT</h1></div>
-  <div class="back-bar">
-    <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
-    <span class="pg-title">💾 Cấu hình lưu biên bản</span>
-  </div>
-  <div class="adm-body">
-    <div class="acard">
-      <h2>Apps Script — Lưu biên bản tự động</h2>
-      <div class="desc">Mỗi lần nhân viên bấm <b>"Lưu biên bản"</b>, dữ liệu được ghi tự động vào Google Sheet tổng hợp. Apps Script cũng đảm nhiệm <b>sinh mã biên bản (MSBB) tập trung</b> — đếm liên tục toàn bộ máy tính trong ngày, không bị trùng. URL được tải từ cấu hình trung tâm.</div>
-      <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:8px 12px;font-size:11.5px;margin:8px 0;">
-        ⚠️ <b>Cần cập nhật Apps Script</b> để hỗ trợ đếm mã biên bản tập trung.<br>
-        Mở <b>Apps Script → Editor</b>, thay toàn bộ code bằng code ở link dưới, rồi Deploy lại (Web App):<br>
-        <code style="font-size:10px;word-break:break-all;">https://gist.github.com/hat2907/appscript_huy_thuoc</code><br>
-        (Hoặc liên hệ quản trị viên để được hỗ trợ cập nhật)
-      </div>
-      <div class="rg">
-        <input type="text" id="scriptUrl" placeholder="URL tự động tải từ cấu hình trung tâm" readonly style="background:#f8f8f8;color:#666;">
-        <button class="btn btn-gh" onclick="testScript()">🧪 Test kết nối</button>
-      </div>
-      <div id="scriptStatus" class="sbadge">⚪ Chưa cấu hình</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ S-THEO ══════════ -->
-<div class="scr" id="s-theo">
-  <div class="adm-hdr"><div class="hosp">Bệnh viện Nhi Trung ương</div><h1>Hệ thống biên bản hủy bao bì TXTT</h1></div>
-  <div class="back-bar">
-    <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
-    <span class="pg-title">📊 Theo dõi cấp phát</span>
-    <button class="btn btn-p" style="margin-left:auto;" onclick="window.print()">🖨️ In báo cáo</button>
-    <button class="btn" style="background:#1e7d52;color:#fff;" onclick="exportRptXLSX()">📊 Xuất Excel</button>
+    <span class="pg-title">💾 Dữ liệu &amp; Cấu hình</span>
+    <button class="btn btn-p" style="margin-left:auto;" onclick="syncAllData()" id="btnSyncAll">🔄 Đồng bộ lại tất cả</button>
   </div>
   <div class="adm-body" style="max-width:1100px;">
-    <div class="acard">
-      <h2>Sheet kết quả biên bản</h2>
-      <div class="desc">Dữ liệu biên bản đã lưu, được tải tự động từ cấu hình trung tâm để tạo báo cáo.</div>
-      <div class="rg">
-        <input type="text" id="outSheetUrl" placeholder="URL tự động tải từ cấu hình trung tâm" readonly style="background:#f8f8f8;color:#666;">
-        <button class="btn btn-p" onclick="loadOutSheet(false)">📥 Tải lại</button>
+    <div class="acard" id="cardDataStatus">
+      <h2>📡 Trạng thái dữ liệu trung tâm</h2>
+      <div class="desc">Danh mục thuốc, cấu hình lưu biên bản, danh sách khoa phòng và 2 nguồn dữ liệu báo cáo (CSDL thô / CSDL làm sạch) đều được tải tự động từ Google Sheet cấu hình trung tâm — mỗi khi mở/tải lại trang, và mỗi khi bấm "Đồng bộ lại tất cả" ở trên.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-top:8px;">
+        <div>
+          <div style="font-size:12.5px;font-weight:700;color:var(--ac);margin-bottom:5px;">🔗 Danh mục thuốc</div>
+          <input type="text" id="sheetUrl" style="display:none;">
+          <div id="dbStatus" class="sbadge">⚪ Chưa kết nối</div>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:700;color:var(--ac);margin-bottom:5px;">💾 Cấu hình lưu biên bản</div>
+          <input type="text" id="scriptUrl" style="display:none;">
+          <div id="scriptStatus" class="sbadge">⚪ Chưa cấu hình</div>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:700;color:var(--ac);margin-bottom:5px;">🏥 Danh sách khoa phòng</div>
+          <input type="text" id="deptSheetUrl" style="display:none;">
+          <div id="deptSheetStatus" class="sbadge">⚪ Chưa tải</div>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:700;color:var(--ac);margin-bottom:5px;">📊 CSDL thô (từ biên bản hủy)</div>
+          <input type="text" id="outSheetUrl" style="display:none;">
+          <div id="outStatus" class="sbadge">⚪ Chưa tải</div>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:700;color:var(--ac);margin-bottom:5px;">🧹 CSDL làm sạch</div>
+          <input type="text" id="outCleanSheetUrl" style="display:none;">
+          <div id="outCleanStatus" class="sbadge">⚪ Chưa tải</div>
+        </div>
       </div>
-      <div id="outStatus" class="sbadge">⚪ Chưa tải</div>
     </div>
-    <div class="acard">
-      <h2>Bộ lọc báo cáo</h2>
+  </div>
+</div>
+
+<!-- ══════════ S-REPORT (Báo cáo BM8 — tách riêng khỏi Dữ liệu & Cấu hình) ══════════ -->
+<div class="scr" id="s-report">
+  <div class="adm-hdr"><div class="hosp">Bệnh viện Nhi Trung ương</div><h1>Hệ thống biên bản hủy bao bì TXTT</h1></div>
+  <div class="back-bar">
+    <button class="back-btn" onclick="go('s-home')">← Trang chủ</button>
+    <span class="pg-title">📊 Báo cáo theo dõi cấp phát (BM8)</span>
+  </div>
+  <div class="adm-body" style="max-width:1100px;">
+    <div class="acard" id="cardTheoDoi">
+      <h2>📊 Theo dõi cấp phát</h2>
+      <div class="desc">Tạo báo cáo theo dõi cấp phát, thu hồi dư phẩm và bao bì TXTT theo khoa, tháng.</div>
+
+      <div style="margin-bottom:12px;" id="rptSourceBox">
+        <div style="font-size:12.5px;font-weight:700;color:var(--ac);margin-bottom:6px;">Nguồn dữ liệu trích báo cáo</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-family:Arial,sans-serif;font-size:13px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="radio" name="rptSource" value="raw" checked onchange="refreshKhoaFilter()"> CSDL thô (nhập trực tiếp từ biên bản hủy)
+            <span id="outStatusMini" class="sbadge" style="margin:0;"></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="radio" name="rptSource" value="clean" onchange="refreshKhoaFilter()"> CSDL làm sạch
+            <span id="outCleanStatusMini" class="sbadge" style="margin:0;"></span>
+          </label>
+        </div>
+      </div>
+
       <div class="theo-filters">
         <label>Khoa/Trung tâm
           <div class="khoa-ss-wrap" id="fKhoaWrap" style="display:inline-block;min-width:160px;vertical-align:middle;">
@@ -525,69 +486,72 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
         <label>Đến ngày
           <input type="date" id="fToDate">
         </label>
-        <div style="align-self:flex-end;">
+        <div style="align-self:flex-end;display:flex;gap:8px;">
           <button class="btn btn-g" onclick="buildReport()" id="btnBuildReport">📊 Tạo báo cáo</button>
+          <button class="btn btn-p" onclick="window.print()">🖨️ In</button>
+          <button class="btn" style="background:#1e7d52;color:#fff;" onclick="exportRptXLSX()">📊 Xuất Excel</button>
         </div>
       </div>
-    </div>
-    <div id="rptArea" style="display:none;">
-      <div class="rpt-wrap">
-        <!-- Tiêu ngữ -->
-        <div class="rpt-header">
-          <div class="rpt-hl">
-            <p class="bold">BỘ Y TẾ</p>
-            <p class="bold underline">BỆNH VIỆN NHI TRUNG ƯƠNG</p>
+      <div id="rptArea" style="display:none;margin-top:16px;">
+        <div class="rpt-wrap">
+          <!-- Tiêu ngữ -->
+          <div class="rpt-header">
+            <div class="rpt-hl">
+              <p class="bold">BỘ Y TẾ</p>
+              <p class="bold underline">BỆNH VIỆN NHI TRUNG ƯƠNG</p>
+            </div>
+            <div class="rpt-hr">
+              <p class="bold">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+              <p class="bold underline">Độc lập - Tự do - Hạnh phúc</p>
+            </div>
           </div>
-          <div class="rpt-hr">
-            <p class="bold">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
-            <p class="bold underline">Độc lập - Tự do - Hạnh phúc</p>
+          <!-- Tiêu đề -->
+          <div class="rpt-title">Báo cáo theo dõi cấp phát, thu hồi thuốc GN-HT-TC dạng dung dịch<br>không sử dụng hết đơn vị đóng gói nhỏ nhất và bao bì tiếp xúc trực tiếp của các thuốc GN-HT-TC</div>
+          <div class="rpt-khoa">Khoa: <span id="rptKhoa" style="font-weight:bold;"></span> &nbsp;&nbsp; <span id="rptPeriod"></span></div>
+          <div style="overflow-x:auto;">
+            <table class="rpt" id="rptTable">
+              <thead>
+                <tr>
+                  <th rowspan="2" style="width:20px;">S T T</th>
+                  <th rowspan="2" style="width:110px;">Tên thuốc/<br>Nồng độ/<br>Hàm lượng</th>
+                  <th rowspan="2" style="width:60px;">Hoạt chất</th>
+                  <th rowspan="2" style="width:34px;">Đơn vị tính</th>
+                  <th rowspan="2" style="width:60px;">Số lô</th>
+                  <th rowspan="2" style="width:50px;">Chênh lệch BBTX tháng trước</th>
+                  <th colspan="3">Lĩnh thuốc</th>
+                  <th colspan="3">Hoàn trả thuốc</th>
+                  <th colspan="5">Hoàn trả bao bì TXTT</th>
+                  <th rowspan="2" style="width:46px;">Chênh lệch Bao bì TXTT trong tháng</th>
+                  <th rowspan="2" style="width:46px;">Chênh lệch Bao bì TXTT cuối</th>
+                  <th rowspan="2" style="width:46px;">Hoàn trả thuốc không sử dụng hết</th>
+                  <th rowspan="2" style="width:46px;">Ghi chú</th>
+                </tr>
+                <tr>
+                  <th style="width:40px;">Tăng từ trực</th>
+                  <th style="width:40px;">Bù từ trực</th>
+                  <th style="width:40px;">Lĩnh khác</th>
+                  <th style="width:40px;">Theo người bệnh</th>
+                  <th style="width:40px;">Tích lũy khoa phòng</th>
+                  <th style="width:40px;">Hoàn trả khác</th>
+                  <th style="width:44px;">Bao bì TXTT</th>
+                  <th style="width:44px;">Bao bì TXTT đựng thuốc không sử dụng hết</th>
+                  <th style="width:44px;">Bao bì TXTT đựng thuốc cần hủy</th>
+                  <th style="width:44px;">Đơn vị tính</th>
+                  <th style="width:44px;">Bao bì khác</th>
+                </tr>
+              </thead>
+              <tbody id="rptBody"></tbody>
+            </table>
           </div>
-        </div>
-        <!-- Tiêu đề -->
-        <div class="rpt-title">Báo cáo theo dõi cấp phát, thu hồi thuốc GN-HT-TC dạng dung dịch<br>không sử dụng hết đơn vị đóng gói nhỏ nhất và bao bì tiếp xúc trực tiếp của các thuốc GN-HT-TC</div>
-        <div class="rpt-khoa">Khoa: <span id="rptKhoa" style="font-weight:bold;"></span> &nbsp;&nbsp; <span id="rptPeriod"></span></div>
-        <div style="overflow-x:auto;">
-          <table class="rpt" id="rptTable">
-            <thead>
-              <tr>
-                <th rowspan="2" style="width:20px;">S T T</th>
-                <th rowspan="2" style="width:110px;">Tên thuốc/<br>Nồng độ/<br>Hàm lượng</th>
-                <th rowspan="2" style="width:60px;">Hoạt chất</th>
-                <th rowspan="2" style="width:34px;">Đơn vị tính</th>
-                <th rowspan="2" style="width:60px;">Số lô</th>
-                <th rowspan="2" style="width:50px;">Chênh lệch BBTX tháng trước</th>
-                <th colspan="3">Lĩnh thuốc</th>
-                <th colspan="3">Hoàn trả thuốc</th>
-                <th colspan="4">Hoàn trả bao bì TXTT</th>
-                <th rowspan="2" style="width:46px;">Chênh lệch Bao bì TXTT trong tháng</th>
-                <th rowspan="2" style="width:46px;">Chênh lệch Bao bì TXTT cuối</th>
-                <th rowspan="2" style="width:46px;">Hoàn trả thuốc không sử dụng hết</th>
-                <th rowspan="2" style="width:46px;">Ghi chú</th>
-              </tr>
-              <tr>
-                <th style="width:40px;">Tăng từ trực</th>
-                <th style="width:40px;">Bù từ trực</th>
-                <th style="width:40px;">Lĩnh khác</th>
-                <th style="width:40px;">Theo người bệnh</th>
-                <th style="width:40px;">Tích lũy khoa phòng</th>
-                <th style="width:40px;">Hoàn trả khác</th>
-                <th style="width:44px;">Bao bì TXTT</th>
-                <th style="width:44px;">Bao bì TXTT đựng thuốc không sử dụng hết</th>
-                <th style="width:44px;">Bao bì TXTT đựng thuốc cần hủy</th>
-                <th style="width:44px;">Bao bì khác</th>
-              </tr>
-            </thead>
-            <tbody id="rptBody"></tbody>
-          </table>
-        </div>
-        <div class="rpt-note">
-          <b>• Ghi chú:</b><br>
-          &nbsp;&nbsp;Các số liệu tính đến hết tháng.<br>
-          &nbsp;&nbsp;Số lượng thu hồi bao bì TXTT, bao bì TXTT đựng thuốc GN-HT-TC không sử dụng hết theo số liệu trong các biên bản thu hồi và hủy.
-        </div>
-        <div class="rpt-sign">
-          <div class="s-block"><p class="role">Điều dưỡng HC khoa lâm sàng</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
-          <div class="s-block"><p class="role">Người tổng kết</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
+          <div class="rpt-note">
+            <b>• Ghi chú:</b><br>
+            &nbsp;&nbsp;Các số liệu tính đến hết tháng.<br>
+            &nbsp;&nbsp;Số lượng thu hồi bao bì TXTT, bao bì TXTT đựng thuốc GN-HT-TC không sử dụng hết theo số liệu trong các biên bản thu hồi và hủy.
+          </div>
+          <div class="rpt-sign">
+            <div class="s-block"><p class="role">Điều dưỡng HC khoa lâm sàng</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
+            <div class="s-block"><p class="role">Người tổng kết</p><p class="hint">(Ký, ghi rõ họ và tên)</p><div style="height:60px;"></div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -821,7 +785,7 @@ function goFormNoAuth(){
 }
 
 /* ── ROUTER ── */
-const SCREENS=['s-home','s-drug','s-script','s-khoa','s-theo','s-form'];
+const SCREENS=['s-home','s-data','s-report','s-form'];
 const PUBLIC_SCREENS=['s-form']; // Màn hình nhập biên bản dành cho khoa/phòng — không cần đăng nhập
 function go(id){
   if(!isAuthed() && !PUBLIC_SCREENS.includes(id)){ showLogin(); return; }
@@ -842,9 +806,8 @@ function go(id){
       if(id==='s-form') setSyncDate();
     });
   }
-  else if(id==='s-drug') { if(localStorage.getItem('sheetUrl')) connectSheet(true); }
-  else if(id==='s-khoa') { if(localStorage.getItem('deptSheetUrl')) loadDeptsFromSheet(true); }
-  else if(id==='s-theo') { if(localStorage.getItem('outSheetUrl')) loadOutSheet(true); }
+  else if(id==='s-data') { silentRefreshAll(); }
+  else if(id==='s-report') { silentRefreshAll().then(()=>{ updateRptSourceMini(); }); updateRptSourceMini(); }
 }
 
 /* Refresh all data connections (no config reload — avoids infinite loop) */
@@ -852,7 +815,8 @@ async function refreshConnections(){
   const p=[];
   if(localStorage.getItem('sheetUrl'))    p.push(connectSheet(true));
   if(localStorage.getItem('deptSheetUrl'))p.push(loadDeptsFromSheet(true));
-  if(localStorage.getItem('outSheetUrl')) p.push(loadOutSheet(true));
+  if(localStorage.getItem('outSheetUrl')) p.push(loadOutSheet(true,'raw'));
+  if(localStorage.getItem('outCleanSheetUrl')) p.push(loadOutSheet(true,'clean'));
   if(localStorage.getItem('scheduleUrl')) p.push(loadScheduleSheet(true));
   await Promise.allSettled(p);
 }
@@ -884,11 +848,12 @@ async function applyConfig(silent){
     });
     // Map keys to localStorage entries and input fields
     const MAP={
-      drug_url:     {ls:'sheetUrl',    el:'sheetUrl'},
-      script_url:   {ls:'scriptUrl',   el:'scriptUrl'},
-      dept_url:     {ls:'deptSheetUrl',el:'deptSheetUrl'},
-      out_url:      {ls:'outSheetUrl', el:'outSheetUrl'},
-      schedule_url: {ls:'scheduleUrl', el:'scheduleUrl'},
+      drug_url:      {ls:'sheetUrl',      el:'sheetUrl'},
+      script_url:    {ls:'scriptUrl',     el:'scriptUrl'},
+      dept_url:      {ls:'deptSheetUrl',  el:'deptSheetUrl'},
+      out_url:       {ls:'outSheetUrl',   el:'outSheetUrl'},
+      out_clean_url: {ls:'outCleanSheetUrl', el:'outCleanSheetUrl'},
+      schedule_url:  {ls:'scheduleUrl',   el:'scheduleUrl'},
     };
     let loaded=0;
     for(const [key,{ls,el}] of Object.entries(MAP)){
@@ -912,7 +877,7 @@ async function applyConfig(silent){
     localStorage.setItem('configUrl', raw);
     if(!silent){
       document.getElementById('configUrl').value=raw;
-      setSt('configStatus','ok',`✅ Đã tải ${loaded}/4 cài đặt — ${new Date().toLocaleTimeString('vi-VN')}`);
+      setSt('configStatus','ok',`✅ Đã tải ${loaded}/${Object.keys(MAP).length} cài đặt — ${new Date().toLocaleTimeString('vi-VN')}`);
     }
     // Refresh all connections with the newly populated URLs
     await refreshConnections();
@@ -926,15 +891,45 @@ function checkRoute(){
   const h=location.hash;
   if(h==='#form'){ go('s-form'); return; } // Nhập biên bản — luôn cho phép, không cần đăng nhập
   if(!isAuthed()){ showLogin(); return; }
-  if(h==='#drug') go('s-drug');
-  else if(h==='#script') go('s-script');
-  else if(h==='#khoa') go('s-khoa');
-  else if(h==='#theo-doi') go('s-theo');
+  if(h==='#data') go('s-data');
+  else if(h==='#report') go('s-report');
   else go('s-home');
 }
 checkRoute();
 window.addEventListener('hashchange',checkRoute);
 (function(){const el=document.getElementById('formLink');if(el)el.textContent=location.origin+location.pathname+'#form';})();
+
+/* ── TỰ ĐỘNG TẢI LẠI TRANG SAU 30 PHÚT KHÔNG THAO TÁC ──
+   Đếm lại từ đầu mỗi khi ghi nhận thao tác nhập liệu/chọn trường thông tin (gõ chữ, đổi giá trị, bấm chuột, chọn dropdown…).
+   Cảnh báo trước 60 giây để người dùng kịp thao tác nếu vẫn đang cần dùng trang. */
+(function(){
+  const AUTO_RELOAD_MS = 30*60*1000;      // 30 phút
+  const WARN_BEFORE_MS = 60*1000;         // cảnh báo trước 60 giây
+  let reloadTimer=null, warnTimer=null, warnEl=null;
+
+  function clearTimers(){
+    if(reloadTimer){clearTimeout(reloadTimer);reloadTimer=null;}
+    if(warnTimer){clearTimeout(warnTimer);warnTimer=null;}
+    if(warnEl){warnEl.remove();warnEl=null;}
+  }
+  function showWarning(){
+    warnEl=document.createElement('div');
+    warnEl.id='autoReloadWarn';
+    warnEl.style.cssText='position:fixed;bottom:18px;right:18px;z-index:99999;background:#1a1a2e;color:#fff;padding:12px 18px;border-radius:8px;font-family:Arial,sans-serif;font-size:12.5px;box-shadow:0 4px 16px rgba(0,0,0,.35);max-width:290px;line-height:1.6;';
+    warnEl.innerHTML='⏳ <b>Trang sẽ tự tải lại sau 60 giây</b> do không có thao tác nhập liệu/chọn trường.<br>Thao tác bất kỳ trên trang để huỷ.';
+    document.body.appendChild(warnEl);
+  }
+  function resetAutoReload(){
+    clearTimers();
+    warnTimer=setTimeout(showWarning, AUTO_RELOAD_MS-WARN_BEFORE_MS);
+    reloadTimer=setTimeout(()=>{ location.reload(); }, AUTO_RELOAD_MS);
+  }
+  // Ghi nhận thao tác nhập liệu / chọn trường thông tin (input, chọn dropdown/checkbox, click, gõ phím)
+  ['input','change','click','keydown'].forEach(ev=>{
+    document.addEventListener(ev, resetAutoReload, true);
+  });
+  resetAutoReload();
+})();
 
 /* ── DATE ── */
 /* ── CHẶN IN TRANG BIÊN BẢN TRƯỚC KHI LƯU THÀNH CÔNG ──
@@ -1009,7 +1004,7 @@ window.addEventListener('beforeprint',()=>{
       prepPrint();
     }
   }
-  if(active==='s-theo'){
+  if(active==='s-report'){
     // Inject @page margin boxes: only reliable way to get Trang X/Y across multiple pages
     _theoPageStyle=document.createElement('style');
     _theoPageStyle.textContent=`@page{
@@ -1120,7 +1115,7 @@ async function connectSheet(silent){
     DRUG_DB=db;localStorage.setItem('sheetUrl',raw);
     setSt('dbStatus','ok',`✅ ${db.length} thuốc — ${new Date().toLocaleTimeString('vi-VN')}`);
     updateSyncBadge('ok',`Đã đồng bộ thành công — ${new Date().toLocaleTimeString('vi-VN')}`);
-    document.getElementById('refreshBtn').style.display='';
+    const rb=document.getElementById('refreshBtn'); if(rb) rb.style.display='';
     rebuildSS();
     if(!silent)alert(`Đã tải ${db.length} dòng.`);
   }catch(e){
@@ -1655,33 +1650,60 @@ function resetForm(){
   silentRefreshAll();
 }
 
-/* ── THEO DÕI ── */
-let OUT_DATA=[];
-async function loadOutSheet(silent){
-  const raw=silent ? localStorage.getItem('outSheetUrl') : (document.getElementById('outSheetUrl').value||'').trim();
-  if(!raw){if(!silent)alert('Nhập URL Sheet kết quả.');return;}
+/* ── THEO DÕI CẤP PHÁT (BM8) ── */
+let OUT_DATA_RAW=[];    // CSDL thô — nhập trực tiếp từ biên bản hủy
+let OUT_DATA_CLEAN=[];  // CSDL làm sạch — cùng cấu trúc, đã được rà soát/làm sạch
+
+/* source: 'raw' | 'clean' */
+async function loadOutSheet(silent, source){
+  source = source || 'raw';
+  const isClean = source==='clean';
+  const lsKey  = isClean ? 'outCleanSheetUrl' : 'outSheetUrl';
+  const elId   = isClean ? 'outCleanSheetUrl' : 'outSheetUrl';
+  const stId   = isClean ? 'outCleanStatus'   : 'outStatus';
+  const raw = silent ? localStorage.getItem(lsKey) : (document.getElementById(elId)?.value||'').trim();
+  if(!raw){ if(!silent) alert('Chưa có URL Sheet — kiểm tra cấu hình trung tâm.'); return; }
   const u=buildCsvUrl(raw);
   if(!u){if(!silent)alert('URL không hợp lệ.');return;}
-  if(!silent)setSt('outStatus','ld','⏳ Đang tải…');
+  setSt(stId,'ld','⏳ Đang tải…');
   try{
     const res=await fetch(u);if(!res.ok)throw new Error(`HTTP ${res.status}`);
     const rows=parseCsv(await res.text());
     if(rows.length<2)throw new Error('Không có dữ liệu.');
-    OUT_DATA=rows.slice(1).filter(r=>r.some(c=>c!==''));
-    if(!silent)localStorage.setItem('outSheetUrl',raw);
+    const data=rows.slice(1).filter(r=>r.some(c=>c!==''));
+    if(isClean) OUT_DATA_CLEAN=data; else OUT_DATA_RAW=data;
+    if(!silent)localStorage.setItem(lsKey,raw);
     refreshKhoaFilter();
-    if(!silent)setSt('outStatus','ok',`✅ ${OUT_DATA.length} dòng — ${new Date().toLocaleTimeString('vi-VN')}`);
-  }catch(e){if(!silent)setSt('outStatus','err','🔴 '+e.message);}
+    setSt(stId,'ok',`✅ ${data.length} dòng — ${new Date().toLocaleTimeString('vi-VN')}`);
+  }catch(e){ setSt(stId,'err','🔴 '+e.message); }
+  updateRptSourceMini();
+}
+
+function updateRptSourceMini(){
+  const o=document.getElementById('outStatus'), om=document.getElementById('outStatusMini');
+  const c=document.getElementById('outCleanStatus'), cm=document.getElementById('outCleanStatusMini');
+  if(o&&om){ om.className=o.className; om.textContent=o.textContent; }
+  if(c&&cm){ cm.className=c.className; cm.textContent=c.textContent; }
+}
+
+function getRptSource(){
+  const el=document.querySelector('input[name="rptSource"]:checked');
+  return el ? el.value : 'raw';
+}
+function getRptData(){
+  return getRptSource()==='clean' ? OUT_DATA_CLEAN : OUT_DATA_RAW;
 }
 
 async function buildReport(){
   const btn=document.getElementById('btnBuildReport');
   const origText=btn.textContent;
+  const source=getRptSource();
   btn.disabled=true;btn.textContent='⏳ Đang tải lại dữ liệu…';
-  await loadOutSheet(true);
+  await loadOutSheet(true, source);
   btn.disabled=false;btn.textContent=origText;
 
-  if(!OUT_DATA.length){alert('Chưa tải được dữ liệu Sheet kết quả.');return;}
+  const OUT_DATA=getRptData();
+  if(!OUT_DATA.length){alert(source==='clean'?'Chưa tải được dữ liệu CSDL làm sạch.':'Chưa tải được dữ liệu CSDL thô.');return;}
   const fKhoaEl=document.getElementById('fKhoa');
   const khoa=fKhoaEl?.dataset?.value||fKhoaEl?.value?.trim()||'';
   const fromVal=document.getElementById('fFromDate').value; // yyyy-mm-dd
@@ -1695,8 +1717,8 @@ async function buildReport(){
   const toDate=toVal ? new Date(toVal+'T23:59:59') : null;
 
   const filtered=OUT_DATA.filter(r=>{
-    if(khoa && r[3]!==khoa) return false;  // col 3 = Khoa/Trung tâm (col 2 before MSBB)
-    const d=parseDMY(r[2]);                // col 2 = Ngày biên bản (col 1 before MSBB)
+    if(khoa && r[3]!==khoa) return false;  // col 3 = Khoa/Trung tâm
+    const d=parseDMY(r[2]);                // col 2 = Ngày biên bản
     if(!d) return false;
     if(fromDate && d<fromDate) return false;
     if(toDate && d>toDate) return false;
@@ -1706,18 +1728,43 @@ async function buildReport(){
   if(!filtered.length){alert('Không có dữ liệu phù hợp với bộ lọc.');return;}
 
   // Group by (Tên thuốc, Hoạt chất, Nồng độ/HL, Số lô, ĐVT)
-  // Column indices after MSBB added as col 0:
+  // Cột dữ liệu (đã thêm MSBB ở đầu — cột 0):
   // 0=MSBB 1=Ngày lưu 2=Ngày BB 3=Khoa 4=STT
   // 5=Tên thuốc 6=Hoạt chất 7=Nồng độ 8=Số lô 9=ĐVT
-  // 10=Số lượng TXTT 11=Bao bì chứa thuốc
+  // 10=Số lượng bao bì của nhà cung cấp
+  // 11=Bao bì chứa thuốc (nhóm: Ống/Lọ/Bơm tiêm/Chai/Túi)
+  // 12=Dịch truyền pha 1 ĐVT thuốc
+  // 17=Tỷ lệ thuốc còn lại trên đơn vị tính (Tỷ lệ dư phẩm)
+  //
+  // Công thức BM8:
+  // • Bao bì TXTT               = Σ(Số lượng bao bì NCC)  KHI  Tỷ lệ dư phẩm TRỐNG
+  // • BB TXTT đựng thuốc không SDH = Σ(Số lượng bao bì NCC)  KHI  Tỷ lệ dư phẩm KHÔNG TRỐNG  &  Dịch truyền pha 1 ĐVT TRỐNG
+  // • BB TXTT đựng thuốc cần hủy   = số DÒNG  KHI  Tỷ lệ dư phẩm KHÔNG TRỐNG  &  Dịch truyền pha 1 ĐVT KHÔNG TRỐNG
+  //   — cộng riêng theo từng nhóm của "Bao bì chứa thuốc" (Ống/Lọ/Bơm tiêm/Chai/Túi…), hiển thị ở cột "Đơn vị tính"
   const groups={};
+  const order=[];
   filtered.forEach(r=>{
     const key=[r[5],r[6],r[7],r[8],r[9]].join('||');
-    if(!groups[key]){groups[key]={tenThuoc:r[5],hoatChat:r[6],nongDo:r[7],soLo:r[8],dvt:r[9],baoBiTXTT:0,baoBiKhong:0};}
-    const qty=parseFloat((r[10]||'0').replace(',','.'))||0;
-    const bb=(r[11]||'').trim();
-    if(bb==='') groups[key].baoBiTXTT+=qty;
-    else if(bb) groups[key].baoBiKhong+=qty;
+    if(!groups[key]){
+      groups[key]={tenThuoc:r[5],hoatChat:r[6],nongDo:r[7],soLo:r[8],dvt:r[9],
+        baoBiTXTT:0,baoBiKhongSDH:0,huyByType:{},huyOrder:[]};
+      order.push(key);
+    }
+    const g=groups[key];
+    const qty=parseFloat((r[10]||'0').toString().replace(',','.'))||0; // Số lượng bao bì của NCC
+    const bbType=(r[11]||'').trim();      // Bao bì chứa thuốc (nhóm)
+    const dtp=(r[12]||'').trim();         // Dịch truyền pha 1 ĐVT thuốc
+    const tyle=(r[17]||'').toString().trim(); // Tỷ lệ thuốc còn lại trên ĐVT
+
+    if(tyle===''){
+      g.baoBiTXTT += qty;
+    }else if(dtp===''){
+      g.baoBiKhongSDH += qty;
+    }else{
+      const typeName = bbType || '(chưa rõ)';
+      if(!(typeName in g.huyByType)){ g.huyByType[typeName]=0; g.huyOrder.push(typeName); }
+      g.huyByType[typeName]++;
+    }
   });
 
   // Format date for display
@@ -1726,28 +1773,37 @@ async function buildReport(){
 
   document.getElementById('rptKhoa').textContent=khoa||'Tất cả';
   document.getElementById('rptPeriod').textContent=periodText;
-  // Fill header date
-  const now=new Date();
-  // date element removed per user request
 
   const tbody=document.getElementById('rptBody');
   tbody.innerHTML='';
-  Object.values(groups).forEach((g,i)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${i+1}</td>
-      <td style="text-align:left;">${g.tenThuoc}${g.nongDo?' '+g.nongDo:''}</td>
-      <td>${g.hoatChat}</td>
-      <td>${g.dvt}</td>
-      <td>${g.soLo}</td>
-      <td><input></td>
-      <td><input></td><td><input></td><td><input></td>
-      <td><input></td><td><input></td><td><input></td>
-      <td style="font-weight:bold;">${g.baoBiTXTT||''}</td>
-      <td style="font-weight:bold;">${g.baoBiKhong||''}</td>
-      <td><input></td><td><input></td>
-      <td><input></td><td><input></td><td><input></td><td><input></td>`;
-    tbody.appendChild(tr);
+  let stt=0;
+  order.forEach(key=>{
+    const g=groups[key];
+    // Mỗi nhóm "bao bì chứa thuốc" trong số cần hủy tạo thành 1 dòng báo cáo riêng (kèm ĐVT tương ứng);
+    // nếu không có dòng cần hủy nào, vẫn xuất 1 dòng cho thuốc đó.
+    const types = g.huyOrder.length ? g.huyOrder : [null];
+    types.forEach((typeName,ti)=>{
+      stt++;
+      const huyCount = typeName!==null ? g.huyByType[typeName] : '';
+      const dvtCell = typeName!==null ? typeName : '';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td>${stt}</td>
+        <td style="text-align:left;">${ti===0?(g.tenThuoc+(g.nongDo?' '+g.nongDo:'')):''}</td>
+        <td>${ti===0?g.hoatChat:''}</td>
+        <td>${ti===0?g.dvt:''}</td>
+        <td>${ti===0?g.soLo:''}</td>
+        <td><input></td>
+        <td><input></td><td><input></td><td><input></td>
+        <td><input></td><td><input></td><td><input></td>
+        <td style="font-weight:bold;">${ti===0?(g.baoBiTXTT||''):''}</td>
+        <td style="font-weight:bold;">${ti===0?(g.baoBiKhongSDH||''):''}</td>
+        <td style="font-weight:bold;">${huyCount||''}</td>
+        <td style="font-weight:bold;">${dvtCell}</td>
+        <td><input></td>
+        <td><input></td><td><input></td><td><input></td><td><input></td>`;
+      tbody.appendChild(tr);
+    });
   });
   document.getElementById('rptArea').style.display='';
 }
@@ -1759,24 +1815,24 @@ function exportRptXLSX(){
   const khoa=document.getElementById('rptKhoa')?.textContent||'';
   const period=document.getElementById('rptPeriod')?.textContent||'';
 
-  // 20 columns — hardcoded to match exact data column order
-  // Cols: 0=STT 1=Tên thuốc/ND 2=HC 3=ĐVT 4=Số lô
+  // 21 cột — hardcoded để khớp đúng thứ tự dữ liệu (đã thêm cột "Đơn vị tính" cho nhóm bao bì cần hủy)
+  // Cols: 0=STT 1=Tên thuốc/ND 2=HC 3=Đơn vị tính (thuốc) 4=Số lô
   //       5=Chênh lệch BBTX tháng trước
   //       6-8=Lĩnh thuốc  9-11=Hoàn trả thuốc
-  //       12=Bao bì TXTT 13=BB TXTT không SĐH 14=BB TXTT cần hủy 15=BB khác
-  //       16=Chênh lệch BBTXTT trong tháng 17=Chênh lệch BBTXTT cuối
-  //       18=Hoàn trả thuốc không SĐH 19=Ghi chú
+  //       12=Bao bì TXTT 13=BB TXTT không SĐH 14=BB TXTT cần hủy 15=Đơn vị tính (bao bì) 16=BB khác
+  //       17=Chênh lệch BBTXTT trong tháng 18=Chênh lệch BBTXTT cuối
+  //       19=Hoàn trả thuốc không SĐH 20=Ghi chú
   const HDR1=['STT','Tên thuốc/\nNồng độ/Hàm lượng','Hoạt chất','Đơn vị tính','Số lô',
     'Chênh lệch BBTX tháng trước',
     'Lĩnh thuốc','','',
     'Hoàn trả thuốc','','',
-    'Hoàn trả bao bì TXTT','','','',
+    'Hoàn trả bao bì TXTT','','','','',
     'Chênh lệch Bao bì TXTT trong tháng','Chênh lệch Bao bì TXTT cuối',
     'Hoàn trả thuốc không sử dụng hết','Ghi chú'];
   const HDR2=['','','','','','',
     'Tăng từ trực','Bù từ trực','Lĩnh khác',
     'Theo người bệnh','Tích lũy khoa phòng','Hoàn trả khác',
-    'Bao bì TXTT','Bao bì TXTT đựng thuốc không sử dụng hết','Bao bì TXTT đựng thuốc cần hủy','Bao bì khác',
+    'Bao bì TXTT','Bao bì TXTT đựng thuốc không sử dụng hết','Bao bì TXTT đựng thuốc cần hủy','Đơn vị tính','Bao bì khác',
     '','','',''];
 
   // Body rows — read directly from rptBody (matches exact cell order in buildReport)
@@ -1802,19 +1858,19 @@ function exportRptXLSX(){
   // Column widths
   ws['!cols']=[{wch:5},{wch:22},{wch:14},{wch:9},{wch:10},
     {wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},
-    {wch:12},{wch:18},{wch:14},{wch:10},
+    {wch:12},{wch:18},{wch:14},{wch:10},{wch:10},
     {wch:12},{wch:12},{wch:14},{wch:12}];
 
   // Merges — row indices offset by 3 (title + khoa + blank row)
   ws['!merges']=[
-    {s:{r:0,c:0},e:{r:0,c:19}},   // title
-    {s:{r:1,c:0},e:{r:1,c:19}},   // khoa/period
+    {s:{r:0,c:0},e:{r:0,c:20}},   // title
+    {s:{r:1,c:0},e:{r:1,c:20}},   // khoa/period
     // Row 3 (HDR1 idx=3): rowspan-2 columns
-    ...[0,1,2,3,4,5,16,17,18,19].map(c=>({s:{r:3,c},e:{r:4,c}})),
+    ...[0,1,2,3,4,5,17,18,19,20].map(c=>({s:{r:3,c},e:{r:4,c}})),
     // colspan groups
     {s:{r:3,c:6},e:{r:3,c:8}},    // Lĩnh thuốc
     {s:{r:3,c:9},e:{r:3,c:11}},   // Hoàn trả thuốc
-    {s:{r:3,c:12},e:{r:3,c:15}},  // Hoàn trả bao bì TXTT
+    {s:{r:3,c:12},e:{r:3,c:16}},  // Hoàn trả bao bì TXTT
   ];
 
   const wb=XLSX.utils.book_new();
@@ -1966,32 +2022,15 @@ try{ DEPT_COSO = JSON.parse(localStorage.getItem('deptCoSo')||'{}'); }catch(e){ 
 
 function renderDeptList(){
   const ul = document.getElementById('deptList');
-  if(!DEPTS.length){ul.innerHTML='<div class="dept-empty">Chưa có khoa nào. Thêm mới hoặc tải từ Google Sheet.</div>';return;}
+  if(!ul) return; // Đã bỏ hiển thị danh sách khoa trên giao diện Dữ liệu & Cấu hình — chỉ còn dùng nội bộ cho dropdown
+  if(!DEPTS.length){ul.innerHTML='<div class="dept-empty">Chưa có khoa nào. Đang chờ đồng bộ từ Google Sheet…</div>';return;}
   ul.innerHTML = '';
-  DEPTS.forEach((d,i)=>{
+  DEPTS.forEach((d)=>{
     const div = document.createElement('div');
     div.className = 'dept-item';
-    div.innerHTML = `<span>${d}</span><button onclick="deleteDept(${i})" title="Xóa">✕</button>`;
+    div.innerHTML = `<span>${d}</span>`;
     ul.appendChild(div);
   });
-}
-
-function addDept(){
-  const inp = document.getElementById('newDept');
-  const v = inp.value.trim();
-  if(!v) return;
-  if(DEPTS.includes(v)){alert('Khoa này đã có trong danh sách.');return;}
-  DEPTS.push(v);
-  saveDepts();
-  inp.value = '';
-  renderDeptList();
-}
-
-function deleteDept(i){
-  if(!confirm(`Xóa "${DEPTS[i]}" khỏi danh sách?`)) return;
-  DEPTS.splice(i,1);
-  saveDepts();
-  renderDeptList();
 }
 
 function saveDepts(){
@@ -2004,6 +2043,23 @@ function updateKhoaDropdowns(){
   khoaSSRender('');
   // Update fKhoa in theo doi (merge with data-driven list)
   refreshKhoaFilter();
+}
+
+/* Đồng bộ lại toàn bộ dữ liệu trung tâm (danh mục thuốc, cấu hình lưu biên bản,
+   danh sách khoa phòng, dữ liệu theo dõi cấp phát) chỉ bằng MỘT nút bấm duy nhất */
+async function syncAllData(){
+  const btn=document.getElementById('btnSyncAll');
+  const origText=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Đang đồng bộ…'; }
+  try{
+    if(HARDCODED_CONFIG_URL || localStorage.getItem('configUrl')){
+      await applyConfig(true);
+    }else{
+      await refreshConnections();
+    }
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=origText||'🔄 Đồng bộ lại tất cả'; }
+  }
 }
 
 async function loadDeptsFromSheet(silent){
@@ -2089,7 +2145,7 @@ function khoaSSClose(){ const l=document.getElementById('khoaSSList'); if(l)l.st
 let _fKhoaList = []; // current list of khoa options
 
 function refreshKhoaFilter(){
-  const fromData = OUT_DATA.map(r=>r[3]).filter(Boolean);
+  const fromData = [...OUT_DATA_RAW, ...OUT_DATA_CLEAN].map(r=>r[3]).filter(Boolean);
   _fKhoaList = [...new Set([...DEPTS, ...fromData])].sort();
   fKhoaRender('');
 }
