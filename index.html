@@ -145,7 +145,8 @@ td input:focus{outline:1px solid var(--ac);background:#eef5fc;}
 .ndc-psr{display:none;font-size:10px;}
 /* separator visible on screen only */
 
-.gn-ht-tc{background:#fce4ec!important;}
+.gn-ht-tc{background:#fbcadd!important;}
+th.gn-ht-tc{font-weight:800!important;color:#000!important;}
 .thuc-huy-cell{text-align:center;vertical-align:middle;width:58px;}
 .thuc-huy-inp{text-align:center;font-size:11px;}
 /* ── Searchable select ── */
@@ -471,14 +472,15 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
       </div>
 
       <div class="theo-filters">
-        <label>Khoa/Trung tâm
-          <div class="khoa-ss-wrap" id="fKhoaWrap" style="display:inline-block;min-width:160px;vertical-align:middle;">
+        <label>Khoa/Trung tâm <span style="font-weight:400;color:#888;">(có thể chọn nhiều)</span>
+          <div class="khoa-ss-wrap" id="fKhoaWrap" style="display:inline-block;min-width:220px;vertical-align:middle;">
             <input type="text" id="fKhoa" class="khoa-input" autocomplete="off" spellcheck="false"
-              placeholder="-- Tất cả --"
+              placeholder="-- Tất cả (có thể chọn nhiều) --"
               style="width:100%;padding:7px 22px 7px 10px;border:1.5px solid #d0d5dd;border-radius:7px;font-size:13px;font-family:Arial,sans-serif;background:#fff;"
               oninput="fKhoaFilter(this.value);" onfocus="fKhoaOpen();" onblur="setTimeout(fKhoaClose,160);">
             <div class="ss-list" id="fKhoaList"></div>
           </div>
+          <div id="fKhoaChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;max-width:420px;"></div>
         </label>
         <label>Từ ngày
           <input type="date" id="fFromDate">
@@ -520,7 +522,7 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
                   <th rowspan="2" style="width:50px;">Chênh lệch BBTX tháng trước</th>
                   <th colspan="3">Lĩnh thuốc</th>
                   <th colspan="3">Hoàn trả thuốc</th>
-                  <th colspan="5">Hoàn trả bao bì TXTT</th>
+                  <th colspan="4">Hoàn trả bao bì TXTT</th>
                   <th rowspan="2" style="width:46px;">Chênh lệch Bao bì TXTT trong tháng</th>
                   <th rowspan="2" style="width:46px;">Chênh lệch Bao bì TXTT cuối</th>
                   <th rowspan="2" style="width:46px;">Hoàn trả thuốc không sử dụng hết</th>
@@ -536,7 +538,6 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
                   <th style="width:44px;">Bao bì TXTT</th>
                   <th style="width:44px;">Bao bì TXTT đựng thuốc không sử dụng hết</th>
                   <th style="width:44px;">Bao bì TXTT đựng thuốc cần hủy</th>
-                  <th style="width:44px;">Đơn vị tính</th>
                   <th style="width:44px;">Bao bì khác</th>
                 </tr>
               </thead>
@@ -1159,7 +1160,7 @@ class SS{
     this._render(this.inp.value);
     const r=this.inp.getBoundingClientRect();
     const cw=(this.el.closest('td')?.offsetWidth||r.width);
-    const mw=Math.max(cw*1.5,120);
+    const mw=Math.max(cw*2.25,120);
     let L=r.left;
     if(L+mw>window.innerWidth-6)L=Math.max(0,window.innerWidth-mw-6);
     Object.assign(this.lst.style,{top:r.bottom+'px',left:L+'px',maxWidth:mw+'px',minWidth:r.width+'px',display:'block'});
@@ -1202,7 +1203,7 @@ function rebuildSS(){
 
 /* ── ADD ROW ── */
 let rowCount=0;
-function makeOpts(arr,ph=''){let h=`<option value="">${ph}</option>`;arr.forEach(v=>h+=`<option value="${v}">${v}</option>`);return h;}
+function makeOpts(arr,ph='',def=''){let h=`<option value="">${ph}</option>`;arr.forEach(v=>h+=`<option value="${v}"${v===def?' selected':''}>${v}</option>`);return h;}
 
 function addRow(){
   rowCount++;
@@ -1219,7 +1220,7 @@ function addRow(){
     <td><div class="numwrap" style="position:relative;"><input type="text" class="bb-qty" inputmode="numeric" placeholder="0" oninput="this.classList.toggle('hv',!!this.value)"><span class="iw"></span></div></td>
     <td class="gn-ht-tc"><div class="selwrap"><select class="bbdp"><option value=""></option><option value="Ống">Ống</option><option value="Lọ">Lọ</option><option value="Bơm tiêm">Bơm tiêm</option><option value="Chai">Chai</option><option value="Túi">Túi</option></select></div><span class="psr"></span></td>
     <td class="gn-ht-tc"><div class="selwrap"><select class="dtp" onchange="this.classList.toggle('hv',!!this.value)">${makeOpts(['DW','NS','G5'])}</select></div><span class="psr"></span></td>
-    <td class="gn-ht-tc"><div class="ndc"><div class="ndc-l"><input type="text" class="nv" inputmode="decimal" placeholder="0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));syncNdcPsr(this.closest('.ndc'));"><select class="nu" onchange="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));syncNdcPsr(this.closest('.ndc'));">${makeOpts(['mg','mcg'])}</select></div><span class="ndc-sep">/</span><div class="ndc-r"><input type="text" class="nv-vol" inputmode="decimal" value="1" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));syncNdcPsr(this.closest('.ndc'));"><span class="ndc-ml">ml</span></div><span class="ndc-psr"></span><span class="iw"></span></div></td>
+    <td class="gn-ht-tc"><div class="ndc"><div class="ndc-l"><input type="text" class="nv" inputmode="decimal" placeholder="0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));syncNdcPsr(this.closest('.ndc'));"><select class="nu hv" onchange="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));syncNdcPsr(this.closest('.ndc'));">${makeOpts(['mg','mcg'],'','mg')}</select></div><span class="ndc-sep">/</span><div class="ndc-r"><input type="text" class="nv-vol" inputmode="decimal" value="1" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));syncNdcPsr(this.closest('.ndc'));"><span class="ndc-ml">ml</span></div><span class="ndc-psr"></span><span class="iw"></span></div></td>
     <td class="gn-ht-tc"><div class="numwrap"><input type="text" class="vol-input" inputmode="decimal" placeholder="0,0" oninput="this.classList.toggle('hv',!!this.value);computeTyLe(this.closest('tr'));"><span class="iw"></span></div></td>
     <td class="gn-ht-tc"><input type="text" class="tyle-result" readonly tabindex="-1" title="Tự động tính: Nồng độ × Thể tích / Hàm lượng trong ĐVT"></td>
     <td class="wrap-cell dd-cell gn-ht-tc"><input type="text" class="dd-inp" oninput="this.classList.toggle('hv',!!this.value);this.nextElementSibling.textContent=this.value;" style="white-space:normal;word-break:break-word;"><div class="wrap-pv"></div></td>
@@ -1504,7 +1505,16 @@ async function saveForm(){
       tr.querySelector('.bbdp')?.value||'',tr.querySelector('.dtp')?.value||'',
       (()=>{const v=tr.querySelector('.nv')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?v:n;})(),
       tr.querySelector('.nu')?.value?.trim()||'',
-      (()=>{const v=tr.querySelector('.nv-vol')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?'1':n;})(),
+      (()=>{
+        // Không ghi nhận giá trị mẫu số (Thể tích nồng độ) nếu tử số (Nồng độ) trống hoặc bằng 0
+        const nvRaw=(tr.querySelector('.nv')?.value||'').trim();
+        const nvNum=parseFloat(nvRaw.replace(',','.'));
+        if(!nvRaw||isNaN(nvNum)||nvNum===0) return '';
+        const v=tr.querySelector('.nv-vol')?.value?.trim()||'';
+        if(!v)return'';
+        const n=parseFloat(v.replace(',','.'));
+        return isNaN(n)?'1':n;
+      })(),
       (()=>{const v=txt(tds[10]);if(!v)return'';const n=parseFloat(v.replace(',','.'));return isNaN(n)?v:n;})(),
       (()=>{const v=tds[11]?.querySelector('.tyle-result')?.value?.trim()||'';if(!v)return'';const n=parseFloat(v.replace(/\./g,'').replace(',','.'));return isNaN(n)?v:n;})(),
       tr.querySelector('.dd-inp')?.value?.trim()||'',tr.querySelector('.bs-inp')?.value?.trim()||'',
@@ -1704,8 +1714,7 @@ async function buildReport(){
 
   const OUT_DATA=getRptData();
   if(!OUT_DATA.length){alert(source==='clean'?'Chưa tải được dữ liệu CSDL làm sạch.':'Chưa tải được dữ liệu CSDL thô.');return;}
-  const fKhoaEl=document.getElementById('fKhoa');
-  const khoa=fKhoaEl?.dataset?.value||fKhoaEl?.value?.trim()||'';
+  const khoaList=_fKhoaSelected.slice(); // nhiều khoa được chọn đồng thời — rỗng = Tất cả
   const fromVal=document.getElementById('fFromDate').value; // yyyy-mm-dd
   const toVal=document.getElementById('fToDate').value;
 
@@ -1717,7 +1726,7 @@ async function buildReport(){
   const toDate=toVal ? new Date(toVal+'T23:59:59') : null;
 
   const filtered=OUT_DATA.filter(r=>{
-    if(khoa && r[3]!==khoa) return false;  // col 3 = Khoa/Trung tâm
+    if(khoaList.length && !khoaList.includes(r[3])) return false;  // col 3 = Khoa/Trung tâm — lọc theo danh sách khoa đã chọn
     const d=parseDMY(r[2]);                // col 2 = Ngày biên bản
     if(!d) return false;
     if(fromDate && d<fromDate) return false;
@@ -1732,38 +1741,34 @@ async function buildReport(){
   // 0=MSBB 1=Ngày lưu 2=Ngày BB 3=Khoa 4=STT
   // 5=Tên thuốc 6=Hoạt chất 7=Nồng độ 8=Số lô 9=ĐVT
   // 10=Số lượng bao bì của nhà cung cấp
-  // 11=Bao bì chứa thuốc (nhóm: Ống/Lọ/Bơm tiêm/Chai/Túi)
   // 12=Dịch truyền pha 1 ĐVT thuốc
   // 17=Tỷ lệ thuốc còn lại trên đơn vị tính (Tỷ lệ dư phẩm)
   //
   // Công thức BM8:
-  // • Bao bì TXTT               = Σ(Số lượng bao bì NCC)  KHI  Tỷ lệ dư phẩm TRỐNG
-  // • BB TXTT đựng thuốc không SDH = Σ(Số lượng bao bì NCC)  KHI  Tỷ lệ dư phẩm KHÔNG TRỐNG  &  Dịch truyền pha 1 ĐVT TRỐNG
-  // • BB TXTT đựng thuốc cần hủy   = số DÒNG  KHI  Tỷ lệ dư phẩm KHÔNG TRỐNG  &  Dịch truyền pha 1 ĐVT KHÔNG TRỐNG
-  //   — cộng riêng theo từng nhóm của "Bao bì chứa thuốc" (Ống/Lọ/Bơm tiêm/Chai/Túi…), hiển thị ở cột "Đơn vị tính"
+  // • Bao bì TXTT                    = Σ(Số lượng bao bì NCC)  KHI  Tỷ lệ dư phẩm TRỐNG
+  // • BB TXTT đựng thuốc không SDH   = Σ(Số lượng bao bì NCC)  KHI  Tỷ lệ dư phẩm KHÔNG TRỐNG  &  Dịch truyền pha 1 ĐVT TRỐNG
+  // • BB TXTT đựng thuốc cần hủy     = nhập tay (không tính tự động)
+  // • Hoàn trả thuốc không sử dụng hết = Σ(Tỷ lệ thuốc còn lại trên đơn vị tính)  KHI  Tỷ lệ dư phẩm KHÔNG TRỐNG
   const groups={};
   const order=[];
   filtered.forEach(r=>{
     const key=[r[5],r[6],r[7],r[8],r[9]].join('||');
     if(!groups[key]){
       groups[key]={tenThuoc:r[5],hoatChat:r[6],nongDo:r[7],soLo:r[8],dvt:r[9],
-        baoBiTXTT:0,baoBiKhongSDH:0,huyByType:{},huyOrder:[]};
+        baoBiTXTT:0,baoBiKhongSDH:0,hoanTraKhongSDH:0};
       order.push(key);
     }
     const g=groups[key];
     const qty=parseFloat((r[10]||'0').toString().replace(',','.'))||0; // Số lượng bao bì của NCC
-    const bbType=(r[11]||'').trim();      // Bao bì chứa thuốc (nhóm)
-    const dtp=(r[12]||'').trim();         // Dịch truyền pha 1 ĐVT thuốc
-    const tyle=(r[17]||'').toString().trim(); // Tỷ lệ thuốc còn lại trên ĐVT
+    const dtp=(r[12]||'').trim();             // Dịch truyền pha 1 ĐVT thuốc
+    const tyleRaw=(r[17]||'').toString().trim(); // Tỷ lệ thuốc còn lại trên ĐVT
+    const tyleNum=parseFloat(tyleRaw.replace(/\./g,'').replace(',','.'));
 
-    if(tyle===''){
+    if(tyleRaw===''){
       g.baoBiTXTT += qty;
-    }else if(dtp===''){
-      g.baoBiKhongSDH += qty;
     }else{
-      const typeName = bbType || '(chưa rõ)';
-      if(!(typeName in g.huyByType)){ g.huyByType[typeName]=0; g.huyOrder.push(typeName); }
-      g.huyByType[typeName]++;
+      if(dtp==='') g.baoBiKhongSDH += qty;
+      if(!isNaN(tyleNum)) g.hoanTraKhongSDH += tyleNum;
     }
   });
 
@@ -1771,39 +1776,30 @@ async function buildReport(){
   function fmtDate(d){ return d?`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`:'...'; }
   const periodText=`Từ ngày ${fmtDate(fromDate)} đến ngày ${fmtDate(toDate)}`;
 
-  document.getElementById('rptKhoa').textContent=khoa||'Tất cả';
+  document.getElementById('rptKhoa').textContent=khoaList.length?khoaList.join(', '):'Tất cả';
   document.getElementById('rptPeriod').textContent=periodText;
 
   const tbody=document.getElementById('rptBody');
   tbody.innerHTML='';
-  let stt=0;
-  order.forEach(key=>{
+  order.forEach((key,i)=>{
     const g=groups[key];
-    // Mỗi nhóm "bao bì chứa thuốc" trong số cần hủy tạo thành 1 dòng báo cáo riêng (kèm ĐVT tương ứng);
-    // nếu không có dòng cần hủy nào, vẫn xuất 1 dòng cho thuốc đó.
-    const types = g.huyOrder.length ? g.huyOrder : [null];
-    types.forEach((typeName,ti)=>{
-      stt++;
-      const huyCount = typeName!==null ? g.huyByType[typeName] : '';
-      const dvtCell = typeName!==null ? typeName : '';
-      const tr=document.createElement('tr');
-      tr.innerHTML=`
-        <td>${stt}</td>
-        <td style="text-align:left;">${ti===0?(g.tenThuoc+(g.nongDo?' '+g.nongDo:'')):''}</td>
-        <td>${ti===0?g.hoatChat:''}</td>
-        <td>${ti===0?g.dvt:''}</td>
-        <td>${ti===0?g.soLo:''}</td>
-        <td><input></td>
-        <td><input></td><td><input></td><td><input></td>
-        <td><input></td><td><input></td><td><input></td>
-        <td style="font-weight:bold;">${ti===0?(g.baoBiTXTT||''):''}</td>
-        <td style="font-weight:bold;">${ti===0?(g.baoBiKhongSDH||''):''}</td>
-        <td style="font-weight:bold;">${huyCount||''}</td>
-        <td style="font-weight:bold;">${dvtCell}</td>
-        <td><input></td>
-        <td><input></td><td><input></td><td><input></td><td><input></td>`;
-      tbody.appendChild(tr);
-    });
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${i+1}</td>
+      <td style="text-align:left;">${g.tenThuoc}${g.nongDo?' '+g.nongDo:''}</td>
+      <td>${g.hoatChat}</td>
+      <td>${g.dvt}</td>
+      <td>${g.soLo}</td>
+      <td><input></td>
+      <td><input></td><td><input></td><td><input></td>
+      <td><input></td><td><input></td><td><input></td>
+      <td style="font-weight:bold;">${g.baoBiTXTT||''}</td>
+      <td style="font-weight:bold;">${g.baoBiKhongSDH||''}</td>
+      <td><input></td><td><input></td>
+      <td><input></td><td><input></td>
+      <td style="font-weight:bold;">${g.hoanTraKhongSDH||''}</td>
+      <td><input></td>`;
+    tbody.appendChild(tr);
   });
   document.getElementById('rptArea').style.display='';
 }
@@ -1815,24 +1811,24 @@ function exportRptXLSX(){
   const khoa=document.getElementById('rptKhoa')?.textContent||'';
   const period=document.getElementById('rptPeriod')?.textContent||'';
 
-  // 21 cột — hardcoded để khớp đúng thứ tự dữ liệu (đã thêm cột "Đơn vị tính" cho nhóm bao bì cần hủy)
+  // 20 cột — hardcoded để khớp đúng thứ tự dữ liệu (định dạng gốc, đã bỏ cột "Đơn vị tính" thêm cho nhóm bao bì cần hủy)
   // Cols: 0=STT 1=Tên thuốc/ND 2=HC 3=Đơn vị tính (thuốc) 4=Số lô
   //       5=Chênh lệch BBTX tháng trước
   //       6-8=Lĩnh thuốc  9-11=Hoàn trả thuốc
-  //       12=Bao bì TXTT 13=BB TXTT không SĐH 14=BB TXTT cần hủy 15=Đơn vị tính (bao bì) 16=BB khác
-  //       17=Chênh lệch BBTXTT trong tháng 18=Chênh lệch BBTXTT cuối
-  //       19=Hoàn trả thuốc không SĐH 20=Ghi chú
+  //       12=Bao bì TXTT 13=BB TXTT không SĐH 14=BB TXTT cần hủy 15=BB khác
+  //       16=Chênh lệch BBTXTT trong tháng 17=Chênh lệch BBTXTT cuối
+  //       18=Hoàn trả thuốc không SĐH 19=Ghi chú
   const HDR1=['STT','Tên thuốc/\nNồng độ/Hàm lượng','Hoạt chất','Đơn vị tính','Số lô',
     'Chênh lệch BBTX tháng trước',
     'Lĩnh thuốc','','',
     'Hoàn trả thuốc','','',
-    'Hoàn trả bao bì TXTT','','','','',
+    'Hoàn trả bao bì TXTT','','','',
     'Chênh lệch Bao bì TXTT trong tháng','Chênh lệch Bao bì TXTT cuối',
     'Hoàn trả thuốc không sử dụng hết','Ghi chú'];
   const HDR2=['','','','','','',
     'Tăng từ trực','Bù từ trực','Lĩnh khác',
     'Theo người bệnh','Tích lũy khoa phòng','Hoàn trả khác',
-    'Bao bì TXTT','Bao bì TXTT đựng thuốc không sử dụng hết','Bao bì TXTT đựng thuốc cần hủy','Đơn vị tính','Bao bì khác',
+    'Bao bì TXTT','Bao bì TXTT đựng thuốc không sử dụng hết','Bao bì TXTT đựng thuốc cần hủy','Bao bì khác',
     '','','',''];
 
   // Body rows — read directly from rptBody (matches exact cell order in buildReport)
@@ -1858,19 +1854,19 @@ function exportRptXLSX(){
   // Column widths
   ws['!cols']=[{wch:5},{wch:22},{wch:14},{wch:9},{wch:10},
     {wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},
-    {wch:12},{wch:18},{wch:14},{wch:10},{wch:10},
+    {wch:12},{wch:18},{wch:14},{wch:10},
     {wch:12},{wch:12},{wch:14},{wch:12}];
 
   // Merges — row indices offset by 3 (title + khoa + blank row)
   ws['!merges']=[
-    {s:{r:0,c:0},e:{r:0,c:20}},   // title
-    {s:{r:1,c:0},e:{r:1,c:20}},   // khoa/period
+    {s:{r:0,c:0},e:{r:0,c:19}},   // title
+    {s:{r:1,c:0},e:{r:1,c:19}},   // khoa/period
     // Row 3 (HDR1 idx=3): rowspan-2 columns
-    ...[0,1,2,3,4,5,17,18,19,20].map(c=>({s:{r:3,c},e:{r:4,c}})),
+    ...[0,1,2,3,4,5,16,17,18,19].map(c=>({s:{r:3,c},e:{r:4,c}})),
     // colspan groups
     {s:{r:3,c:6},e:{r:3,c:8}},    // Lĩnh thuốc
     {s:{r:3,c:9},e:{r:3,c:11}},   // Hoàn trả thuốc
-    {s:{r:3,c:12},e:{r:3,c:16}},  // Hoàn trả bao bì TXTT
+    {s:{r:3,c:12},e:{r:3,c:15}},  // Hoàn trả bao bì TXTT
   ];
 
   const wb=XLSX.utils.book_new();
@@ -2133,20 +2129,23 @@ function khoaSSOpen(){
   if(!list) return;
   khoaSSRender(inp.value);
   const rect = inp.getBoundingClientRect();
-  const mw = Math.max(rect.width * 1.5, 200);
+  const mw = Math.max(rect.width * 2.25, 200);
   let L = rect.left;
   if(L + mw > window.innerWidth - 6) L = Math.max(0, window.innerWidth - mw - 6);
   Object.assign(list.style, {top:rect.bottom+'px', left:L+'px', maxWidth:mw+'px', minWidth:rect.width+'px', display:'block'});
 }
 function khoaSSClose(){ const l=document.getElementById('khoaSSList'); if(l)l.style.display='none'; }
 
-/* ── KHOA FILTER in Theo dõi ── */
-/* ── KHOA FILTER in Theo dõi — searchable dropdown (same pattern as BM7 khoaInput) ── */
-let _fKhoaList = []; // current list of khoa options
+/* ── KHOA FILTER in Theo dõi — searchable, CHỌN NHIỀU (multi-select) khoa để xuất báo cáo BM8 ── */
+let _fKhoaList = [];      // danh sách khoa hiện có
+let _fKhoaSelected = [];  // danh sách khoa ĐANG được chọn (rỗng = Tất cả)
 
 function refreshKhoaFilter(){
   const fromData = [...OUT_DATA_RAW, ...OUT_DATA_CLEAN].map(r=>r[3]).filter(Boolean);
   _fKhoaList = [...new Set([...DEPTS, ...fromData])].sort();
+  // Loại bỏ khỏi danh sách đã chọn những khoa không còn tồn tại trong dữ liệu mới
+  _fKhoaSelected = _fKhoaSelected.filter(d=>_fKhoaList.includes(d));
+  renderFKhoaChips();
   fKhoaRender('');
 }
 
@@ -2155,27 +2154,56 @@ function fKhoaRender(q){
   if(!list) return;
   const filtered = q ? _fKhoaList.filter(d=>d.toLowerCase().includes(q.toLowerCase())) : _fKhoaList;
   list.innerHTML = '';
-  // "Tất cả" always first
+  // "Tất cả / Bỏ chọn tất cả" luôn ở đầu
   const all = document.createElement('div');
-  all.className='ss-opt'; all.textContent='-- Tất cả --'; all.style.color='#aaa';
+  all.className='ss-opt'; all.style.color='#aaa';
+  all.textContent = _fKhoaSelected.length ? '✕ Bỏ chọn tất cả' : '-- Tất cả --';
   all.addEventListener('mousedown', e=>{
     e.preventDefault();
-    const inp=document.getElementById('fKhoa');
-    inp.value=''; inp.dataset.value='';
-    fKhoaClose();
+    _fKhoaSelected=[];
+    renderFKhoaChips();
+    fKhoaRender(document.getElementById('fKhoa').value);
   });
   list.appendChild(all);
+  if(!filtered.length){const d=document.createElement('div');d.className='ss-opt';d.style.color='#aaa';d.textContent='(không có kết quả)';list.appendChild(d);return;}
   filtered.forEach(d=>{
+    const checked=_fKhoaSelected.includes(d);
     const div=document.createElement('div');
-    div.className='ss-opt'; div.textContent=d;
+    div.className='ss-opt';
+    div.innerHTML = `<span style="display:inline-block;width:18px;">${checked?'✅':''}</span>${d}`;
     div.addEventListener('mousedown', e=>{
       e.preventDefault();
-      const inp=document.getElementById('fKhoa');
-      inp.value=d; inp.dataset.value=d;
-      fKhoaClose();
+      if(checked) _fKhoaSelected=_fKhoaSelected.filter(x=>x!==d);
+      else _fKhoaSelected.push(d);
+      renderFKhoaChips();
+      fKhoaRender(document.getElementById('fKhoa').value);
     });
     list.appendChild(div);
   });
+}
+
+function renderFKhoaChips(){
+  const box=document.getElementById('fKhoaChips');
+  const inp=document.getElementById('fKhoa');
+  if(box){
+    box.innerHTML='';
+    _fKhoaSelected.forEach(d=>{
+      const chip=document.createElement('span');
+      chip.style.cssText='background:#e8f0fe;color:#1a4d8f;border-radius:14px;padding:3px 6px 3px 10px;font-size:12px;font-family:Arial,sans-serif;display:inline-flex;align-items:center;gap:6px;';
+      chip.textContent=d;
+      const x=document.createElement('span');
+      x.textContent='✕'; x.title='Bỏ chọn';
+      x.style.cssText='cursor:pointer;font-weight:bold;padding:0 2px;';
+      x.addEventListener('click',()=>{
+        _fKhoaSelected=_fKhoaSelected.filter(v=>v!==d);
+        renderFKhoaChips();
+        fKhoaRender(inp?inp.value:'');
+      });
+      chip.appendChild(x);
+      box.appendChild(chip);
+    });
+  }
+  if(inp) inp.placeholder = _fKhoaSelected.length ? `${_fKhoaSelected.length} khoa đã chọn — gõ để thêm` : '-- Tất cả (có thể chọn nhiều) --';
 }
 
 function fKhoaFilter(q){ fKhoaRender(q); fKhoaOpen(); }
@@ -2186,12 +2214,12 @@ function fKhoaOpen(){
   if(!list||!_fKhoaList.length) return;
   fKhoaRender(inp.value);
   const rect=inp.getBoundingClientRect();
-  const mw=Math.max(rect.width*1.2,180);
+  const mw=Math.max(rect.width*1.8,180);
   let L=rect.left; if(L+mw>window.innerWidth-6) L=Math.max(0,window.innerWidth-mw-6);
   Object.assign(list.style,{top:rect.bottom+'px',left:L+'px',maxWidth:mw+'px',minWidth:rect.width+'px',display:'block'});
 }
 
-function fKhoaClose(){ const l=document.getElementById('fKhoaList'); if(l)l.style.display='none'; }
+function fKhoaClose(){ const l=document.getElementById('fKhoaList'); if(l)l.style.display='none'; const inp=document.getElementById('fKhoa'); if(inp) inp.value=''; }
 
 document.addEventListener('scroll', e=>{
   if(e.target&&e.target.closest&&e.target.closest('#fKhoaList')) return;
