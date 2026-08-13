@@ -1762,7 +1762,7 @@ async function buildReport(){
     const qty=parseFloat((r[10]||'0').toString().replace(',','.'))||0; // Số lượng bao bì của NCC
     const dtp=(r[12]||'').trim();             // Dịch truyền pha 1 ĐVT thuốc
     const tyleRaw=(r[17]||'').toString().trim(); // Tỷ lệ thuốc còn lại trên ĐVT
-    const tyleNum=parseFloat(tyleRaw.replace(/\./g,'').replace(',','.'));
+    const tyleNum=parseFloat(tyleRaw.replace(',','.'));
 
     if(tyleRaw===''){
       g.baoBiTXTT += qty;
