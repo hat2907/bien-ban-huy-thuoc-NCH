@@ -1797,7 +1797,7 @@ async function buildReport(){
       <td style="font-weight:bold;">${g.baoBiKhongSDH||''}</td>
       <td><input></td><td><input></td>
       <td><input></td><td><input></td>
-      <td style="font-weight:bold;">${g.hoanTraKhongSDH||''}</td>
+      <td style="font-weight:bold;">${g.hoanTraKhongSDH?g.hoanTraKhongSDH.toFixed(4):''}</td>
       <td><input></td>`;
     tbody.appendChild(tr);
   });
@@ -1832,13 +1832,18 @@ function exportRptXLSX(){
     '','','',''];
 
   // Body rows — read directly from rptBody (matches exact cell order in buildReport)
+  // Lưu ý: trả về null (không phải '') cho ô trống để Excel tạo ô THỰC SỰ RỖNG.
+  // Nếu trả về '' thì SheetJS ghi thành ô kiểu chữ (text) chứa chuỗi rỗng — trông có vẻ trống
+  // nhưng khi dùng trong công thức tính toán (vd =A5+B5) Excel sẽ báo lỗi #VALUE! vì đó là văn bản,
+  // không phải ô trống thật. Đây chính là nguyên nhân gây lỗi #VALUE! đã gặp.
   const bodyRows=[];
   document.querySelectorAll('#rptBody tr').forEach(row=>{
     bodyRows.push([...row.querySelectorAll('td')].map(td=>{
       const inp=td.querySelector('input');
       const raw=(inp?inp.value:td.innerText).trim();
+      if(raw==='') return null;
       const n=parseFloat(raw.replace(',','.'));
-      return raw===''?'':isNaN(n)?raw:n;
+      return isNaN(n)?raw:n;
     }));
   });
 
@@ -1850,6 +1855,14 @@ function exportRptXLSX(){
     ...bodyRows
   ];
   const ws=XLSX.utils.aoa_to_sheet(aoa);
+
+  // Định dạng cột "Hoàn trả thuốc không sử dụng hết" (cột chỉ số 18) — 4 chữ số thập phân sau dấu phẩy
+  const HDR_ROWS=5; // 2 dòng tiêu đề báo cáo + 1 dòng trống + 2 dòng header bảng
+  bodyRows.forEach((row,i)=>{
+    const ref=XLSX.utils.encode_cell({r:HDR_ROWS+i,c:18});
+    const cell=ws[ref];
+    if(cell && typeof cell.v==='number'){ cell.z='0.0000'; }
+  });
 
   // Column widths
   ws['!cols']=[{wch:5},{wch:22},{wch:14},{wch:9},{wch:10},
@@ -1954,7 +1967,7 @@ function updateTvPreviews(){
     :n;
   const khoa=document.getElementById('khoaInput')?.value?.trim()||'';
   const cosoN=(DEPT_COSO[khoa]||'').trim().toLowerCase();
-  [1,2,3,4].forEach(pos=>{
+  [1,2,3,4,6].forEach(pos=>{
     const m=findMemberForPos(pos,ld,cosoN);
     const ph=m&&m.ten?`VD: ${m.ten}`:'';
     const tvInp=getTvByPos(pos);if(tvInp)tvInp.placeholder=ph;
@@ -1977,7 +1990,7 @@ function autoFillMembers(saveDateStr,khoa){
   const targetDate=new Date(saveDateStr);if(isNaN(targetDate))return;
   const cosoN=(DEPT_COSO[khoa]||'').trim().toLowerCase();
   const allMembers=[];
-  [1,2,3,4].forEach(pos=>{
+  [1,2,3,4,6].forEach(pos=>{
     const inp=getTvByPos(pos);if(!inp)return;
     const manualVal=inp.value.trim();
     if(manualVal){
@@ -1985,7 +1998,7 @@ function autoFillMembers(saveDateStr,khoa){
       allMembers.push({stt:String(pos),ten:manualVal,khoa:'',coSo:'',ngay:''});
       return;
     }
-    // Trống → tự động điền từ lịch
+    // Trống → tự động điền từ lịch (chỉ lấy tên, không hiển thị khoa — trừ vị trí 1-3)
     const m=findMemberForPos(pos,targetDate,cosoN);
     if(m&&m.ten){inp.value=m.ten;inp.classList.toggle('hv',true);}
     if(pos<=3&&m&&m.khoa){
