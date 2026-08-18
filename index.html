@@ -1741,35 +1741,42 @@ async function buildReport(){
   // 0=MSBB 1=Ngày lưu 2=Ngày BB 3=Khoa 4=STT
   // 5=Tên thuốc 6=Hoạt chất 7=Nồng độ 8=Số lô 9=ĐVT
   // 10=Số lượng bao bì của nhà cung cấp
-  // 12=Dịch truyền pha 1 ĐVT thuốc
   // 17=Tỷ lệ thuốc còn lại trên đơn vị tính (Tỷ lệ dư phẩm)
   //
-  // Công thức BM8:
-  // • Bao bì TXTT                    = Σ(Số lượng bao bì NCC)  KHI  Tỷ lệ dư phẩm TRỐNG
-  // • BB TXTT đựng thuốc không SDH   = Σ(Số lượng bao bì NCC)  KHI  Tỷ lệ dư phẩm KHÔNG TRỐNG  &  Dịch truyền pha 1 ĐVT TRỐNG
-  // • BB TXTT đựng thuốc cần hủy     = nhập tay (không tính tự động)
-  // • Hoàn trả thuốc không sử dụng hết = Σ(Tỷ lệ thuốc còn lại trên đơn vị tính)  KHI  Tỷ lệ dư phẩm KHÔNG TRỐNG
+  // Công thức BM8 (đã rà soát lại để tránh bất logic — mỗi dòng dữ liệu luôn được tính vào
+  // đúng 1 hoặc nhiều cột theo CÙNG MỘT điều kiện số học rõ ràng, tránh trường hợp cột này có
+  // số liệu mà cột kia lại trống dù cùng phát sinh từ 1 dòng dữ liệu):
+  // • Bao bì TXTT (tiếp xúc trực tiếp)   = Σ(Số lượng bao bì của nhà cung cấp) — CỘNG TẤT CẢ các dòng, không điều kiện
+  // • BB TXTT đựng thuốc không SDH        = SỐ DÒNG có Tỷ lệ dư phẩm > 0
+  // • Hoàn trả thuốc không sử dụng hết    = Σ(Tỷ lệ dư phẩm)  của các dòng có Tỷ lệ dư phẩm > 0
+  // • BB TXTT đựng thuốc cần hủy          = nhập tay (không tính tự động)
   const groups={};
-  const order=[];
   filtered.forEach(r=>{
     const key=[r[5],r[6],r[7],r[8],r[9]].join('||');
     if(!groups[key]){
       groups[key]={tenThuoc:r[5],hoatChat:r[6],nongDo:r[7],soLo:r[8],dvt:r[9],
         baoBiTXTT:0,baoBiKhongSDH:0,hoanTraKhongSDH:0};
-      order.push(key);
     }
     const g=groups[key];
     const qty=parseFloat((r[10]||'0').toString().replace(',','.'))||0; // Số lượng bao bì của NCC
-    const dtp=(r[12]||'').trim();             // Dịch truyền pha 1 ĐVT thuốc
-    const tyleRaw=(r[17]||'').toString().trim(); // Tỷ lệ thuốc còn lại trên ĐVT
+    const tyleRaw=(r[17]||'').toString().trim();                       // Tỷ lệ dư phẩm
     const tyleNum=parseFloat(tyleRaw.replace(',','.'));
+    const tyleValid=!isNaN(tyleNum) && tyleNum>0;
 
-    if(tyleRaw===''){
-      g.baoBiTXTT += qty;
-    }else{
-      if(dtp==='') g.baoBiKhongSDH += qty;
-      if(!isNaN(tyleNum)) g.hoanTraKhongSDH += tyleNum;
+    g.baoBiTXTT += qty; // luôn cộng — không điều kiện
+
+    if(tyleValid){
+      g.baoBiKhongSDH += 1;          // đếm số dòng có tỷ lệ dư phẩm > 0
+      g.hoanTraKhongSDH += tyleNum;  // cộng tổng tỷ lệ dư phẩm của các dòng đó
     }
+  });
+
+  // Sắp xếp theo alphabet Hoạt chất, cùng hoạt chất thì theo alphabet Tên thuốc
+  const order=Object.keys(groups).sort((ka,kb)=>{
+    const a=groups[ka], b=groups[kb];
+    const hc=(a.hoatChat||'').localeCompare(b.hoatChat||'','vi',{sensitivity:'base'});
+    if(hc!==0) return hc;
+    return (a.tenThuoc||'').localeCompare(b.tenThuoc||'','vi',{sensitivity:'base'});
   });
 
   // Format date for display
