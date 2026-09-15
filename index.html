@@ -2213,41 +2213,49 @@ async function reviewApproveAll(){
   btn.disabled=true;
   showSaveOverlay(); // màn xám mờ + vòng loading, giống trạng thái đang lưu biên bản
 
-  // Gửi TẤT CẢ biên bản trong CÙNG 1 REQUEST DUY NHẤT (action=reviewBienBanBatch) thay vì gọi
-  // riêng lẻ (tuần tự hay song song) từng biên bản một. Lý do: Apps Script xử lý ghi Sheet
-  // TUẦN TỰ qua LockService — gửi song song nhiều request cùng lúc khiến chúng TRANH NHAU cùng
-  // 1 khoá, và với danh sách dài (>10), phần lớn request hết hạn chờ khoá và báo lỗi
-  // "Exception: Thời gian chờ khóa…" — đúng như lỗi đã gặp. Gộp thành 1 request duy nhất giúp
-  // Apps Script xử lý toàn bộ trong ĐÚNG 1 LẦN khoá + 1 lần đọc/ghi Sheet, không còn tranh chấp,
-  // và tổng thời gian không còn phụ thuộc vào số lượng biên bản.
-  if(statusEl){ statusEl.textContent=`⏳ Đang cập nhật ${pendingItems.length} biên bản…`; statusEl.style.color='#888'; }
-  let result;
-  try{
-    result=await postToScript_({
-      action:'reviewBienBanBatch',
-      items: pendingItems.map(item=>({
-        msbb:item.msbb, newStatus:item.pending.newStatus,
-        editedRows:item.pending.editedRows, auditEntry:item.pending.auditEntry
-      }))
-    });
-  }catch(e){
-    result={status:'error', message:e.message};
+  // Gửi theo LÔ (chunk) — mỗi lô tối đa 15 biên bản, các lô gửi TUẦN TỰ (lô sau chờ lô trước
+  // xong). Lý do cần chia lô thay vì gộp TẤT CẢ vào 1 request duy nhất: nếu danh sách rất dài,
+  // 1 request xử lý quá nhiều dữ liệu có thể vượt quá thời gian thực thi cho phép của Apps
+  // Script, khiến nó trả về trang lỗi HTML thay vì JSON (lỗi "Unexpected token '<'" đã gặp).
+  // Trong khi đó, gửi SONG SONG nhiều request nhỏ lại gây tranh chấp khoá (lỗi "Lock timeout"
+  // đã gặp trước đó). Chia lô tuần tự dung hoà cả 2: vẫn giảm đáng kể số lần gọi (nhanh hơn gửi
+  // từng cái một), mà mỗi lần gọi lại đủ nhỏ để không vượt giới hạn thời gian thực thi, và không
+  // có 2 request nào cùng tranh 1 khoá tại 1 thời điểm.
+  const CHUNK_SIZE=15;
+  const chunks=[];
+  for(let i=0;i<pendingItems.length;i+=CHUNK_SIZE) chunks.push(pendingItems.slice(i,i+CHUNK_SIZE));
+
+  const resultByMsbb={};
+  let batchError=null;
+  let doneCount=0;
+  for(const chunk of chunks){
+    if(statusEl){ statusEl.textContent=`⏳ Đang cập nhật ${doneCount}/${pendingItems.length}…`; statusEl.style.color='#888'; }
+    let result;
+    try{
+      result=await postToScript_({
+        action:'reviewBienBanBatch',
+        items: chunk.map(item=>({
+          msbb:item.msbb, newStatus:item.pending.newStatus,
+          editedRows:item.pending.editedRows, auditEntry:item.pending.auditEntry
+        }))
+      });
+    }catch(e){
+      result={status:'error', message:e.message};
+    }
+    if(result.status!=='ok'){
+      // Lô này lỗi toàn bộ (vd sai cấu hình Sheet, hoặc vẫn hết hạn khoá) — đánh dấu lỗi cho từng
+      // biên bản trong lô này, KHÔNG dừng hẳn — vẫn tiếp tục xử lý các lô còn lại.
+      chunk.forEach(item=>{ resultByMsbb[item.msbb]={status:'error', message:result.message||'Lỗi không xác định.'}; });
+      batchError=result.message;
+    }else{
+      (result.results||[]).forEach(r=>{ resultByMsbb[r.msbb]=r; });
+    }
+    doneCount+=chunk.length;
   }
   hideSaveOverlay();
 
-  if(result.status!=='ok'){
-    // Lỗi ở tầm request chung (vd sai cấu hình Sheet) — không biên bản nào được ghi
-    pendingItems.forEach(item=>{ item._lastError=result.message||'Lỗi không xác định.'; });
-    if(statusEl){ statusEl.textContent='🔴 Không cập nhật được: '+(result.message||'Lỗi không xác định.'); statusEl.style.color='#c0392b'; }
-    btn.disabled=false;
-    renderReviewList();
-    return;
-  }
-
   let okCount=0, failCount=0;
   const failedMsbbs=[];
-  const resultByMsbb={};
-  (result.results||[]).forEach(r=>{ resultByMsbb[r.msbb]=r; });
   pendingItems.forEach(item=>{
     const r=resultByMsbb[item.msbb];
     if(r && r.status==='ok'){
