@@ -2213,52 +2213,68 @@ async function reviewApproveAll(){
   btn.disabled=true;
   showSaveOverlay(); // màn xám mờ + vòng loading, giống trạng thái đang lưu biên bản
 
-  // Gửi TẤT CẢ yêu cầu SONG SONG (Promise.allSettled) thay vì tuần tự từng cái —
-  // phần chậm chủ yếu do ĐỘ TRỄ MẠNG/khởi động của Apps Script cho MỖI request riêng lẻ
-  // (khoảng vài giây/lần, không phụ thuộc dữ liệu), nên gửi song song giúp giảm đáng kể
-  // tổng thời gian chờ (không còn cộng dồn độ trễ mạng của từng biên bản một).
-  let done=0;
-  if(statusEl){ statusEl.textContent=`⏳ Đang cập nhật 0/${pendingItems.length}…`; statusEl.style.color='#888'; }
-  const settled=await Promise.allSettled(pendingItems.map(async item=>{
-    const {newStatus,editedRows,auditEntry}=item.pending;
-    let result;
-    try{
-      result=await postToScript_({action:'reviewBienBan', msbb:item.msbb, newStatus, editedRows, auditEntry});
-    }catch(e){
-      result={status:'error',message:e.message};
-    }
-    done++;
-    if(statusEl) statusEl.textContent=`⏳ Đang cập nhật ${done}/${pendingItems.length}…`;
-    if(result.status==='ok'){
+  // Gửi TẤT CẢ biên bản trong CÙNG 1 REQUEST DUY NHẤT (action=reviewBienBanBatch) thay vì gọi
+  // riêng lẻ (tuần tự hay song song) từng biên bản một. Lý do: Apps Script xử lý ghi Sheet
+  // TUẦN TỰ qua LockService — gửi song song nhiều request cùng lúc khiến chúng TRANH NHAU cùng
+  // 1 khoá, và với danh sách dài (>10), phần lớn request hết hạn chờ khoá và báo lỗi
+  // "Exception: Thời gian chờ khóa…" — đúng như lỗi đã gặp. Gộp thành 1 request duy nhất giúp
+  // Apps Script xử lý toàn bộ trong ĐÚNG 1 LẦN khoá + 1 lần đọc/ghi Sheet, không còn tranh chấp,
+  // và tổng thời gian không còn phụ thuộc vào số lượng biên bản.
+  if(statusEl){ statusEl.textContent=`⏳ Đang cập nhật ${pendingItems.length} biên bản…`; statusEl.style.color='#888'; }
+  let result;
+  try{
+    result=await postToScript_({
+      action:'reviewBienBanBatch',
+      items: pendingItems.map(item=>({
+        msbb:item.msbb, newStatus:item.pending.newStatus,
+        editedRows:item.pending.editedRows, auditEntry:item.pending.auditEntry
+      }))
+    });
+  }catch(e){
+    result={status:'error', message:e.message};
+  }
+  hideSaveOverlay();
+
+  if(result.status!=='ok'){
+    // Lỗi ở tầm request chung (vd sai cấu hình Sheet) — không biên bản nào được ghi
+    pendingItems.forEach(item=>{ item._lastError=result.message||'Lỗi không xác định.'; });
+    if(statusEl){ statusEl.textContent='🔴 Không cập nhật được: '+(result.message||'Lỗi không xác định.'); statusEl.style.color='#c0392b'; }
+    btn.disabled=false;
+    renderReviewList();
+    return;
+  }
+
+  let okCount=0, failCount=0;
+  const failedMsbbs=[];
+  const resultByMsbb={};
+  (result.results||[]).forEach(r=>{ resultByMsbb[r.msbb]=r; });
+  pendingItems.forEach(item=>{
+    const r=resultByMsbb[item.msbb];
+    if(r && r.status==='ok'){
+      okCount++;
       item._committed=true;
+      const {newStatus,editedRows,auditEntry}=item.pending;
       // Vá luôn OUT_DATA_RAW để các màn khác (danh sách khoa, popup xem/in) phản ánh đúng ngay lập tức
-      OUT_DATA_RAW.forEach(r=>{
-        if(r[0]===item.msbb){
-          r[33]=newStatus;
-          try{ const arr=r[34]?JSON.parse(r[34]):[]; arr.push(auditEntry); r[34]=JSON.stringify(arr); }
-          catch(e){ r[34]=JSON.stringify([auditEntry]); }
+      OUT_DATA_RAW.forEach(row=>{
+        if(row[0]===item.msbb){
+          row[33]=newStatus;
+          try{ const arr=row[34]?JSON.parse(row[34]):[]; arr.push(auditEntry); row[34]=JSON.stringify(arr); }
+          catch(e){ row[34]=JSON.stringify([auditEntry]); }
           if(editedRows){
-            const stt=parseInt(r[4])||0;
+            const stt=parseInt(row[4])||0;
             const matched=editedRows.find(er=>(parseInt(er[4])||0)===stt);
-            if(matched){ for(let c=5;c<=20;c++) r[c]=matched[c]; }
+            if(matched){ for(let c=5;c<=20;c++) row[c]=matched[c]; }
           }
         }
       });
-      return {ok:true, msbb:item.msbb};
     }else{
+      failCount++;
+      failedMsbbs.push(item.msbb);
       item.pending=null; // reset lựa chọn để tránh gửi lại y hệt lỗi cũ, admin có thể chọn lại thao tác
-      item._lastError=result.message||'Lỗi không xác định.';
-      return {ok:false, msbb:item.msbb, message:result.message};
+      item._lastError = r?r.message:'Không có phản hồi cho biên bản này.';
     }
-  }));
-
-  hideSaveOverlay();
-  let okCount=0, failCount=0;
-  const failedMsbbs=[];
-  settled.forEach(s=>{
-    const v = s.status==='fulfilled' ? s.value : {ok:false, msbb:'?', message:s.reason?.message};
-    if(v.ok) okCount++; else { failCount++; failedMsbbs.push(v.msbb); }
   });
+
   if(statusEl){
     statusEl.textContent = failCount
       ? `⚠️ Đã ghi thành công ${okCount}/${pendingItems.length} biên bản. ${failCount} biên bản LỖI (${failedMsbbs.join(', ')}) — xem chi tiết lỗi ngay tại từng dòng.`
