@@ -858,7 +858,10 @@ tr.note-row td{padding:4px 10px;border-top:1px dashed #ddd;}
       <div id="reviewErr" class="login-err" style="margin-top:10px;"></div>
     </div>
     <div class="acard">
-      <h2>Danh sách biên bản đang xử lý</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <h2 style="margin:0;">Danh sách biên bản đang xử lý</h2>
+        <span id="reviewCountBadge" style="background:#eef2ff;color:#1a4d8f;font-weight:700;font-size:12.5px;font-family:Arial,sans-serif;padding:5px 12px;border-radius:14px;white-space:nowrap;">0 biên bản</span>
+      </div>
       <div style="margin:10px 0 4px;">
         <button class="btn btn-gh" onclick="syncReviewData()" id="btnReviewSync">🔄 Đồng bộ lại</button>
         <button class="btn" style="background:#1e7d52;color:#fff;font-weight:700;" onclick="reviewApproveAll()" id="btnReviewApproveAll">✅ Duyệt toàn bộ danh sách</button>
@@ -1898,15 +1901,30 @@ async function submitBoDeNghiHuy(){
    trước đây dùng no-cors nên request có thể gửi đi nhưng KHÔNG BIẾT được là Apps Script
    có xử lý thành công hay không, dẫn tới các trường hợp "đã bấm nhưng Sheet không cập nhật"
    mà không ai phát hiện ra. Giờ luôn đọc JSON phản hồi để biết chắc chắn đã ghi vào Sheet chưa. */
-async function postToScript_(payload){
+/* Gửi request lên Apps Script — TỰ ĐỘNG THỬ LẠI tối đa 2 lần nếu lỗi. Lý do cần thử lại:
+   Google Apps Script Web App đôi khi phản hồi 1 request POST bằng CHUYỂN HƯỚNG (redirect),
+   và trong một số trường hợp hiếm, trình duyệt lại gửi lại request đó dưới dạng GET không có
+   tham số action đúng (gây lỗi "Không xác định được action (GET)"), hoặc trả về nội dung
+   không phải JSON hợp lệ (gây lỗi "Unexpected token '<'") — đây là lỗi CHẬP CHỜN do hạ tầng
+   phía Google, không phải do dữ liệu sai. Gọi lại y hệt request đó gần như luôn thành công. */
+async function postToScript_(payload, _attempt){
+  _attempt = _attempt || 0;
   const su=localStorage.getItem('scriptUrl');
   if(!su) return {status:'error', message:'Chưa cấu hình URL Apps Script (vào Trang chủ → Dữ liệu & Cấu hình).'};
+  const MAX_RETRY=2;
   try{
     const res=await fetch(su,{method:'POST',body:JSON.stringify(payload)});
     const data=await res.json();
+    if(!data || typeof data.status!=='string'){
+      throw new Error('Phản hồi không hợp lệ từ Apps Script.');
+    }
     return data;
   }catch(e){
-    return {status:'error', message:'Không đọc được phản hồi từ Apps Script: '+e.message+'. Kiểm tra lại đã Deploy Web app (Execute as: Me, Who has access: Anyone) và URL cấu hình đúng chưa.'};
+    if(_attempt<MAX_RETRY){
+      await new Promise(r=>setTimeout(r, 500*(_attempt+1))); // chờ ngắn rồi thử lại
+      return postToScript_(payload, _attempt+1);
+    }
+    return {status:'error', message:'Không đọc được phản hồi từ Apps Script sau '+(MAX_RETRY+1)+' lần thử: '+e.message+'. Kiểm tra lại đã Deploy Web app (Execute as: Me, Who has access: Anyone) và URL cấu hình đúng chưa.'};
   }
 }
 
@@ -2067,6 +2085,8 @@ function closeAuditHistoryModal(){
 
 function renderReviewList(){
   const tbody=document.getElementById('reviewListBody');
+  const countBadge=document.getElementById('reviewCountBadge');
+  if(countBadge) countBadge.textContent=`${_reviewMsbbList.length} biên bản`;
   if(!_reviewMsbbList.length){ tbody.innerHTML='<tr><td colspan="7" style="padding:20px;text-align:center;color:#999;">Chưa có biên bản nào — nhập MSBB ở trên để tra cứu.</td></tr>'; return; }
   tbody.innerHTML='';
   _reviewMsbbList.forEach((item,idx)=>{
@@ -2221,7 +2241,7 @@ async function reviewApproveAll(){
   // đã gặp trước đó). Chia lô tuần tự dung hoà cả 2: vẫn giảm đáng kể số lần gọi (nhanh hơn gửi
   // từng cái một), mà mỗi lần gọi lại đủ nhỏ để không vượt giới hạn thời gian thực thi, và không
   // có 2 request nào cùng tranh 1 khoá tại 1 thời điểm.
-  const CHUNK_SIZE=15;
+  const CHUNK_SIZE=8; // giảm kích thước lô để có phản hồi tiến trình sát thực tế hơn + giảm rủi ro lỗi chập chờn mỗi lần gọi
   const chunks=[];
   for(let i=0;i<pendingItems.length;i+=CHUNK_SIZE) chunks.push(pendingItems.slice(i,i+CHUNK_SIZE));
 
@@ -2251,6 +2271,7 @@ async function reviewApproveAll(){
       (result.results||[]).forEach(r=>{ resultByMsbb[r.msbb]=r; });
     }
     doneCount+=chunk.length;
+    if(statusEl){ statusEl.textContent=`⏳ Đã xong ${doneCount}/${pendingItems.length}…`; statusEl.style.color='#888'; }
   }
   hideSaveOverlay();
 
